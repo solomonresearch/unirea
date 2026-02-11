@@ -23,8 +23,8 @@ export function ProfileSection({ title, icon, children, editContent, onSave }: P
   }
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-4">
-      <div className="flex items-center justify-between mb-3">
+    <div className="rounded-xl border border-gray-200 bg-white px-3 py-2.5">
+      <div className="flex items-center justify-between mb-2">
         <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
           {icon}
           {title}

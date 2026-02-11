@@ -122,7 +122,7 @@ export default function ProfilPage() {
 
   return (
     <main className="flex min-h-screen flex-col items-center px-6 py-6">
-      <div className="w-full max-w-sm space-y-5">
+      <div className="w-full max-w-sm space-y-3">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
