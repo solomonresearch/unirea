@@ -5,13 +5,19 @@ import { useRouter } from 'next/navigation'
 import { Logo } from '@/components/Logo'
 import { Fireworks } from '@/components/Fireworks'
 import { getSupabase } from '@/lib/supabase'
-import { LogOut, Loader2 } from 'lucide-react'
+import { LogOut, Loader2, Briefcase, MapPin, Heart } from 'lucide-react'
 
 interface Profile {
   name: string
   username: string
   highschool: string
   graduation_year: number
+  onboarding_completed: boolean
+  profession: string | null
+  country: string | null
+  city: string | null
+  hobbies: string[] | null
+  bio: string | null
 }
 
 export default function WelcomePage() {
@@ -19,6 +25,7 @@ export default function WelcomePage() {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
   const [showFireworks, setShowFireworks] = useState(true)
+  const [redirecting, setRedirecting] = useState(false)
 
   useEffect(() => {
     const timer = setTimeout(() => setShowFireworks(false), 4000)
@@ -37,9 +44,17 @@ export default function WelcomePage() {
 
       const { data } = await supabase
         .from('profiles')
-        .select('name, username, highschool, graduation_year')
+        .select('name, username, highschool, graduation_year, onboarding_completed, profession, country, city, hobbies, bio')
         .eq('id', user.id)
         .single()
+
+      if (data && !data.onboarding_completed) {
+        setRedirecting(true)
+        setTimeout(() => router.push('/onboarding'), 4500)
+        setProfile(data)
+        setLoading(false)
+        return
+      }
 
       setProfile(data)
       setLoading(false)
@@ -85,7 +100,9 @@ export default function WelcomePage() {
               Bun venit{profile ? `, ${profile.name}` : ''}!
             </h1>
             <p className="text-gray-500 text-sm">
-              Te-ai conectat cu succes la Unirea
+              {redirecting
+                ? 'Te redirectionam sa iti completezi profilul...'
+                : 'Te-ai conectat cu succes la Unirea'}
             </p>
           </div>
 
@@ -103,6 +120,24 @@ export default function WelcomePage() {
                 <span className="text-gray-500">Promotia</span>
                 <span className="font-medium text-gray-900">{profile.graduation_year}</span>
               </div>
+              {profile.profession && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500 flex items-center gap-1"><Briefcase size={12} /> Profesie</span>
+                  <span className="font-medium text-gray-900">{profile.profession}</span>
+                </div>
+              )}
+              {(profile.city || profile.country) && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500 flex items-center gap-1"><MapPin size={12} /> Locatie</span>
+                  <span className="font-medium text-gray-900">{[profile.city, profile.country].filter(Boolean).join(', ')}</span>
+                </div>
+              )}
+              {profile.hobbies && profile.hobbies.length > 0 && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500 flex items-center gap-1"><Heart size={12} /> Hobby-uri</span>
+                  <span className="font-medium text-gray-900 text-right">{profile.hobbies.join(', ')}</span>
+                </div>
+              )}
             </div>
           )}
         </div>
