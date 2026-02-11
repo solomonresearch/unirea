@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Logo } from '@/components/Logo'
+import { Fireworks } from '@/components/Fireworks'
 import { getSupabase } from '@/lib/supabase'
 import { LogOut, Loader2 } from 'lucide-react'
 
@@ -17,6 +18,12 @@ export default function WelcomePage() {
   const router = useRouter()
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
+  const [showFireworks, setShowFireworks] = useState(true)
+
+  useEffect(() => {
+    const timer = setTimeout(() => setShowFireworks(false), 4000)
+    return () => clearTimeout(timer)
+  }, [])
 
   useEffect(() => {
     async function loadProfile() {
@@ -56,6 +63,7 @@ export default function WelcomePage() {
 
   return (
     <main className="flex min-h-screen flex-col items-center px-6 py-8">
+      {showFireworks && <Fireworks duration={4000} />}
       <div className="w-full max-w-sm space-y-8">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
