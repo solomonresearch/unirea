@@ -154,7 +154,7 @@ export default function ProfilPage() {
             <p className="text-sm text-gray-500">@{profile.username}</p>
             <p className="text-xs text-gray-400 mt-0.5">
               <GraduationCap size={12} className="inline mr-1" />
-              {profile.highschool} &bull; {profile.graduation_year}{profile.class ? ` \u2022 Clasa ${profile.class}` : ''}
+              {profile.highschool} &bull; <span className="font-bold text-gray-600">{profile.graduation_year}{profile.class ? `${profile.class}` : ''}</span>
             </p>
 
             {editingLocation ? (
