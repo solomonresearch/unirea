@@ -1,11 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Logo } from '@/components/Logo'
 import { getSupabase } from '@/lib/supabase'
-import { User, Mail, Phone, GraduationCap, Calendar, AtSign, Loader2, ArrowLeft, Lock } from 'lucide-react'
+import { User, Mail, Phone, GraduationCap, Calendar, AtSign, Loader2, ArrowLeft, Lock, MapPin, Building } from 'lucide-react'
 
 export default function SignupPage() {
   const router = useRouter()
@@ -17,12 +17,79 @@ export default function SignupPage() {
     email: '',
     password: '',
     phone: '',
+    judet: '',
+    localitate: '',
     highschool: '',
     graduation_year: '',
   })
 
+  const [judete, setJudete] = useState<string[]>([])
+  const [localitati, setLocalitati] = useState<string[]>([])
+  const [scoli, setScoli] = useState<string[]>([])
+  const [loadingScoli, setLoadingScoli] = useState(false)
+
+  // Load judete on mount
+  useEffect(() => {
+    async function loadJudete() {
+      const { data } = await getSupabase()
+        .from('schools')
+        .select('judet_pj')
+        .order('judet_pj')
+      if (data) {
+        const unique = [...new Set(data.map(r => r.judet_pj).filter(Boolean))]
+        setJudete(unique)
+      }
+    }
+    loadJudete()
+  }, [])
+
+  // Load localitati when judet changes
+  useEffect(() => {
+    if (!form.judet) { setLocalitati([]); return }
+    setLoadingScoli(true)
+    async function loadLocalitati() {
+      const { data } = await getSupabase()
+        .from('schools')
+        .select('localitate_unitate')
+        .eq('judet_pj', form.judet)
+        .order('localitate_unitate')
+      if (data) {
+        const unique = [...new Set(data.map(r => r.localitate_unitate).filter(Boolean))]
+        setLocalitati(unique)
+      }
+      setLoadingScoli(false)
+    }
+    loadLocalitati()
+  }, [form.judet])
+
+  // Load scoli when localitate changes
+  useEffect(() => {
+    if (!form.localitate || !form.judet) { setScoli([]); return }
+    setLoadingScoli(true)
+    async function loadScoli() {
+      const { data } = await getSupabase()
+        .from('schools')
+        .select('denumire_lunga_unitate')
+        .eq('judet_pj', form.judet)
+        .eq('localitate_unitate', form.localitate)
+        .order('denumire_lunga_unitate')
+      if (data) {
+        const unique = [...new Set(data.map(r => r.denumire_lunga_unitate).filter(Boolean))]
+        setScoli(unique)
+      }
+      setLoadingScoli(false)
+    }
+    loadScoli()
+  }, [form.judet, form.localitate])
+
   function updateField(field: string, value: string) {
-    setForm(prev => ({ ...prev, [field]: value }))
+    setForm(prev => {
+      const next = { ...prev, [field]: value }
+      // Reset dependent fields
+      if (field === 'judet') { next.localitate = ''; next.highschool = '' }
+      if (field === 'localitate') { next.highschool = '' }
+      return next
+    })
   }
 
   async function handleSignup(e: React.FormEvent) {
@@ -62,7 +129,8 @@ export default function SignupPage() {
 
   const currentYear = new Date().getFullYear()
   const inputClass = "w-full rounded-lg border border-gray-300 pl-9 pr-3 py-2.5 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none"
-  const iconClass = "absolute left-3 top-2.5 text-gray-400"
+  const selectClass = "w-full rounded-lg border border-gray-300 pl-9 pr-3 py-2.5 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none appearance-none bg-white"
+  const iconClass = "absolute left-3 top-2.5 text-gray-400 pointer-events-none"
 
   return (
     <main className="flex min-h-screen flex-col items-center px-5 py-4">
@@ -109,8 +177,27 @@ export default function SignupPage() {
           </div>
 
           <div className="relative">
+            <MapPin size={15} className={iconClass} />
+            <select required value={form.judet} onChange={e => updateField('judet', e.target.value)} className={selectClass}>
+              <option value="">Judetul</option>
+              {judete.map(j => <option key={j} value={j}>{j}</option>)}
+            </select>
+          </div>
+
+          <div className="relative">
+            <Building size={15} className={iconClass} />
+            <select required value={form.localitate} onChange={e => updateField('localitate', e.target.value)} disabled={!form.judet} className={`${selectClass} ${!form.judet ? 'opacity-50' : ''}`}>
+              <option value="">Localitatea</option>
+              {localitati.map(l => <option key={l} value={l}>{l}</option>)}
+            </select>
+          </div>
+
+          <div className="relative">
             <GraduationCap size={15} className={iconClass} />
-            <input type="text" required value={form.highschool} onChange={e => updateField('highschool', e.target.value)} placeholder="Liceul" className={inputClass} />
+            <select required value={form.highschool} onChange={e => updateField('highschool', e.target.value)} disabled={!form.localitate} className={`${selectClass} ${!form.localitate ? 'opacity-50' : ''}`}>
+              <option value="">{loadingScoli ? 'Se incarca...' : 'Liceul'}</option>
+              {scoli.map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
           </div>
 
           <div className="relative">
