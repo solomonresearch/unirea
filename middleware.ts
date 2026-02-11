@@ -26,12 +26,17 @@ export async function middleware(request: NextRequest) {
 
   // Redirect authenticated users away from auth pages
   if (user && (request.nextUrl.pathname === '/autentificare' || request.nextUrl.pathname === '/inregistrare')) {
-    return NextResponse.redirect(new URL('/bun-venit', request.url))
+    return NextResponse.redirect(new URL('/tabla', request.url))
+  }
+
+  // Protect /profil and /tabla — redirect unauthenticated users to login
+  if (!user && ['/profil', '/tabla', '/setari'].includes(request.nextUrl.pathname)) {
+    return NextResponse.redirect(new URL('/autentificare', request.url))
   }
 
   return response
 }
 
 export const config = {
-  matcher: ['/autentificare', '/inregistrare'],
+  matcher: ['/autentificare', '/inregistrare', '/profil', '/tabla', '/setari'],
 }
