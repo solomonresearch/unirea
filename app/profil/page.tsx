@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { Logo } from '@/components/Logo'
 import { Avatar } from '@/components/Avatar'
 import { ProfileSection } from '@/components/ProfileSection'
@@ -16,7 +17,7 @@ import { getSupabase } from '@/lib/supabase'
 import {
   LogOut, Loader2, Sparkles, Briefcase, Layers,
   MapPin, Globe, Building, Heart, Mail, Phone,
-  GraduationCap, Pencil,
+  GraduationCap, Pencil, BookOpen,
 } from 'lucide-react'
 
 interface Profile {
@@ -27,6 +28,7 @@ interface Profile {
   phone: string | null
   highschool: string
   graduation_year: number
+  class: string | null
   profession: string[]
   domain: string[]
   country: string
@@ -152,7 +154,7 @@ export default function ProfilPage() {
             <p className="text-sm text-gray-500">@{profile.username}</p>
             <p className="text-xs text-gray-400 mt-0.5">
               <GraduationCap size={12} className="inline mr-1" />
-              {profile.highschool} &bull; {profile.graduation_year}
+              {profile.highschool} &bull; {profile.graduation_year}{profile.class ? ` \u2022 Clasa ${profile.class}` : ''}
             </p>
 
             {editingLocation ? (
@@ -227,6 +229,17 @@ export default function ProfilPage() {
             )}
           </div>
         </div>
+
+        {/* Tabla Link */}
+        {profile.class && (
+          <Link
+            href="/tabla"
+            className="flex items-center justify-center gap-2 w-full rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-gray-800 transition-colors"
+          >
+            <BookOpen size={16} />
+            Tabla clasei
+          </Link>
+        )}
 
         {/* Bio Section */}
         <ProfileSection

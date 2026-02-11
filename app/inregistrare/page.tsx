@@ -22,6 +22,7 @@ export default function SignupPage() {
     localitate: '',
     highschool: '',
     graduation_year: '',
+    class: '',
   })
 
   const [judete, setJudete] = useState<string[]>([])
@@ -95,6 +96,7 @@ export default function SignupPage() {
         phone: form.phone || null,
         highschool: form.highschool,
         graduation_year: parseInt(form.graduation_year),
+        class: form.class,
       })
 
       if (profileError) throw profileError
@@ -186,9 +188,26 @@ export default function SignupPage() {
             bold
           />
 
-          <div className="relative">
-            <Calendar size={15} className={iconClass} />
-            <input type="number" required min={1950} max={currentYear} value={form.graduation_year} onChange={e => updateField('graduation_year', e.target.value)} placeholder="Anul absolvirii" className={inputClass} />
+          <div className="grid grid-cols-2 gap-2.5">
+            <div className="relative">
+              <Calendar size={15} className={iconClass} />
+              <input type="number" required min={1950} max={currentYear} value={form.graduation_year} onChange={e => updateField('graduation_year', e.target.value)} placeholder="Anul absolvirii" className={inputClass} />
+            </div>
+
+            <div className="relative">
+              <GraduationCap size={15} className={iconClass} />
+              <select
+                required
+                value={form.class}
+                onChange={e => updateField('class', e.target.value)}
+                className={`${inputClass} appearance-none font-bold ${!form.class ? 'text-gray-400' : 'text-gray-900'}`}
+              >
+                <option value="" disabled>Clasa</option>
+                {['A','B','C','D','E','F','G','H','I','J','K','L'].map(c => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+            </div>
           </div>
 
           <button
