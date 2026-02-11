@@ -99,7 +99,7 @@ export default function SignupPage() {
 
       if (profileError) throw profileError
 
-      router.push('/profil')
+      window.location.href = '/profil'
     } catch (err: any) {
       setError(err.message || 'A aparut o eroare')
     } finally {

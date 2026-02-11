@@ -28,7 +28,7 @@ export default function LoginPage() {
 
       if (signInError) throw signInError
 
-      router.push('/profil')
+      window.location.href = '/profil'
     } catch (err: any) {
       setError(err.message || 'Email sau parola incorecta')
     } finally {
