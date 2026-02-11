@@ -231,11 +231,11 @@ export default function TablaPage() {
         {/* Header */}
         <div className="flex items-center gap-2">
           <Logo size={28} />
-          <div className="flex items-baseline gap-2">
-            <span className="text-lg font-bold text-white">Tabla</span>
-            <span className="text-[10px] text-gray-500">
+          <div className="min-w-0">
+            <span className="text-lg font-bold leading-tight text-white">Tabla</span>
+            <p className="text-[10px] leading-tight text-gray-500 truncate">
               {profile.highschool} &bull; <span className="font-bold text-gray-300">{profile.graduation_year}</span> &bull; <span className="font-bold text-gray-300">Clasa {profile.class}</span>
-            </span>
+            </p>
           </div>
         </div>
 
