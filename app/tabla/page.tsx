@@ -112,6 +112,7 @@ export default function TablaPage() {
       .from('posts')
       .select('id, content, created_at, user_id, profiles(name)')
       .in('user_id', classmateIds)
+      .is('deleted_at', null)
       .order('created_at', { ascending: false })
 
     if (!rawPosts) return
@@ -120,7 +121,7 @@ export default function TablaPage() {
 
     const [votesRes, commentsRes] = await Promise.all([
       supabase.from('post_votes').select('post_id, vote, user_id').in('post_id', postIds),
-      supabase.from('comments').select('id, post_id, content, created_at, user_id, profiles(name)').in('post_id', postIds).order('created_at', { ascending: true }),
+      supabase.from('comments').select('id, post_id, content, created_at, user_id, profiles(name)').in('post_id', postIds).is('deleted_at', null).order('created_at', { ascending: true }),
     ])
 
     const votes = votesRes.data || []
@@ -163,7 +164,7 @@ export default function TablaPage() {
 
   async function handleDelete(postId: string) {
     if (!profile) return
-    await getSupabase().from('posts').delete().eq('id', postId)
+    await getSupabase().from('posts').update({ deleted_at: new Date().toISOString() }).eq('id', postId)
     await loadPosts(profile)
   }
 
@@ -201,7 +202,7 @@ export default function TablaPage() {
 
   async function handleDeleteComment(commentId: string) {
     if (!profile) return
-    await getSupabase().from('comments').delete().eq('id', commentId)
+    await getSupabase().from('comments').update({ deleted_at: new Date().toISOString() }).eq('id', commentId)
     await loadPosts(profile)
   }
 
