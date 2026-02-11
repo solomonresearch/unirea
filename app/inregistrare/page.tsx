@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Logo } from '@/components/Logo'
 import { getSupabase } from '@/lib/supabase'
+import { SearchSelect } from '@/components/SearchSelect'
 import { User, Mail, Phone, GraduationCap, Calendar, AtSign, Loader2, ArrowLeft, Lock, MapPin, Building } from 'lucide-react'
 
 export default function SignupPage() {
@@ -129,7 +130,6 @@ export default function SignupPage() {
 
   const currentYear = new Date().getFullYear()
   const inputClass = "w-full rounded-lg border border-gray-300 pl-9 pr-3 py-2.5 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none"
-  const selectClass = "w-full rounded-lg border border-gray-300 pl-9 pr-3 py-2.5 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none appearance-none bg-white"
   const iconClass = "absolute left-3 top-2.5 text-gray-400 pointer-events-none"
 
   return (
@@ -176,29 +176,34 @@ export default function SignupPage() {
             <input type="tel" value={form.phone} onChange={e => updateField('phone', e.target.value)} placeholder="Telefon (optional)" className={inputClass} />
           </div>
 
-          <div className="relative">
-            <MapPin size={15} className={iconClass} />
-            <select required value={form.judet} onChange={e => updateField('judet', e.target.value)} className={selectClass}>
-              <option value="">Judetul</option>
-              {judete.map(j => <option key={j} value={j}>{j}</option>)}
-            </select>
-          </div>
+          <SearchSelect
+            options={judete}
+            value={form.judet}
+            onChange={v => updateField('judet', v)}
+            placeholder="Judetul"
+            icon={<MapPin size={15} />}
+            required
+          />
 
-          <div className="relative">
-            <Building size={15} className={iconClass} />
-            <select required value={form.localitate} onChange={e => updateField('localitate', e.target.value)} disabled={!form.judet} className={`${selectClass} ${!form.judet ? 'opacity-50' : ''}`}>
-              <option value="">Localitatea</option>
-              {localitati.map(l => <option key={l} value={l}>{l}</option>)}
-            </select>
-          </div>
+          <SearchSelect
+            options={localitati}
+            value={form.localitate}
+            onChange={v => updateField('localitate', v)}
+            placeholder="Localitatea"
+            disabled={!form.judet}
+            icon={<Building size={15} />}
+            required
+          />
 
-          <div className="relative">
-            <GraduationCap size={15} className={iconClass} />
-            <select required value={form.highschool} onChange={e => updateField('highschool', e.target.value)} disabled={!form.localitate} className={`${selectClass} ${!form.localitate ? 'opacity-50' : ''}`}>
-              <option value="">{loadingScoli ? 'Se incarca...' : 'Liceul'}</option>
-              {scoli.map(s => <option key={s} value={s}>{s}</option>)}
-            </select>
-          </div>
+          <SearchSelect
+            options={scoli}
+            value={form.highschool}
+            onChange={v => updateField('highschool', v)}
+            placeholder={loadingScoli ? 'Se incarca...' : 'Liceul'}
+            disabled={!form.localitate}
+            icon={<GraduationCap size={15} />}
+            required
+          />
 
           <div className="relative">
             <Calendar size={15} className={iconClass} />
