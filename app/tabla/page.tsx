@@ -141,7 +141,7 @@ export default function TablaPage() {
       }
     })
 
-    enriched.sort((a, b) => (b.upvotes - b.downvotes) - (a.upvotes - a.downvotes))
+    enriched.sort((a, b) => (b.upvotes - b.downvotes) - (a.upvotes - a.downvotes) || new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
     setPosts(enriched)
   }
 
