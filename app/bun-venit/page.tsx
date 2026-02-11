@@ -13,7 +13,7 @@ interface Profile {
   highschool: string
   graduation_year: number
   onboarding_completed: boolean
-  profession: string | null
+  profession: string[] | null
   country: string | null
   city: string | null
   hobbies: string[] | null
@@ -120,10 +120,10 @@ export default function WelcomePage() {
                 <span className="text-gray-500">Promotia</span>
                 <span className="font-medium text-gray-900">{profile.graduation_year}</span>
               </div>
-              {profile.profession && (
+              {profile.profession && profile.profession.length > 0 && (
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500 flex items-center gap-1"><Briefcase size={12} /> Profesie</span>
-                  <span className="font-medium text-gray-900">{profile.profession}</span>
+                  <span className="font-medium text-gray-900 text-right">{profile.profession.join(', ')}</span>
                 </div>
               )}
               {(profile.city || profile.country) && (

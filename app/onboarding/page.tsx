@@ -4,10 +4,16 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Logo } from '@/components/Logo'
 import { getSupabase } from '@/lib/supabase'
+import { SearchSelect } from '@/components/SearchSelect'
+import { MultiTagInput } from '@/components/MultiTagInput'
+import { COUNTRIES } from '@/lib/countries'
+import { ROMANIAN_CITIES } from '@/lib/romanian-cities'
+import { PROFESSIONS } from '@/lib/professions'
+import { DOMAINS } from '@/lib/domains'
 import {
   Briefcase, MapPin, Globe, Building, ArrowRight, ArrowLeft,
   Heart, Music, BookOpen, Dumbbell, Camera, Gamepad2, Palette,
-  Plane, Coffee, Code, Bike, Utensils,
+  Plane, Coffee, Code, Bike, Utensils, Layers,
   Loader2, User, Sparkles, Check
 } from 'lucide-react'
 
@@ -32,11 +38,18 @@ export default function OnboardingPage() {
   const [loading, setLoading] = useState(false)
   const [userId, setUserId] = useState<string | null>(null)
 
-  const [profession, setProfession] = useState('')
+  const [profession, setProfession] = useState<string[]>([])
+  const [domain, setDomain] = useState<string[]>([])
+
   const [country, setCountry] = useState('Romania')
   const [city, setCity] = useState('')
   const [hobbies, setHobbies] = useState<string[]>([])
   const [bio, setBio] = useState('')
+
+  function handleCountryChange(newCountry: string) {
+    setCountry(newCountry)
+    setCity('')
+  }
 
   useEffect(() => {
     async function checkAuth() {
@@ -69,6 +82,7 @@ export default function OnboardingPage() {
       .from('profiles')
       .update({
         profession,
+        domain,
         country,
         city,
         hobbies,
@@ -112,38 +126,50 @@ export default function OnboardingPage() {
             </div>
 
             <div className="space-y-2.5">
-              <div className="relative">
-                <Briefcase size={15} className={iconClass} />
-                <input
-                  type="text"
-                  value={profession}
-                  onChange={e => setProfession(e.target.value)}
-                  placeholder="Profesia ta (ex: Inginer, Profesor, Medic)"
-                  className={inputClass}
-                />
-              </div>
+              <MultiTagInput
+                options={PROFESSIONS}
+                selected={profession}
+                onChange={setProfession}
+                placeholder="Profesii (ex: Inginer, Profesor)"
+                icon={<Briefcase size={15} />}
+              />
 
-              <div className="relative">
-                <Globe size={15} className={iconClass} />
-                <input
-                  type="text"
-                  value={country}
-                  onChange={e => setCountry(e.target.value)}
-                  placeholder="Tara"
-                  className={inputClass}
-                />
-              </div>
+              <MultiTagInput
+                options={DOMAINS}
+                selected={domain}
+                onChange={setDomain}
+                placeholder="Domenii (ex: IT, Sanatate)"
+                icon={<Layers size={15} />}
+              />
 
-              <div className="relative">
-                <Building size={15} className={iconClass} />
-                <input
-                  type="text"
+              <SearchSelect
+                options={COUNTRIES}
+                value={country}
+                onChange={handleCountryChange}
+                placeholder="Tara"
+                icon={<Globe size={15} />}
+              />
+
+              {country === 'Romania' ? (
+                <SearchSelect
+                  options={ROMANIAN_CITIES}
                   value={city}
-                  onChange={e => setCity(e.target.value)}
+                  onChange={setCity}
                   placeholder="Orasul"
-                  className={inputClass}
+                  icon={<Building size={15} />}
                 />
-              </div>
+              ) : (
+                <div className="relative">
+                  <Building size={15} className={iconClass} />
+                  <input
+                    type="text"
+                    value={city}
+                    onChange={e => setCity(e.target.value)}
+                    placeholder="Orasul"
+                    className={inputClass}
+                  />
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -204,10 +230,16 @@ export default function OnboardingPage() {
 
             {/* Summary */}
             <div className="rounded-xl bg-gray-50 border border-gray-200 p-4 space-y-2 text-sm">
-              {profession && (
+              {profession.length > 0 && (
                 <div className="flex items-center gap-2 text-gray-600">
                   <Briefcase size={14} className="text-primary-700" />
-                  {profession}
+                  {profession.join(', ')}
+                </div>
+              )}
+              {domain.length > 0 && (
+                <div className="flex items-center gap-2 text-gray-600">
+                  <Layers size={14} className="text-primary-700" />
+                  {domain.join(', ')}
                 </div>
               )}
               {(country || city) && (
