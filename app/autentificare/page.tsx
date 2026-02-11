@@ -28,7 +28,7 @@ export default function LoginPage() {
 
       if (signInError) throw signInError
 
-      router.push('/bun-venit')
+      router.push('/profil')
     } catch (err: any) {
       setError(err.message || 'Email sau parola incorecta')
     } finally {
