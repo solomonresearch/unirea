@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Logo } from '@/components/Logo'
-import { supabase } from '@/lib/supabase'
+import { getSupabase } from '@/lib/supabase'
 import { LogOut, Loader2 } from 'lucide-react'
 
 interface Profile {
@@ -20,6 +20,7 @@ export default function WelcomePage() {
 
   useEffect(() => {
     async function loadProfile() {
+      const supabase = getSupabase()
       const { data: { user } } = await supabase.auth.getUser()
 
       if (!user) {
@@ -41,7 +42,7 @@ export default function WelcomePage() {
   }, [router])
 
   async function handleLogout() {
-    await supabase.auth.signOut()
+    await getSupabase().auth.signOut()
     router.push('/')
   }
 

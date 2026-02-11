@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Logo } from '@/components/Logo'
-import { supabase } from '@/lib/supabase'
+import { getSupabase } from '@/lib/supabase'
 import { User, Mail, Phone, GraduationCap, Calendar, AtSign, Loader2, ArrowLeft } from 'lucide-react'
 
 export default function SignupPage() {
@@ -31,6 +31,7 @@ export default function SignupPage() {
     setLoading(true)
 
     try {
+      const supabase = getSupabase()
       const { data, error: signUpError } = await supabase.auth.signUp({
         email: form.email,
         password: form.password,
