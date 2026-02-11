@@ -4,6 +4,20 @@
 
 ---
 
+## Project Context
+
+- **Stack**: Next.js 14 (App Router), React 18, TypeScript, Tailwind CSS, Supabase
+- **Icons**: lucide-react — always use Lucide, never install other icon libraries
+- **Language**: All UI text is in **Romanian**
+- **Routes**: Romanian slugs — `/autentificare` (login), `/inregistrare` (signup), `/bun-venit` (welcome)
+- **Supabase**: Auth for sessions, `profiles` table for user data, RLS enabled
+- **Client pattern**: `lib/supabase.ts` for browser, `lib/supabase-server.ts` for server components
+- **Middleware**: `middleware.ts` protects `/bun-venit` and redirects authenticated users from auth pages
+- **Design**: Mobile-first. All layouts use `max-w-sm` centered with `px-6` padding.
+- **Environment**: `.env` has `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`
+
+---
+
 ## The Golden Rule
 
 **Nothing ships without a commit. Nothing commits without a test. Nothing tests without a plan.**
