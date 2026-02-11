@@ -13,23 +13,51 @@ import { DOMAINS } from '@/lib/domains'
 import {
   Briefcase, MapPin, Globe, Building, ArrowRight, ArrowLeft,
   Heart, Music, BookOpen, Dumbbell, Camera, Gamepad2, Palette,
-  Plane, Coffee, Code, Bike, Utensils, Layers,
+  Plane, Coffee, Code, Bike, Utensils, Layers, Flame,
+  TreePine, Mountain, Fish, Wine, Tv, Headphones, Dog,
+  Tent, Trophy, Snowflake, Swords, Clapperboard, PartyPopper,
+  Target, Landmark, Dice1, Church, Car, Scroll, Cat,
   Loader2, User, Sparkles, Check
 } from 'lucide-react'
 
 const HOBBY_OPTIONS = [
+  // Ordered by likelihood for Romanian users
+  { label: 'Gratar', icon: Flame },
+  { label: 'Fotbal', icon: Trophy },
   { label: 'Muzica', icon: Music },
-  { label: 'Lectura', icon: BookOpen },
-  { label: 'Sport', icon: Dumbbell },
-  { label: 'Fotografie', icon: Camera },
-  { label: 'Gaming', icon: Gamepad2 },
-  { label: 'Arta', icon: Palette },
-  { label: 'Calatorii', icon: Plane },
-  { label: 'Gatit', icon: Utensils },
-  { label: 'Programare', icon: Code },
-  { label: 'Ciclism', icon: Bike },
   { label: 'Cafea', icon: Coffee },
+  { label: 'Filme', icon: Tv },
+  { label: 'Drumetii', icon: Mountain },
+  { label: 'Gatit', icon: Utensils },
+  { label: 'Calatorii', icon: Plane },
+  { label: 'Vin', icon: Wine },
+  { label: 'Pescuit', icon: Fish },
+  { label: 'Fitness', icon: Dumbbell },
+  { label: 'Gradinarit', icon: TreePine },
+  { label: 'Table', icon: Dice1 },
+  { label: 'Gaming', icon: Gamepad2 },
+  { label: 'Dans', icon: PartyPopper },
+  { label: 'Lectura', icon: BookOpen },
+  { label: 'Fotografie', icon: Camera },
+  { label: 'Politica', icon: Landmark },
+  { label: 'Camping', icon: Tent },
+  { label: 'Animale', icon: Dog },
+  { label: 'Ciclism', icon: Bike },
+  { label: 'Vanatoare', icon: Target },
+  { label: 'Baschet', icon: Swords },
+  { label: 'Teatru', icon: Clapperboard },
+  { label: 'Arta', icon: Palette },
+  { label: 'Programare', icon: Code },
   { label: 'Voluntariat', icon: Heart },
+  { label: 'Podcast', icon: Headphones },
+  { label: 'Ski', icon: Snowflake },
+  { label: 'Sah', icon: Swords },
+  { label: 'Auto', icon: Car },
+  { label: 'Anime', icon: Cat },
+  { label: 'Istorie', icon: Scroll },
+  { label: 'Spiritualitate', icon: Sparkles },
+  { label: 'Religie', icon: Church },
+  { label: 'Natura', icon: TreePine },
 ]
 
 export default function OnboardingPage() {
@@ -176,16 +204,16 @@ export default function OnboardingPage() {
 
         {/* Step 2: Hobbies */}
         {step === 2 && (
-          <div className="space-y-4 animate-in fade-in">
+          <div className="space-y-3 animate-in fade-in">
             <div className="space-y-1">
               <h2 className="text-base font-semibold text-gray-900 flex items-center gap-2">
                 <Heart size={18} className="text-primary-700" />
                 Hobby-uri
               </h2>
-              <p className="text-xs text-gray-500">Ce iti place sa faci in timpul liber? Selecteaza mai multe.</p>
+              <p className="text-xs text-gray-500">Ce iti place sa faci? Selecteaza mai multe.</p>
             </div>
 
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-4 gap-1.5">
               {HOBBY_OPTIONS.map(({ label, icon: Icon }) => {
                 const selected = hobbies.includes(label)
                 return (
@@ -193,15 +221,14 @@ export default function OnboardingPage() {
                     key={label}
                     type="button"
                     onClick={() => toggleHobby(label)}
-                    className={`flex flex-col items-center gap-1.5 rounded-xl border px-2 py-3 text-xs font-medium transition-all ${
+                    className={`flex flex-col items-center gap-1 rounded-lg border px-1 py-2 text-[11px] font-medium transition-all ${
                       selected
-                        ? 'border-primary-700 bg-primary-50 text-primary-700'
-                        : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                        ? 'border-primary-700 bg-primary-50 text-primary-700 shadow-sm'
+                        : 'border-gray-200 text-gray-500 hover:border-gray-300'
                     }`}
                   >
-                    <Icon size={20} />
+                    <Icon size={16} />
                     {label}
-                    {selected && <Check size={12} className="text-primary-700" />}
                   </button>
                 )
               })}
