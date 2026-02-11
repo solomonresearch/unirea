@@ -234,7 +234,7 @@ export default function TablaPage() {
           <div className="min-w-0">
             <span className="text-lg font-bold leading-tight text-white">Tabla</span>
             <p className="text-[10px] leading-tight text-gray-500 truncate">
-              {profile.highschool} &bull; <span className="font-bold text-gray-300">{profile.graduation_year}</span> &bull; <span className="font-bold text-gray-300">Clasa {profile.class}</span>
+              {profile.highschool} &bull; <span className="font-bold text-gray-300">{profile.graduation_year}</span> &bull; <span className="font-bold text-gray-300">{profile.class}</span>
             </p>
           </div>
         </div>
