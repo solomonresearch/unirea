@@ -11,9 +11,10 @@ interface SearchSelectProps {
   disabled?: boolean
   icon: React.ReactNode
   required?: boolean
+  bold?: boolean
 }
 
-export function SearchSelect({ options, value, onChange, placeholder, disabled, icon, required }: SearchSelectProps) {
+export function SearchSelect({ options, value, onChange, placeholder, disabled, icon, required, bold }: SearchSelectProps) {
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState('')
   const ref = useRef<HTMLDivElement>(null)
@@ -50,7 +51,7 @@ export function SearchSelect({ options, value, onChange, placeholder, disabled, 
         type="button"
         disabled={disabled}
         onClick={() => { if (!disabled) setOpen(!open) }}
-        className={`w-full rounded-lg border border-gray-300 pl-9 pr-8 py-2.5 text-sm text-left focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none bg-white ${disabled ? 'opacity-50' : ''} ${!value ? 'text-gray-400' : 'text-gray-900'}`}
+        className={`w-full rounded-lg border border-gray-300 pl-9 pr-8 py-2.5 text-sm text-left focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none bg-white ${disabled ? 'opacity-50' : ''} ${!value ? 'text-gray-400' : 'text-gray-900'} ${bold && value ? 'font-bold' : ''}`}
       >
         {value || placeholder}
       </button>

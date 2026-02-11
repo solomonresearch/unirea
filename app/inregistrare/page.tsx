@@ -129,15 +129,14 @@ export default function SignupPage() {
         )}
 
         <form onSubmit={handleSignup} className="space-y-2.5">
-          <div className="grid grid-cols-2 gap-2.5">
-            <div className="relative">
-              <User size={15} className={iconClass} />
-              <input type="text" required value={form.name} onChange={e => updateField('name', e.target.value)} placeholder="Nume complet" className={inputClass} />
-            </div>
-            <div className="relative">
-              <AtSign size={15} className={iconClass} />
-              <input type="text" required value={form.username} onChange={e => updateField('username', e.target.value)} placeholder="Utilizator" className={inputClass} />
-            </div>
+          <div className="relative">
+            <User size={15} className={iconClass} />
+            <input type="text" required value={form.name} onChange={e => updateField('name', e.target.value)} placeholder="Nume complet" className={inputClass} />
+          </div>
+
+          <div className="relative">
+            <AtSign size={15} className={iconClass} />
+            <input type="text" required value={form.username} onChange={e => updateField('username', e.target.value)} placeholder="Utilizator" className={inputClass} />
           </div>
 
           <div className="relative">
@@ -155,24 +154,26 @@ export default function SignupPage() {
             <input type="tel" value={form.phone} onChange={e => updateField('phone', e.target.value)} placeholder="Telefon (optional)" className={inputClass} />
           </div>
 
-          <SearchSelect
-            options={judete}
-            value={form.judet}
-            onChange={v => updateField('judet', v)}
-            placeholder="Judetul"
-            icon={<MapPin size={15} />}
-            required
-          />
+          <div className="grid grid-cols-2 gap-2.5">
+            <SearchSelect
+              options={judete}
+              value={form.judet}
+              onChange={v => updateField('judet', v)}
+              placeholder="Judetul"
+              icon={<MapPin size={15} />}
+              required
+            />
 
-          <SearchSelect
-            options={localitati}
-            value={form.localitate}
-            onChange={v => updateField('localitate', v)}
-            placeholder="Localitatea"
-            disabled={!form.judet}
-            icon={<Building size={15} />}
-            required
-          />
+            <SearchSelect
+              options={localitati}
+              value={form.localitate}
+              onChange={v => updateField('localitate', v)}
+              placeholder="Localitatea"
+              disabled={!form.judet}
+              icon={<Building size={15} />}
+              required
+            />
+          </div>
 
           <SearchSelect
             options={scoli}
@@ -182,6 +183,7 @@ export default function SignupPage() {
             disabled={!form.localitate}
             icon={<GraduationCap size={15} />}
             required
+            bold
           />
 
           <div className="relative">
