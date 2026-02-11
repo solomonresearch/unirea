@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
 import { Logo } from '@/components/Logo'
 import { Avatar } from '@/components/Avatar'
+import { BottomNav } from '@/components/BottomNav'
 import { ProfileSection } from '@/components/ProfileSection'
 import { MultiTagInput } from '@/components/MultiTagInput'
 import { SearchSelect } from '@/components/SearchSelect'
@@ -17,7 +17,7 @@ import { getSupabase } from '@/lib/supabase'
 import {
   LogOut, Loader2, Sparkles, Briefcase, Layers,
   MapPin, Globe, Building, Heart, Mail, Phone,
-  GraduationCap, Pencil, BookOpen,
+  GraduationCap, Pencil,
 } from 'lucide-react'
 
 interface Profile {
@@ -123,7 +123,7 @@ export default function ProfilPage() {
   const iconClass = "absolute left-3 top-2.5 text-gray-400 pointer-events-none"
 
   return (
-    <main className="flex min-h-screen flex-col items-center px-6 py-6">
+    <main className="flex min-h-screen flex-col items-center px-6 py-6 pb-24">
       <div className="w-full max-w-sm space-y-3">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -229,17 +229,6 @@ export default function ProfilPage() {
             )}
           </div>
         </div>
-
-        {/* Tabla Link */}
-        {profile.class && (
-          <Link
-            href="/tabla"
-            className="flex items-center justify-center gap-2 w-full rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-gray-800 transition-colors"
-          >
-            <BookOpen size={16} />
-            Tabla clasei
-          </Link>
-        )}
 
         {/* Bio Section */}
         <ProfileSection
@@ -391,6 +380,8 @@ export default function ProfilPage() {
 
         <div className="h-6" />
       </div>
+
+      <BottomNav />
     </main>
   )
 }

@@ -101,7 +101,7 @@ export default function SignupPage() {
 
       if (profileError) throw profileError
 
-      window.location.href = '/profil'
+      window.location.href = '/tabla'
     } catch (err: any) {
       setError(err.message || 'A aparut o eroare')
     } finally {
