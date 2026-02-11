@@ -231,14 +231,12 @@ export default function TablaPage() {
         {/* Header */}
         <div className="flex items-center gap-2">
           <Logo size={28} />
-          <span className="text-lg font-bold text-white">Tabla Clasei</span>
-        </div>
-
-        {/* Class info */}
-        <div className="rounded-lg border border-gray-700 bg-gray-900 px-4 py-3 text-center">
-          <p className="text-sm font-medium text-gray-300">
-            {profile.highschool} &bull; {profile.graduation_year} &bull; Clasa {profile.class}
-          </p>
+          <div className="flex items-baseline gap-2">
+            <span className="text-lg font-bold text-white">Tabla Clasei</span>
+            <span className="text-[10px] text-gray-500">
+              {profile.highschool} &bull; <span className="font-bold text-gray-300">{profile.graduation_year}</span> &bull; <span className="font-bold text-gray-300">Clasa {profile.class}</span>
+            </span>
+          </div>
         </div>
 
         {/* Post form */}
