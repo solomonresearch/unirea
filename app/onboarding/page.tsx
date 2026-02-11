@@ -10,59 +10,11 @@ import { COUNTRIES } from '@/lib/countries'
 import { ROMANIAN_CITIES } from '@/lib/romanian-cities'
 import { PROFESSIONS } from '@/lib/professions'
 import { DOMAINS } from '@/lib/domains'
+import { HOBBY_OPTIONS } from '@/lib/hobbies'
 import {
   Briefcase, MapPin, Globe, Building, ArrowRight, ArrowLeft,
-  Heart, Music, BookOpen, Dumbbell, Camera, Gamepad2, Palette,
-  Plane, Coffee, Code, Bike, Utensils, Layers, Flame,
-  TreePine, Mountain, Fish, Wine, Tv, Headphones, Dog,
-  Tent, Trophy, Snowflake, Swords, Clapperboard, PartyPopper,
-  Target, Landmark, Dice1, Church, Car, Scroll, Cat,
-  Loader2, User, Sparkles, Check
+  Heart, Layers, Loader2, Sparkles, Check
 } from 'lucide-react'
-
-const HOBBY_OPTIONS = [
-  // Ordered by likelihood for Romanian users
-  { label: 'Gratar', icon: Flame },
-  { label: 'Fotbal', icon: Trophy },
-  { label: 'Muzica', icon: Music },
-  { label: 'Cafea', icon: Coffee },
-  { label: 'Filme', icon: Tv },
-  { label: 'Drumetii', icon: Mountain },
-  { label: 'Gatit', icon: Utensils },
-  { label: 'Calatorii', icon: Plane },
-  { label: 'Vin', icon: Wine },
-  { label: 'Pescuit', icon: Fish },
-  { label: 'Fitness', icon: Dumbbell },
-  { label: 'Gradinarit', icon: TreePine },
-  { label: 'Table', icon: Dice1 },
-  { label: 'Barbut', icon: Dice1 },
-  { label: 'Poker', icon: Swords },
-  { label: 'Gaming', icon: Gamepad2 },
-  { label: 'Dans', icon: PartyPopper },
-  { label: 'Lectura', icon: BookOpen },
-  { label: 'Fotografie', icon: Camera },
-  { label: 'Politica', icon: Landmark },
-  { label: 'Camping', icon: Tent },
-  { label: 'Animale', icon: Dog },
-  { label: 'Ciclism', icon: Bike },
-  { label: 'Vanatoare', icon: Target },
-  { label: 'Baschet', icon: Swords },
-  { label: 'Teatru', icon: Clapperboard },
-  { label: 'Arta', icon: Palette },
-  { label: 'Tehnologie', icon: Code },
-  { label: 'Voluntariat', icon: Heart },
-  { label: 'Podcast', icon: Headphones },
-  { label: 'Ski', icon: Snowflake },
-  { label: 'Sah', icon: Swords },
-  { label: 'Auto', icon: Car },
-  { label: 'Anime', icon: Cat },
-  { label: 'Istorie', icon: Scroll },
-  { label: 'Cosmetice', icon: Palette },
-  { label: 'Dezvoltare personala', icon: Sparkles },
-  { label: 'Spiritualitate', icon: Sparkles },
-  { label: 'Religie', icon: Church },
-  { label: 'Natura', icon: TreePine },
-]
 
 export default function OnboardingPage() {
   const router = useRouter()
@@ -95,7 +47,7 @@ export default function OnboardingPage() {
         .eq('id', user.id)
         .single()
 
-      if (profile?.onboarding_completed) router.push('/bun-venit')
+      if (profile?.onboarding_completed) router.push('/profil')
     }
     checkAuth()
   }, [router])
@@ -123,7 +75,7 @@ export default function OnboardingPage() {
       })
       .eq('id', userId)
 
-    if (!error) router.push('/bun-venit')
+    if (!error) router.push('/profil')
     setLoading(false)
   }
 
