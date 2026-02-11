@@ -49,7 +49,7 @@ const HOBBY_OPTIONS = [
   { label: 'Baschet', icon: Swords },
   { label: 'Teatru', icon: Clapperboard },
   { label: 'Arta', icon: Palette },
-  { label: 'Programare', icon: Code },
+  { label: 'Tehnologie', icon: Code },
   { label: 'Voluntariat', icon: Heart },
   { label: 'Podcast', icon: Headphones },
   { label: 'Ski', icon: Snowflake },
