@@ -24,11 +24,6 @@ export async function middleware(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser()
 
-  // Redirect unauthenticated users to login
-  if (!user && request.nextUrl.pathname === '/bun-venit') {
-    return NextResponse.redirect(new URL('/autentificare', request.url))
-  }
-
   // Redirect authenticated users away from auth pages
   if (user && (request.nextUrl.pathname === '/autentificare' || request.nextUrl.pathname === '/inregistrare')) {
     return NextResponse.redirect(new URL('/bun-venit', request.url))
@@ -38,5 +33,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/bun-venit', '/autentificare', '/inregistrare'],
+  matcher: ['/autentificare', '/inregistrare'],
 }
