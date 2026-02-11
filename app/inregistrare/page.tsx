@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Logo } from '@/components/Logo'
 import { getSupabase } from '@/lib/supabase'
-import { User, Mail, Phone, GraduationCap, Calendar, AtSign, Loader2, ArrowLeft } from 'lucide-react'
+import { User, Mail, Phone, GraduationCap, Calendar, AtSign, Loader2, ArrowLeft, Lock } from 'lucide-react'
 
 export default function SignupPage() {
   const router = useRouter()
@@ -61,133 +61,67 @@ export default function SignupPage() {
   }
 
   const currentYear = new Date().getFullYear()
+  const inputClass = "w-full rounded-lg border border-gray-300 pl-9 pr-3 py-2.5 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none"
+  const iconClass = "absolute left-3 top-2.5 text-gray-400"
 
   return (
-    <main className="flex min-h-screen flex-col items-center px-6 py-8">
-      <div className="w-full max-w-sm space-y-6">
-        <div className="flex items-center gap-3">
+    <main className="flex min-h-screen flex-col items-center px-5 py-4">
+      <div className="w-full max-w-sm space-y-4">
+        <div className="flex items-center gap-2">
           <Link href="/" className="text-gray-400 hover:text-gray-600">
-            <ArrowLeft size={20} />
+            <ArrowLeft size={18} />
           </Link>
-          <Logo size={32} />
-          <h1 className="text-xl font-bold text-gray-900">Inregistrare</h1>
+          <Logo size={28} />
+          <h1 className="text-lg font-bold text-gray-900">Inregistrare</h1>
         </div>
 
         {error && (
-          <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
+          <div className="rounded-lg bg-red-50 border border-red-200 px-3 py-2 text-xs text-red-700">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSignup} className="space-y-4">
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-gray-700">Nume complet</label>
+        <form onSubmit={handleSignup} className="space-y-2.5">
+          <div className="grid grid-cols-2 gap-2.5">
             <div className="relative">
-              <User size={16} className="absolute left-3 top-3.5 text-gray-400" />
-              <input
-                type="text"
-                required
-                value={form.name}
-                onChange={e => updateField('name', e.target.value)}
-                placeholder="Ion Popescu"
-                className="w-full rounded-xl border border-gray-300 pl-10 pr-4 py-3 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none"
-              />
+              <User size={15} className={iconClass} />
+              <input type="text" required value={form.name} onChange={e => updateField('name', e.target.value)} placeholder="Nume complet" className={inputClass} />
+            </div>
+            <div className="relative">
+              <AtSign size={15} className={iconClass} />
+              <input type="text" required value={form.username} onChange={e => updateField('username', e.target.value)} placeholder="Utilizator" className={inputClass} />
             </div>
           </div>
 
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-gray-700">Nume de utilizator</label>
-            <div className="relative">
-              <AtSign size={16} className="absolute left-3 top-3.5 text-gray-400" />
-              <input
-                type="text"
-                required
-                value={form.username}
-                onChange={e => updateField('username', e.target.value)}
-                placeholder="ionpopescu"
-                className="w-full rounded-xl border border-gray-300 pl-10 pr-4 py-3 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none"
-              />
-            </div>
+          <div className="relative">
+            <Mail size={15} className={iconClass} />
+            <input type="email" required value={form.email} onChange={e => updateField('email', e.target.value)} placeholder="Email" className={inputClass} />
           </div>
 
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-gray-700">Email</label>
-            <div className="relative">
-              <Mail size={16} className="absolute left-3 top-3.5 text-gray-400" />
-              <input
-                type="email"
-                required
-                value={form.email}
-                onChange={e => updateField('email', e.target.value)}
-                placeholder="ion@exemplu.ro"
-                className="w-full rounded-xl border border-gray-300 pl-10 pr-4 py-3 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none"
-              />
-            </div>
+          <div className="relative">
+            <Lock size={15} className={iconClass} />
+            <input type="password" required minLength={6} value={form.password} onChange={e => updateField('password', e.target.value)} placeholder="Parola (min. 6 caractere)" className={inputClass} />
           </div>
 
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-gray-700">Parola</label>
-            <input
-              type="password"
-              required
-              minLength={6}
-              value={form.password}
-              onChange={e => updateField('password', e.target.value)}
-              placeholder="Minim 6 caractere"
-              className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none"
-            />
+          <div className="relative">
+            <Phone size={15} className={iconClass} />
+            <input type="tel" value={form.phone} onChange={e => updateField('phone', e.target.value)} placeholder="Telefon (optional)" className={inputClass} />
           </div>
 
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-gray-700">Numar de telefon</label>
-            <div className="relative">
-              <Phone size={16} className="absolute left-3 top-3.5 text-gray-400" />
-              <input
-                type="tel"
-                value={form.phone}
-                onChange={e => updateField('phone', e.target.value)}
-                placeholder="07xx xxx xxx"
-                className="w-full rounded-xl border border-gray-300 pl-10 pr-4 py-3 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none"
-              />
-            </div>
+          <div className="relative">
+            <GraduationCap size={15} className={iconClass} />
+            <input type="text" required value={form.highschool} onChange={e => updateField('highschool', e.target.value)} placeholder="Liceul" className={inputClass} />
           </div>
 
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-gray-700">Liceul</label>
-            <div className="relative">
-              <GraduationCap size={16} className="absolute left-3 top-3.5 text-gray-400" />
-              <input
-                type="text"
-                required
-                value={form.highschool}
-                onChange={e => updateField('highschool', e.target.value)}
-                placeholder="Colegiul National..."
-                className="w-full rounded-xl border border-gray-300 pl-10 pr-4 py-3 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none"
-              />
-            </div>
-          </div>
-
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-gray-700">Anul absolvirii</label>
-            <div className="relative">
-              <Calendar size={16} className="absolute left-3 top-3.5 text-gray-400" />
-              <input
-                type="number"
-                required
-                min={1950}
-                max={currentYear}
-                value={form.graduation_year}
-                onChange={e => updateField('graduation_year', e.target.value)}
-                placeholder="2020"
-                className="w-full rounded-xl border border-gray-300 pl-10 pr-4 py-3 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none"
-              />
-            </div>
+          <div className="relative">
+            <Calendar size={15} className={iconClass} />
+            <input type="number" required min={1950} max={currentYear} value={form.graduation_year} onChange={e => updateField('graduation_year', e.target.value)} placeholder="Anul absolvirii" className={inputClass} />
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="flex items-center justify-center gap-2 w-full rounded-xl bg-primary-700 px-4 py-3.5 text-sm font-semibold text-white hover:bg-primary-800 disabled:opacity-50 transition-colors"
+            className="flex items-center justify-center gap-2 w-full rounded-lg bg-primary-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-primary-800 disabled:opacity-50 transition-colors"
           >
             {loading ? <Loader2 size={16} className="animate-spin" /> : null}
             {loading ? 'Se creeaza contul...' : 'Creeaza cont'}

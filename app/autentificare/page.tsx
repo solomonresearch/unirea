@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Logo } from '@/components/Logo'
 import { getSupabase } from '@/lib/supabase'
-import { Mail, Loader2, ArrowLeft } from 'lucide-react'
+import { Mail, Lock, Loader2, ArrowLeft } from 'lucide-react'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -36,55 +36,41 @@ export default function LoginPage() {
     }
   }
 
+  const inputClass = "w-full rounded-lg border border-gray-300 pl-9 pr-3 py-2.5 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none"
+  const iconClass = "absolute left-3 top-2.5 text-gray-400"
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center px-6">
-      <div className="w-full max-w-sm space-y-8">
-        <div className="flex items-center gap-3">
+    <main className="flex min-h-screen flex-col items-center justify-center px-5">
+      <div className="w-full max-w-sm space-y-6">
+        <div className="flex items-center gap-2">
           <Link href="/" className="text-gray-400 hover:text-gray-600">
-            <ArrowLeft size={20} />
+            <ArrowLeft size={18} />
           </Link>
-          <Logo size={32} />
-          <h1 className="text-xl font-bold text-gray-900">Autentificare</h1>
+          <Logo size={28} />
+          <h1 className="text-lg font-bold text-gray-900">Autentificare</h1>
         </div>
 
         {error && (
-          <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
+          <div className="rounded-lg bg-red-50 border border-red-200 px-3 py-2 text-xs text-red-700">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleLogin} className="space-y-4">
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-gray-700">Email</label>
-            <div className="relative">
-              <Mail size={16} className="absolute left-3 top-3.5 text-gray-400" />
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                placeholder="ion@exemplu.ro"
-                className="w-full rounded-xl border border-gray-300 pl-10 pr-4 py-3 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none"
-              />
-            </div>
+        <form onSubmit={handleLogin} className="space-y-2.5">
+          <div className="relative">
+            <Mail size={15} className={iconClass} />
+            <input type="email" required value={email} onChange={e => setEmail(e.target.value)} placeholder="Email" className={inputClass} />
           </div>
 
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-gray-700">Parola</label>
-            <input
-              type="password"
-              required
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              placeholder="Parola ta"
-              className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none"
-            />
+          <div className="relative">
+            <Lock size={15} className={iconClass} />
+            <input type="password" required value={password} onChange={e => setPassword(e.target.value)} placeholder="Parola" className={inputClass} />
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="flex items-center justify-center gap-2 w-full rounded-xl bg-primary-700 px-4 py-3.5 text-sm font-semibold text-white hover:bg-primary-800 disabled:opacity-50 transition-colors"
+            className="flex items-center justify-center gap-2 w-full rounded-lg bg-primary-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-primary-800 disabled:opacity-50 transition-colors"
           >
             {loading ? <Loader2 size={16} className="animate-spin" /> : null}
             {loading ? 'Se autentifica...' : 'Intra in cont'}
