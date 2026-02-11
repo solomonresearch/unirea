@@ -48,3 +48,48 @@ $$ language plpgsql;
 create trigger on_profile_updated
   before update on public.profiles
   for each row execute function public.handle_updated_at();
+
+-- ============================================
+-- Schools (unitati de invatamant)
+-- ============================================
+
+create table if not exists public.schools (
+  id bigint generated always as identity primary key,
+  an text,
+  judet_pj text,
+  localitate_pj text,
+  cod_siruta_pj numeric,
+  mediu_loc_pj text,
+  cod_siiir_pj numeric,
+  denumire_pj text,
+  localitate_unitate text,
+  cod_siruta_unitate numeric,
+  mediu_loc_unitate text,
+  cod_sirues text,
+  cod_siiir_unitate numeric,
+  denumire_scurta_unitate text,
+  denumire_lunga_unitate text,
+  tip_unitate text,
+  statut_unitate text,
+  cod_fiscal text,
+  mod_functionare text,
+  forma_finantare text,
+  forma_proprietate text,
+  strada text,
+  numar text,
+  cod_postal numeric,
+  telefon numeric,
+  fax numeric,
+  email text,
+  created_at timestamptz default now() not null
+);
+
+alter table public.schools enable row level security;
+
+create policy "Schools are publicly readable"
+  on public.schools for select
+  using (true);
+
+create index idx_schools_judet on public.schools (judet_pj);
+create index idx_schools_denumire on public.schools (denumire_lunga_unitate);
+create index idx_schools_localitate on public.schools (localitate_unitate);
