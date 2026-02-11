@@ -12,7 +12,7 @@ interface Comment {
   content: string
   created_at: string
   user_id: string
-  profiles: { name: string }
+  profiles: { name: string; username: string }
 }
 
 interface Post {
@@ -20,7 +20,7 @@ interface Post {
   content: string
   created_at: string
   user_id: string
-  profiles: { name: string }
+  profiles: { name: string; username: string }
   upvotes: number
   downvotes: number
   user_vote: number | null
@@ -110,7 +110,7 @@ export default function TablaPage() {
 
     const { data: rawPosts } = await supabase
       .from('posts')
-      .select('id, content, created_at, user_id, profiles(name)')
+      .select('id, content, created_at, user_id, profiles(name, username)')
       .in('user_id', classmateIds)
       .is('deleted_at', null)
       .order('created_at', { ascending: false })
@@ -121,7 +121,7 @@ export default function TablaPage() {
 
     const [votesRes, commentsRes] = await Promise.all([
       supabase.from('post_votes').select('post_id, vote, user_id').in('post_id', postIds),
-      supabase.from('comments').select('id, post_id, content, created_at, user_id, profiles(name)').in('post_id', postIds).is('deleted_at', null).order('created_at', { ascending: true }),
+      supabase.from('comments').select('id, post_id, content, created_at, user_id, profiles(name, username)').in('post_id', postIds).is('deleted_at', null).order('created_at', { ascending: true }),
     ])
 
     const votes = votesRes.data || []
@@ -268,7 +268,7 @@ export default function TablaPage() {
             <div key={post.id} className="rounded-lg border border-gray-700 bg-gray-900">
               <div className="px-4 py-3">
                 <div className="flex items-center justify-between mb-1.5">
-                  <span className="text-sm font-medium text-white">{post.profiles?.name}</span>
+                  <span className="text-sm font-medium text-white">@{post.profiles?.username}</span>
                   <div className="flex items-center gap-2">
                     <span className="text-xs text-gray-500">{relativeTime(post.created_at)}</span>
                     {post.user_id === profile.id && (
@@ -323,7 +323,7 @@ export default function TablaPage() {
                     <div key={comment.id} className="flex items-start gap-2">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="text-xs font-medium text-gray-400">{comment.profiles?.name}</span>
+                          <span className="text-xs font-medium text-gray-400">@{comment.profiles?.username}</span>
                           <span className="text-[10px] text-gray-600">{relativeTime(comment.created_at)}</span>
                           {comment.user_id === profile.id && (
                             <button type="button" onClick={() => handleDeleteComment(comment.id)} className="text-gray-700 hover:text-red-400 transition-colors">
