@@ -35,6 +35,8 @@ const HOBBY_OPTIONS = [
   { label: 'Fitness', icon: Dumbbell },
   { label: 'Gradinarit', icon: TreePine },
   { label: 'Table', icon: Dice1 },
+  { label: 'Barbut', icon: Dice1 },
+  { label: 'Poker', icon: Swords },
   { label: 'Gaming', icon: Gamepad2 },
   { label: 'Dans', icon: PartyPopper },
   { label: 'Lectura', icon: BookOpen },
@@ -55,6 +57,8 @@ const HOBBY_OPTIONS = [
   { label: 'Auto', icon: Car },
   { label: 'Anime', icon: Cat },
   { label: 'Istorie', icon: Scroll },
+  { label: 'Cosmetice', icon: Palette },
+  { label: 'Dezvoltare personala', icon: Sparkles },
   { label: 'Spiritualitate', icon: Sparkles },
   { label: 'Religie', icon: Church },
   { label: 'Natura', icon: TreePine },
@@ -213,7 +217,7 @@ export default function OnboardingPage() {
               <p className="text-xs text-gray-500">Ce iti place sa faci? Selecteaza mai multe.</p>
             </div>
 
-            <div className="grid grid-cols-4 gap-1.5">
+            <div className="grid grid-cols-4 gap-1">
               {HOBBY_OPTIONS.map(({ label, icon: Icon }) => {
                 const selected = hobbies.includes(label)
                 return (
@@ -221,13 +225,13 @@ export default function OnboardingPage() {
                     key={label}
                     type="button"
                     onClick={() => toggleHobby(label)}
-                    className={`flex flex-col items-center gap-1 rounded-lg border px-1 py-2 text-[11px] font-medium transition-all ${
+                    className={`flex flex-col items-center gap-0.5 rounded-md border px-0.5 py-1.5 text-[10px] font-medium transition-all ${
                       selected
                         ? 'border-primary-700 bg-primary-50 text-primary-700 shadow-sm'
                         : 'border-gray-200 text-gray-500 hover:border-gray-300'
                     }`}
                   >
-                    <Icon size={16} />
+                    <Icon size={14} />
                     {label}
                   </button>
                 )
