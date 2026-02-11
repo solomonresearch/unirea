@@ -32,14 +32,8 @@ export default function SignupPage() {
   // Load judete on mount
   useEffect(() => {
     async function loadJudete() {
-      const { data } = await getSupabase()
-        .from('schools')
-        .select('judet_pj')
-        .order('judet_pj')
-      if (data) {
-        const unique = [...new Set(data.map(r => r.judet_pj).filter(Boolean))]
-        setJudete(unique)
-      }
+      const { data } = await getSupabase().rpc('get_judete')
+      if (data) setJudete(data.map((r: { judet: string }) => r.judet))
     }
     loadJudete()
   }, [])
@@ -49,15 +43,8 @@ export default function SignupPage() {
     if (!form.judet) { setLocalitati([]); return }
     setLoadingScoli(true)
     async function loadLocalitati() {
-      const { data } = await getSupabase()
-        .from('schools')
-        .select('localitate_unitate')
-        .eq('judet_pj', form.judet)
-        .order('localitate_unitate')
-      if (data) {
-        const unique = [...new Set(data.map(r => r.localitate_unitate).filter(Boolean))]
-        setLocalitati(unique)
-      }
+      const { data } = await getSupabase().rpc('get_localitati', { p_judet: form.judet })
+      if (data) setLocalitati(data.map((r: { localitate: string }) => r.localitate))
       setLoadingScoli(false)
     }
     loadLocalitati()
@@ -68,16 +55,8 @@ export default function SignupPage() {
     if (!form.localitate || !form.judet) { setScoli([]); return }
     setLoadingScoli(true)
     async function loadScoli() {
-      const { data } = await getSupabase()
-        .from('schools')
-        .select('denumire_lunga_unitate')
-        .eq('judet_pj', form.judet)
-        .eq('localitate_unitate', form.localitate)
-        .order('denumire_lunga_unitate')
-      if (data) {
-        const unique = [...new Set(data.map(r => r.denumire_lunga_unitate).filter(Boolean))]
-        setScoli(unique)
-      }
+      const { data } = await getSupabase().rpc('get_scoli', { p_judet: form.judet, p_localitate: form.localitate })
+      if (data) setScoli(data.map((r: { denumire: string }) => r.denumire))
       setLoadingScoli(false)
     }
     loadScoli()
