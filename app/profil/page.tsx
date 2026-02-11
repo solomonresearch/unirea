@@ -16,7 +16,7 @@ import { getSupabase } from '@/lib/supabase'
 import {
   LogOut, Loader2, Sparkles, Briefcase, Layers,
   MapPin, Globe, Building, Heart, Mail, Phone,
-  GraduationCap,
+  GraduationCap, Pencil,
 } from 'lucide-react'
 
 interface Profile {
@@ -50,6 +50,8 @@ export default function ProfilPage() {
   const [editCity, setEditCity] = useState('')
   const [editHobbies, setEditHobbies] = useState<string[]>([])
   const [editPhone, setEditPhone] = useState('')
+  const [editingLocation, setEditingLocation] = useState(false)
+  const [savingLocation, setSavingLocation] = useState(false)
 
   useEffect(() => {
     async function loadProfile() {
@@ -152,6 +154,77 @@ export default function ProfilPage() {
               <GraduationCap size={12} className="inline mr-1" />
               {profile.highschool} &bull; {profile.graduation_year}
             </p>
+
+            {editingLocation ? (
+              <div className="mt-2 space-y-2 text-left">
+                <SearchSelect
+                  options={COUNTRIES}
+                  value={editCountry}
+                  onChange={(v) => { setEditCountry(v); setEditCity('') }}
+                  placeholder="Tara"
+                  icon={<Globe size={15} />}
+                />
+                {editCountry === 'Romania' ? (
+                  <SearchSelect
+                    options={ROMANIAN_CITIES}
+                    value={editCity}
+                    onChange={setEditCity}
+                    placeholder="Orasul"
+                    icon={<Building size={15} />}
+                  />
+                ) : (
+                  <div className="relative">
+                    <Building size={15} className={iconClass} />
+                    <input
+                      type="text"
+                      value={editCity}
+                      onChange={e => setEditCity(e.target.value)}
+                      placeholder="Orasul"
+                      className={inputClass}
+                    />
+                  </div>
+                )}
+                <div className="flex justify-center gap-2">
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      setSavingLocation(true)
+                      await updateProfile({ country: editCountry, city: editCity })
+                      setSavingLocation(false)
+                      setEditingLocation(false)
+                    }}
+                    disabled={savingLocation}
+                    className="flex items-center gap-1.5 rounded-lg bg-primary-700 px-4 py-2 text-xs font-semibold text-white hover:bg-primary-800 disabled:opacity-50 transition-colors"
+                  >
+                    {savingLocation && <Loader2 size={14} className="animate-spin" />}
+                    {savingLocation ? 'Se salveaza...' : 'Salveaza'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditCountry(profile.country || 'Romania')
+                      setEditCity(profile.city || '')
+                      setEditingLocation(false)
+                    }}
+                    className="rounded-lg border border-gray-300 px-4 py-2 text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors"
+                  >
+                    Anuleaza
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <p className="text-xs text-gray-400 mt-0.5 flex items-center justify-center gap-1">
+                <MapPin size={12} />
+                {[profile.city, profile.country].filter(Boolean).join(', ') || 'Nicio locatie'}
+                <button
+                  type="button"
+                  onClick={() => setEditingLocation(true)}
+                  className="text-gray-300 hover:text-primary-700 transition-colors ml-0.5"
+                >
+                  <Pencil size={11} />
+                </button>
+              </p>
+            )}
           </div>
         </div>
 
@@ -203,76 +276,22 @@ export default function ProfilPage() {
             await updateProfile({ profession: editProfession, domain: editDomain })
           }}
         >
-          <div className="space-y-2">
-            {profile.profession?.length > 0 && (
-              <div className="flex flex-wrap gap-1.5">
-                {profile.profession.map(p => (
-                  <span key={p} className="inline-flex items-center rounded-md bg-primary-50 border border-primary-200 px-2 py-0.5 text-xs font-medium text-primary-700">
-                    {p}
-                  </span>
-                ))}
-              </div>
-            )}
-            {profile.domain?.length > 0 && (
-              <div className="flex flex-wrap gap-1.5">
-                {profile.domain.map(d => (
-                  <span key={d} className="inline-flex items-center rounded-md bg-gray-100 border border-gray-200 px-2 py-0.5 text-xs font-medium text-gray-600">
-                    {d}
-                  </span>
-                ))}
-              </div>
-            )}
-            {(!profile.profession?.length && !profile.domain?.length) && (
-              <p className="text-sm text-gray-400 italic">Nicio profesie sau domeniu</p>
-            )}
-          </div>
-        </ProfileSection>
-
-        {/* Location */}
-        <ProfileSection
-          title="Locatie"
-          icon={<MapPin size={16} className="text-primary-700" />}
-          editContent={
-            <div className="space-y-2.5">
-              <SearchSelect
-                options={COUNTRIES}
-                value={editCountry}
-                onChange={(v) => { setEditCountry(v); setEditCity('') }}
-                placeholder="Tara"
-                icon={<Globe size={15} />}
-              />
-              {editCountry === 'Romania' ? (
-                <SearchSelect
-                  options={ROMANIAN_CITIES}
-                  value={editCity}
-                  onChange={setEditCity}
-                  placeholder="Orasul"
-                  icon={<Building size={15} />}
-                />
-              ) : (
-                <div className="relative">
-                  <Building size={15} className={iconClass} />
-                  <input
-                    type="text"
-                    value={editCity}
-                    onChange={e => setEditCity(e.target.value)}
-                    placeholder="Orasul"
-                    className={inputClass}
-                  />
-                </div>
-              )}
+          {(profile.profession?.length > 0 || profile.domain?.length > 0) ? (
+            <div className="flex flex-wrap gap-1.5">
+              {profile.profession?.map(p => (
+                <span key={p} className="inline-flex items-center rounded-md bg-primary-50 border border-primary-200 px-2 py-0.5 text-xs font-medium text-primary-700">
+                  {p}
+                </span>
+              ))}
+              {profile.domain?.map(d => (
+                <span key={d} className="inline-flex items-center rounded-md bg-blue-50 border border-blue-200 px-2 py-0.5 text-xs font-medium text-blue-700">
+                  {d}
+                </span>
+              ))}
             </div>
-          }
-          onSave={async () => {
-            await updateProfile({ country: editCountry, city: editCity })
-          }}
-        >
-          <p className="text-sm text-gray-600 flex items-center gap-1.5">
-            <MapPin size={14} className="text-gray-400" />
-            {[profile.city, profile.country].filter(Boolean).join(', ') || (
-              <span className="text-gray-400 italic">Nicio locatie</span>
-            )}
-          </p>
+          ) : (
+            <p className="text-sm text-gray-400 italic">Nicio profesie sau domeniu</p>
+          )}
         </ProfileSection>
 
         {/* Hobbies */}
