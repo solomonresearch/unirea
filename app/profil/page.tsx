@@ -52,6 +52,10 @@ export default function ProfilPage() {
   const [editCity, setEditCity] = useState('')
   const [editHobbies, setEditHobbies] = useState<string[]>([])
   const [editPhone, setEditPhone] = useState('')
+  const [editGradYear, setEditGradYear] = useState<number>(0)
+  const [editClass, setEditClass] = useState('')
+  const [editingGraduation, setEditingGraduation] = useState(false)
+  const [savingGraduation, setSavingGraduation] = useState(false)
   const [editingLocation, setEditingLocation] = useState(false)
   const [savingLocation, setSavingLocation] = useState(false)
 
@@ -81,6 +85,8 @@ export default function ProfilPage() {
       setEditCity(data.city || '')
       setEditHobbies(data.hobbies || [])
       setEditPhone(data.phone || '')
+      setEditGradYear(data.graduation_year)
+      setEditClass(data.class || '')
       setLoading(false)
     }
     loadProfile()
@@ -152,10 +158,73 @@ export default function ProfilPage() {
           <div>
             <h2 className="text-xl font-bold text-gray-900">{profile.name}</h2>
             <p className="text-sm text-gray-500">@{profile.username}</p>
-            <p className="text-xs text-gray-400 mt-0.5">
-              <GraduationCap size={12} className="inline mr-1" />
-              {profile.highschool} &bull; <span className="font-bold text-gray-600">{profile.graduation_year}{profile.class ? `${profile.class}` : ''}</span>
-            </p>
+            {editingGraduation ? (
+              <div className="mt-2 space-y-2 text-left">
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="relative">
+                    <GraduationCap size={15} className={iconClass} />
+                    <input
+                      type="number"
+                      value={editGradYear}
+                      onChange={e => setEditGradYear(parseInt(e.target.value, 10) || 0)}
+                      placeholder="Anul"
+                      min={1950}
+                      max={2030}
+                      className={`${inputClass} [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none`}
+                    />
+                  </div>
+                  <select
+                    value={editClass}
+                    onChange={e => setEditClass(e.target.value)}
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none"
+                  >
+                    <option value="">Clasa</option>
+                    {['A','B','C','D','E','F','G','H','I','J','K','L'].map(c => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex justify-center gap-2">
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      setSavingGraduation(true)
+                      await updateProfile({ graduation_year: editGradYear, class: editClass || null })
+                      setSavingGraduation(false)
+                      setEditingGraduation(false)
+                    }}
+                    disabled={savingGraduation || !editGradYear}
+                    className="flex items-center gap-1.5 rounded-lg bg-primary-700 px-4 py-2 text-xs font-semibold text-white hover:bg-primary-800 disabled:opacity-50 transition-colors"
+                  >
+                    {savingGraduation && <Loader2 size={14} className="animate-spin" />}
+                    {savingGraduation ? 'Se salveaza...' : 'Salveaza'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditGradYear(profile.graduation_year)
+                      setEditClass(profile.class || '')
+                      setEditingGraduation(false)
+                    }}
+                    className="rounded-lg border border-gray-300 px-4 py-2 text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors"
+                  >
+                    Anuleaza
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <p className="text-xs text-gray-400 mt-0.5 flex items-center justify-center gap-1">
+                <GraduationCap size={12} />
+                {profile.highschool} &bull; <span className="font-bold text-gray-600">{profile.graduation_year}{profile.class || ''}</span>
+                <button
+                  type="button"
+                  onClick={() => setEditingGraduation(true)}
+                  className="text-gray-300 hover:text-primary-700 transition-colors ml-0.5"
+                >
+                  <Pencil size={11} />
+                </button>
+              </p>
+            )}
 
             {editingLocation ? (
               <div className="mt-2 space-y-2 text-left">
