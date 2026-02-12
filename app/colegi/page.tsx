@@ -179,46 +179,46 @@ function ProfileCard({ profile, currentUserId }: { profile: ColleagueProfile; cu
   }
 
   return (
-    <Link href={`/colegi/${profile.id}`} className="block rounded-xl border border-gray-200 bg-white px-4 py-3 hover:border-primary-200 transition-colors">
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="text-sm font-semibold text-gray-900">{profile.name}</p>
-          <p className="text-xs text-gray-400">@{profile.username}</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={handleMessage}
-            disabled={startingChat}
-            className="rounded-full p-1.5 text-gray-400 hover:text-primary-700 hover:bg-primary-50 transition-colors disabled:opacity-50"
-          >
-            {startingChat ? <Loader2 size={14} className="animate-spin" /> : <MessageCircle size={14} />}
-          </button>
+    <div className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white hover:border-primary-200 transition-colors">
+      <Link href={`/colegi/${profile.id}`} className="flex-1 min-w-0 px-4 py-3">
+        <div className="flex items-start justify-between">
+          <div>
+            <p className="text-sm font-semibold text-gray-900">{profile.name}</p>
+            <p className="text-xs text-gray-400">@{profile.username}</p>
+          </div>
           <span className="text-xs font-bold text-gray-500">
             {profile.graduation_year}{profile.class || ''}
           </span>
         </div>
-      </div>
-      {profile.company && (
-        <p className="mt-1 text-[11px] text-gray-500 flex items-center gap-1">
-          <Building2 size={11} className="text-gray-400" />
-          {profile.company}
-        </p>
-      )}
-      {(profile.profession?.length > 0 || profile.domain?.length > 0) && (
-        <div className="mt-1.5 flex flex-wrap gap-1">
-          {profile.profession?.map(p => (
-            <span key={p} className="inline-flex items-center rounded-md bg-primary-50 border border-primary-200 px-2 py-0.5 text-[11px] font-medium text-primary-700">
-              {p}
-            </span>
-          ))}
-          {profile.domain?.map(d => (
-            <span key={d} className="inline-flex items-center rounded-md bg-blue-50 border border-blue-200 px-2 py-0.5 text-[11px] font-medium text-blue-700">
-              {d}
-            </span>
-          ))}
-        </div>
-      )}
-    </Link>
+        {profile.company && (
+          <p className="mt-1 text-[11px] text-gray-500 flex items-center gap-1">
+            <Building2 size={11} className="text-gray-400" />
+            {profile.company}
+          </p>
+        )}
+        {(profile.profession?.length > 0 || profile.domain?.length > 0) && (
+          <div className="mt-1.5 flex flex-wrap gap-1">
+            {profile.profession?.map(p => (
+              <span key={p} className="inline-flex items-center rounded-md bg-primary-50 border border-primary-200 px-2 py-0.5 text-[11px] font-medium text-primary-700">
+                {p}
+              </span>
+            ))}
+            {profile.domain?.map(d => (
+              <span key={d} className="inline-flex items-center rounded-md bg-blue-50 border border-blue-200 px-2 py-0.5 text-[11px] font-medium text-blue-700">
+                {d}
+              </span>
+            ))}
+          </div>
+        )}
+      </Link>
+      <button
+        type="button"
+        onClick={handleMessage}
+        disabled={startingChat}
+        className="flex-shrink-0 mr-4 rounded-full p-2.5 text-gray-900 hover:bg-gray-100 transition-colors disabled:opacity-50"
+      >
+        {startingChat ? <Loader2 size={20} strokeWidth={2.5} className="animate-spin" /> : <MessageCircle size={20} strokeWidth={2.5} />}
+      </button>
+    </div>
   )
 }
