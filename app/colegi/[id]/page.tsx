@@ -8,7 +8,7 @@ import { HOBBY_OPTIONS } from '@/lib/hobbies'
 import { getSupabase } from '@/lib/supabase'
 import {
   Loader2, ArrowLeft, Sparkles, Briefcase, Layers, Building2,
-  MapPin, Heart, Mail, Phone, GraduationCap,
+  MapPin, Heart, Mail, Phone, GraduationCap, MessageCircle,
 } from 'lucide-react'
 
 interface Profile {
@@ -39,11 +39,14 @@ export default function ColegProfilePage() {
   const params = useParams()
   const [loading, setLoading] = useState(true)
   const [profile, setProfile] = useState<Profile | null>(null)
+  const [currentUserId, setCurrentUserId] = useState<string>('')
+  const [startingChat, setStartingChat] = useState(false)
 
   useEffect(() => {
     async function load() {
       const { data: { user } } = await getSupabase().auth.getUser()
       if (!user) { router.push('/autentificare'); return }
+      setCurrentUserId(user.id)
 
       const { data } = await getSupabase()
         .from('profiles')
@@ -58,6 +61,46 @@ export default function ColegProfilePage() {
     }
     load()
   }, [router, params.id])
+
+  async function handleStartChat() {
+    if (!profile || startingChat) return
+    setStartingChat(true)
+    const supabase = getSupabase()
+
+    const { data: myConvos } = await supabase
+      .from('conversation_participants')
+      .select('conversation_id')
+      .eq('user_id', currentUserId)
+
+    if (myConvos && myConvos.length > 0) {
+      const convoIds = myConvos.map(c => c.conversation_id)
+      const { data: theirConvos } = await supabase
+        .from('conversation_participants')
+        .select('conversation_id')
+        .eq('user_id', profile.id)
+        .in('conversation_id', convoIds)
+
+      if (theirConvos && theirConvos.length > 0) {
+        router.push(`/mesaje/${theirConvos[0].conversation_id}`)
+        return
+      }
+    }
+
+    const { data: newConvo } = await supabase
+      .from('conversations')
+      .insert({})
+      .select('id')
+      .single()
+
+    if (!newConvo) { setStartingChat(false); return }
+
+    await supabase.from('conversation_participants').insert([
+      { conversation_id: newConvo.id, user_id: currentUserId },
+      { conversation_id: newConvo.id, user_id: profile.id },
+    ])
+
+    router.push(`/mesaje/${newConvo.id}`)
+  }
 
   if (loading) {
     return (
@@ -109,6 +152,19 @@ export default function ColegProfilePage() {
             </p>
           </div>
         </div>
+
+        {/* Send message button */}
+        {currentUserId !== profile.id && (
+          <button
+            type="button"
+            onClick={handleStartChat}
+            disabled={startingChat}
+            className="w-full flex items-center justify-center gap-2 rounded-xl bg-primary-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-primary-800 disabled:opacity-50 transition-colors"
+          >
+            {startingChat ? <Loader2 size={16} className="animate-spin" /> : <MessageCircle size={16} />}
+            Trimite mesaj
+          </button>
+        )}
 
         {/* Bio */}
         {profile.bio && (

@@ -2,12 +2,13 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { BookOpen, Megaphone, Users, Search, Settings } from 'lucide-react'
+import { BookOpen, Megaphone, Users, MessageCircle, Search, Settings } from 'lucide-react'
 
 const NAV_ITEMS = [
   { href: '/tabla', label: 'Tabla', icon: BookOpen },
   { href: '/avizier', label: 'Avizier', icon: Megaphone },
   { href: '/colegi', label: 'Colegi', icon: Users },
+  { href: '/mesaje', label: 'Mesaje', icon: MessageCircle },
   { href: '/cauta', label: 'Cauta', icon: Search },
   { href: '/setari', label: 'Setari', icon: Settings },
 ]
