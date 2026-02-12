@@ -138,4 +138,4 @@ RLS policies: authenticated users can read all profiles; users can only insert/u
 
 ## License
 
-Proprietary - Solomon Research
+TBD
