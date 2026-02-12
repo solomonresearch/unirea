@@ -9,10 +9,11 @@
 - **Stack**: Next.js 14 (App Router), React 18, TypeScript, Tailwind CSS, Supabase
 - **Icons**: lucide-react — always use Lucide, never install other icon libraries
 - **Language**: All UI text is in **Romanian**
-- **Routes**: Romanian slugs — `/autentificare` (login), `/inregistrare` (signup), `/bun-venit` (welcome)
-- **Supabase**: Auth for sessions, `profiles` table for user data, RLS enabled
+- **Routes**: Romanian slugs — `/autentificare` (login), `/inregistrare` (signup), `/bun-venit` (welcome), `/onboarding`, `/tabla` (whiteboard), `/colegi` (colleagues), `/cauta` (search), `/profil`, `/setari`
+- **Supabase**: Auth for sessions, `profiles` table for user data, `posts`/`post_votes`/`comments` for whiteboard, RLS enabled
 - **Client pattern**: `lib/supabase.ts` for browser, `lib/supabase-server.ts` for server components
-- **Middleware**: `middleware.ts` protects `/bun-venit` and redirects authenticated users from auth pages
+- **Middleware**: `middleware.ts` protects authenticated routes (`/tabla`, `/colegi`, `/cauta`, `/profil`, `/setari`) and redirects authenticated users from auth pages
+- **Bottom nav**: 5 tabs — Tabla, Colegi, Cauta, Profil, Setari
 - **Design**: Mobile-first. All layouts use `max-w-sm` centered with `px-6` padding.
 - **Environment**: `.env` has `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`
 
