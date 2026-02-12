@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation'
 import { Logo } from '@/components/Logo'
 import { BottomNav } from '@/components/BottomNav'
 import { getSupabase } from '@/lib/supabase'
-import { Loader2, Users, GraduationCap } from 'lucide-react'
+import { Loader2, Users, GraduationCap, Building2 } from 'lucide-react'
+import Link from 'next/link'
 
 interface ColleagueProfile {
   id: string
@@ -15,6 +16,7 @@ interface ColleagueProfile {
   class: string | null
   profession: string[]
   domain: string[]
+  company: string | null
 }
 
 interface CurrentUser {
@@ -47,7 +49,7 @@ export default function ColegiPage() {
 
       const { data: yearData } = await getSupabase()
         .from('profiles')
-        .select('id, name, username, graduation_year, class, profession, domain')
+        .select('id, name, username, graduation_year, class, profession, domain, company')
         .eq('highschool', profile.highschool)
         .eq('graduation_year', profile.graduation_year)
         .eq('onboarding_completed', true)
@@ -136,7 +138,7 @@ export default function ColegiPage() {
 
 function ProfileCard({ profile }: { profile: ColleagueProfile }) {
   return (
-    <div className="rounded-xl border border-gray-200 bg-white px-4 py-3">
+    <Link href={`/colegi/${profile.id}`} className="block rounded-xl border border-gray-200 bg-white px-4 py-3 hover:border-primary-200 transition-colors">
       <div className="flex items-start justify-between">
         <div>
           <p className="text-sm font-semibold text-gray-900">{profile.name}</p>
@@ -146,6 +148,12 @@ function ProfileCard({ profile }: { profile: ColleagueProfile }) {
           {profile.graduation_year}{profile.class || ''}
         </span>
       </div>
+      {profile.company && (
+        <p className="mt-1 text-[11px] text-gray-500 flex items-center gap-1">
+          <Building2 size={11} className="text-gray-400" />
+          {profile.company}
+        </p>
+      )}
       {(profile.profession?.length > 0 || profile.domain?.length > 0) && (
         <div className="mt-1.5 flex flex-wrap gap-1">
           {profile.profession?.map(p => (
@@ -160,6 +168,6 @@ function ProfileCard({ profile }: { profile: ColleagueProfile }) {
           ))}
         </div>
       )}
-    </div>
+    </Link>
   )
 }

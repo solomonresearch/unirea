@@ -29,8 +29,9 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/tabla', request.url))
   }
 
-  // Protect /profil and /tabla — redirect unauthenticated users to login
-  if (!user && ['/profil', '/tabla', '/setari', '/cauta', '/colegi'].includes(request.nextUrl.pathname)) {
+  // Protect authenticated routes — redirect unauthenticated users to login
+  const protectedPaths = ['/profil', '/tabla', '/setari', '/cauta', '/colegi']
+  if (!user && protectedPaths.some(p => request.nextUrl.pathname === p || request.nextUrl.pathname.startsWith(p + '/'))) {
     return NextResponse.redirect(new URL('/autentificare', request.url))
   }
 
@@ -38,5 +39,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/autentificare', '/inregistrare', '/profil', '/tabla', '/setari', '/cauta', '/colegi'],
+  matcher: ['/autentificare', '/inregistrare', '/profil', '/tabla', '/setari', '/cauta', '/colegi', '/colegi/:path*'],
 }
