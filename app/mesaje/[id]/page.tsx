@@ -105,6 +105,13 @@ export default function ChatPage() {
         .order('created_at', { ascending: true })
 
       setMessages(msgs || [])
+
+      await supabase
+        .from('conversation_participants')
+        .update({ last_read_at: new Date().toISOString() })
+        .eq('conversation_id', conversationId)
+        .eq('user_id', user.id)
+
       setLoading(false)
     }
     load()
@@ -115,6 +122,7 @@ export default function ChatPage() {
   }, [messages])
 
   useEffect(() => {
+    if (!currentUserId) return
     const supabase = getSupabase()
     const channel = supabase
       .channel(`conversation:${conversationId}`)
@@ -128,11 +136,17 @@ export default function ChatPage() {
           if (prev.some(m => m.id === (payload.new as Message).id)) return prev
           return [...prev, payload.new as Message]
         })
+        supabase
+          .from('conversation_participants')
+          .update({ last_read_at: new Date().toISOString() })
+          .eq('conversation_id', conversationId)
+          .eq('user_id', currentUserId)
+          .then()
       })
       .subscribe()
 
     return () => { supabase.removeChannel(channel) }
-  }, [conversationId])
+  }, [conversationId, currentUserId])
 
   async function handleSend(e: React.FormEvent) {
     e.preventDefault()
