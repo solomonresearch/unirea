@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Logo } from '@/components/Logo'
 import { BottomNav } from '@/components/BottomNav'
 import { getSupabase } from '@/lib/supabase'
-import { Loader2, Users, GraduationCap, Building2 } from 'lucide-react'
+import { Loader2, Users, GraduationCap, Building2, MessageCircle } from 'lucide-react'
 import Link from 'next/link'
 
 interface ColleagueProfile {
@@ -106,7 +106,7 @@ export default function ColegiPage() {
             ) : (
               <div className="space-y-2">
                 {classmates.map(p => (
-                  <ProfileCard key={p.id} profile={p} />
+                  <ProfileCard key={p.id} profile={p} currentUserId={currentUser.id} />
                 ))}
               </div>
             )}
@@ -124,7 +124,7 @@ export default function ColegiPage() {
           ) : (
             <div className="space-y-2">
               {yearmates.map(p => (
-                <ProfileCard key={p.id} profile={p} />
+                <ProfileCard key={p.id} profile={p} currentUserId={currentUser.id} />
               ))}
             </div>
           )}
@@ -136,7 +136,48 @@ export default function ColegiPage() {
   )
 }
 
-function ProfileCard({ profile }: { profile: ColleagueProfile }) {
+function ProfileCard({ profile, currentUserId }: { profile: ColleagueProfile; currentUserId: string }) {
+  const router = useRouter()
+  const [startingChat, setStartingChat] = useState(false)
+
+  async function handleMessage(e: React.MouseEvent) {
+    e.preventDefault()
+    e.stopPropagation()
+    if (startingChat) return
+    setStartingChat(true)
+    const supabase = getSupabase()
+
+    const { data: myConvos } = await supabase
+      .from('conversation_participants')
+      .select('conversation_id')
+      .eq('user_id', currentUserId)
+
+    if (myConvos && myConvos.length > 0) {
+      const convoIds = myConvos.map(c => c.conversation_id)
+      const { data: theirConvos } = await supabase
+        .from('conversation_participants')
+        .select('conversation_id')
+        .eq('user_id', profile.id)
+        .in('conversation_id', convoIds)
+
+      if (theirConvos && theirConvos.length > 0) {
+        router.push(`/mesaje/${theirConvos[0].conversation_id}`)
+        return
+      }
+    }
+
+    const newId = crypto.randomUUID()
+    const { error } = await supabase.from('conversations').insert({ id: newId })
+    if (error) { setStartingChat(false); return }
+
+    await supabase.from('conversation_participants').insert([
+      { conversation_id: newId, user_id: currentUserId },
+      { conversation_id: newId, user_id: profile.id },
+    ])
+
+    router.push(`/mesaje/${newId}`)
+  }
+
   return (
     <Link href={`/colegi/${profile.id}`} className="block rounded-xl border border-gray-200 bg-white px-4 py-3 hover:border-primary-200 transition-colors">
       <div className="flex items-start justify-between">
@@ -144,9 +185,19 @@ function ProfileCard({ profile }: { profile: ColleagueProfile }) {
           <p className="text-sm font-semibold text-gray-900">{profile.name}</p>
           <p className="text-xs text-gray-400">@{profile.username}</p>
         </div>
-        <span className="text-xs font-bold text-gray-500">
-          {profile.graduation_year}{profile.class || ''}
-        </span>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={handleMessage}
+            disabled={startingChat}
+            className="rounded-full p-1.5 text-gray-400 hover:text-primary-700 hover:bg-primary-50 transition-colors disabled:opacity-50"
+          >
+            {startingChat ? <Loader2 size={14} className="animate-spin" /> : <MessageCircle size={14} />}
+          </button>
+          <span className="text-xs font-bold text-gray-500">
+            {profile.graduation_year}{profile.class || ''}
+          </span>
+        </div>
       </div>
       {profile.company && (
         <p className="mt-1 text-[11px] text-gray-500 flex items-center gap-1">
