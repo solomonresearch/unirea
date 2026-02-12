@@ -30,7 +30,7 @@ export async function middleware(request: NextRequest) {
   }
 
   // Protect /profil and /tabla — redirect unauthenticated users to login
-  if (!user && ['/profil', '/tabla', '/setari', '/cauta'].includes(request.nextUrl.pathname)) {
+  if (!user && ['/profil', '/tabla', '/setari', '/cauta', '/colegi'].includes(request.nextUrl.pathname)) {
     return NextResponse.redirect(new URL('/autentificare', request.url))
   }
 
@@ -38,5 +38,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/autentificare', '/inregistrare', '/profil', '/tabla', '/setari', '/cauta'],
+  matcher: ['/autentificare', '/inregistrare', '/profil', '/tabla', '/setari', '/cauta', '/colegi'],
 }
