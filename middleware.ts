@@ -30,7 +30,7 @@ export async function middleware(request: NextRequest) {
   }
 
   // Protect authenticated routes — redirect unauthenticated users to login
-  const protectedPaths = ['/profil', '/tabla', '/setari', '/cauta', '/colegi']
+  const protectedPaths = ['/profil', '/tabla', '/avizier', '/setari', '/cauta', '/colegi']
   if (!user && protectedPaths.some(p => request.nextUrl.pathname === p || request.nextUrl.pathname.startsWith(p + '/'))) {
     return NextResponse.redirect(new URL('/autentificare', request.url))
   }
@@ -39,5 +39,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/autentificare', '/inregistrare', '/profil', '/tabla', '/setari', '/cauta', '/colegi', '/colegi/:path*'],
+  matcher: ['/autentificare', '/inregistrare', '/profil', '/tabla', '/avizier', '/setari', '/cauta', '/colegi', '/colegi/:path*'],
 }
