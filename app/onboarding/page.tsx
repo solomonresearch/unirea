@@ -13,7 +13,7 @@ import { DOMAINS } from '@/lib/domains'
 import { HOBBY_OPTIONS } from '@/lib/hobbies'
 import {
   Briefcase, MapPin, Globe, Building, ArrowRight, ArrowLeft,
-  Heart, Layers, Loader2, Sparkles, Check
+  Heart, Layers, Loader2, Sparkles, Check, Building2
 } from 'lucide-react'
 
 export default function OnboardingPage() {
@@ -24,6 +24,7 @@ export default function OnboardingPage() {
 
   const [profession, setProfession] = useState<string[]>([])
   const [domain, setDomain] = useState<string[]>([])
+  const [company, setCompany] = useState('')
 
   const [country, setCountry] = useState('Romania')
   const [city, setCity] = useState('')
@@ -67,6 +68,7 @@ export default function OnboardingPage() {
       .update({
         profession,
         domain,
+        company: company || null,
         country,
         city,
         hobbies,
@@ -125,6 +127,17 @@ export default function OnboardingPage() {
                 placeholder="Domenii (ex: IT, Sanatate)"
                 icon={<Layers size={15} />}
               />
+
+              <div className="relative">
+                <Building2 size={15} className="absolute left-3 top-2.5 text-gray-400 pointer-events-none" />
+                <input
+                  type="text"
+                  value={company}
+                  onChange={e => setCompany(e.target.value)}
+                  placeholder="Companie (optional)"
+                  className="w-full rounded-lg border border-gray-300 pl-9 pr-3 py-2.5 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none"
+                />
+              </div>
 
               <SearchSelect
                 options={COUNTRIES}
@@ -223,6 +236,12 @@ export default function OnboardingPage() {
                 <div className="flex items-center gap-2 text-gray-600">
                   <Layers size={14} className="text-primary-700" />
                   {domain.join(', ')}
+                </div>
+              )}
+              {company && (
+                <div className="flex items-center gap-2 text-gray-600">
+                  <Building2 size={14} className="text-primary-700" />
+                  {company}
                 </div>
               )}
               {(country || city) && (

@@ -31,6 +31,7 @@ interface Profile {
   class: string | null
   profession: string[]
   domain: string[]
+  company: string | null
   country: string
   city: string
   hobbies: string[]
@@ -48,6 +49,7 @@ export default function ProfilPage() {
   const [editBio, setEditBio] = useState('')
   const [editProfession, setEditProfession] = useState<string[]>([])
   const [editDomain, setEditDomain] = useState<string[]>([])
+  const [editCompany, setEditCompany] = useState('')
   const [editCountry, setEditCountry] = useState('')
   const [editCity, setEditCity] = useState('')
   const [editHobbies, setEditHobbies] = useState<string[]>([])
@@ -81,6 +83,7 @@ export default function ProfilPage() {
       setEditBio(data.bio || '')
       setEditProfession(data.profession || [])
       setEditDomain(data.domain || [])
+      setEditCompany(data.company || '')
       setEditCountry(data.country || 'Romania')
       setEditCity(data.city || '')
       setEditHobbies(data.hobbies || [])
@@ -341,24 +344,44 @@ export default function ProfilPage() {
                 placeholder="Domenii (ex: IT, Sanatate)"
                 icon={<Layers size={15} />}
               />
+              <div className="relative">
+                <Building size={15} className={iconClass} />
+                <input
+                  type="text"
+                  value={editCompany}
+                  onChange={e => setEditCompany(e.target.value)}
+                  placeholder="Companie (optional)"
+                  className={inputClass}
+                />
+              </div>
             </div>
           }
           onSave={async () => {
-            await updateProfile({ profession: editProfession, domain: editDomain })
+            await updateProfile({ profession: editProfession, domain: editDomain, company: editCompany || null })
           }}
         >
-          {(profile.profession?.length > 0 || profile.domain?.length > 0) ? (
-            <div className="flex flex-wrap gap-1.5">
-              {profile.profession?.map(p => (
-                <span key={p} className="inline-flex items-center rounded-md bg-primary-50 border border-primary-200 px-2 py-0.5 text-xs font-medium text-primary-700">
-                  {p}
-                </span>
-              ))}
-              {profile.domain?.map(d => (
-                <span key={d} className="inline-flex items-center rounded-md bg-blue-50 border border-blue-200 px-2 py-0.5 text-xs font-medium text-blue-700">
-                  {d}
-                </span>
-              ))}
+          {(profile.profession?.length > 0 || profile.domain?.length > 0 || profile.company) ? (
+            <div className="space-y-1.5">
+              {(profile.profession?.length > 0 || profile.domain?.length > 0) && (
+                <div className="flex flex-wrap gap-1.5">
+                  {profile.profession?.map(p => (
+                    <span key={p} className="inline-flex items-center rounded-md bg-primary-50 border border-primary-200 px-2 py-0.5 text-xs font-medium text-primary-700">
+                      {p}
+                    </span>
+                  ))}
+                  {profile.domain?.map(d => (
+                    <span key={d} className="inline-flex items-center rounded-md bg-blue-50 border border-blue-200 px-2 py-0.5 text-xs font-medium text-blue-700">
+                      {d}
+                    </span>
+                  ))}
+                </div>
+              )}
+              {profile.company && (
+                <p className="text-xs text-gray-500 flex items-center gap-1">
+                  <Building size={12} className="text-gray-400" />
+                  {profile.company}
+                </p>
+              )}
             </div>
           ) : (
             <p className="text-sm text-gray-400 italic">Nicio profesie sau domeniu</p>
