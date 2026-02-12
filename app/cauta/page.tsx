@@ -9,7 +9,7 @@ import { PROFESSIONS } from '@/lib/professions'
 import { DOMAINS } from '@/lib/domains'
 import { getSupabase } from '@/lib/supabase'
 import {
-  Loader2, Search, Briefcase, Layers,
+  Loader2, Search, Briefcase, Layers, Building2,
   GraduationCap, Users, SlidersHorizontal,
 } from 'lucide-react'
 
@@ -22,6 +22,7 @@ interface ProfileResult {
   class: string | null
   profession: string[]
   domain: string[]
+  company: string | null
 }
 
 export default function CautaPage() {
@@ -34,6 +35,7 @@ export default function CautaPage() {
   const [domain, setDomain] = useState('')
   const [year, setYear] = useState('')
   const [cls, setCls] = useState('')
+  const [company, setCompany] = useState('')
   const [filtersOpen, setFiltersOpen] = useState(true)
 
   const [results, setResults] = useState<ProfileResult[]>([])
@@ -66,7 +68,7 @@ export default function CautaPage() {
 
     let query = getSupabase()
       .from('profiles')
-      .select('id, name, graduation_year, class, profession, domain')
+      .select('id, name, graduation_year, class, profession, domain, company')
       .eq('highschool', highschool)
       .eq('onboarding_completed', true)
       .neq('id', currentUserId)
@@ -83,11 +85,14 @@ export default function CautaPage() {
     if (cls) {
       query = query.eq('class', cls)
     }
+    if (company) {
+      query = query.ilike('company', `%${company}%`)
+    }
 
     const { data } = await query.order('graduation_year', { ascending: false })
     setResults(data || [])
     setSearching(false)
-  }, [highschool, currentUserId, profession, domain, year, cls])
+  }, [highschool, currentUserId, profession, domain, year, cls, company])
 
   useEffect(() => {
     if (!loading && highschool) {
@@ -168,6 +173,16 @@ export default function CautaPage() {
                   icon={<Users size={15} />}
                 />
               </div>
+              <div className="relative">
+                <Building2 size={15} className="absolute left-3 top-2.5 text-gray-400 pointer-events-none" />
+                <input
+                  type="text"
+                  value={company}
+                  onChange={e => setCompany(e.target.value)}
+                  placeholder="Companie"
+                  className="w-full rounded-lg border border-gray-300 pl-9 pr-3 py-2.5 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none"
+                />
+              </div>
               <button
                 type="button"
                 onClick={search}
@@ -217,6 +232,12 @@ export default function CautaPage() {
                       </span>
                     ))}
                   </div>
+                )}
+                {profile.company && (
+                  <p className="mt-1 text-[11px] text-gray-400 flex items-center gap-1">
+                    <Building2 size={11} />
+                    {profile.company}
+                  </p>
                 )}
               </div>
             ))}
