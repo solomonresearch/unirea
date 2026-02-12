@@ -86,20 +86,16 @@ export default function ColegProfilePage() {
       }
     }
 
-    const { data: newConvo } = await supabase
-      .from('conversations')
-      .insert({})
-      .select('id')
-      .single()
-
-    if (!newConvo) { setStartingChat(false); return }
+    const newId = crypto.randomUUID()
+    const { error } = await supabase.from('conversations').insert({ id: newId })
+    if (error) { setStartingChat(false); return }
 
     await supabase.from('conversation_participants').insert([
-      { conversation_id: newConvo.id, user_id: currentUserId },
-      { conversation_id: newConvo.id, user_id: profile.id },
+      { conversation_id: newId, user_id: currentUserId },
+      { conversation_id: newId, user_id: profile.id },
     ])
 
-    router.push(`/mesaje/${newConvo.id}`)
+    router.push(`/mesaje/${newId}`)
   }
 
   if (loading) {

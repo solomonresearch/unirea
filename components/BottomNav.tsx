@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { BookOpen, Megaphone, Users, MessageCircle, Search, Settings } from 'lucide-react'
@@ -19,36 +19,41 @@ export function BottomNav() {
   const pathname = usePathname()
   const [unreadCount, setUnreadCount] = useState(0)
 
-  useEffect(() => {
-    async function loadUnread() {
-      const supabase = getSupabase()
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
+  const loadUnread = useCallback(async () => {
+    const supabase = getSupabase()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
 
-      const { data: participations } = await supabase
-        .from('conversation_participants')
-        .select('conversation_id, last_read_at')
-        .eq('user_id', user.id)
+    const { data: participations } = await supabase
+      .from('conversation_participants')
+      .select('conversation_id, last_read_at')
+      .eq('user_id', user.id)
 
-      if (!participations || participations.length === 0) return
-
-      let total = 0
-      for (const p of participations) {
-        const { count } = await supabase
-          .from('messages')
-          .select('id', { count: 'exact', head: true })
-          .eq('conversation_id', p.conversation_id)
-          .neq('user_id', user.id)
-          .gt('created_at', p.last_read_at || '1970-01-01')
-
-        total += count || 0
-      }
-
-      setUnreadCount(total)
+    if (!participations || participations.length === 0) {
+      setUnreadCount(0)
+      return
     }
 
-    loadUnread()
+    let total = 0
+    for (const p of participations) {
+      const { count } = await supabase
+        .from('messages')
+        .select('id', { count: 'exact', head: true })
+        .eq('conversation_id', p.conversation_id)
+        .neq('user_id', user.id)
+        .gt('created_at', p.last_read_at || '1970-01-01')
 
+      total += count || 0
+    }
+
+    setUnreadCount(total)
+  }, [])
+
+  useEffect(() => {
+    loadUnread()
+  }, [loadUnread, pathname])
+
+  useEffect(() => {
     const supabase = getSupabase()
     const channel = supabase
       .channel('unread-badge')
@@ -62,7 +67,7 @@ export function BottomNav() {
       .subscribe()
 
     return () => { supabase.removeChannel(channel) }
-  }, [pathname])
+  }, [loadUnread])
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 border-t border-gray-200 bg-white z-50">
