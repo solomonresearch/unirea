@@ -39,5 +39,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/autentificare', '/inregistrare', '/profil', '/tabla', '/avizier', '/setari', '/cauta', '/colegi', '/colegi/:path*', '/mesaje', '/mesaje/:path*'],
+  matcher: ['/autentificare', '/inregistrare', '/resetare-parola', '/resetare-parola/:path*', '/profil', '/tabla', '/avizier', '/setari', '/cauta', '/colegi', '/colegi/:path*', '/mesaje', '/mesaje/:path*'],
 }

@@ -5,32 +5,42 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Logo } from '@/components/Logo'
 import { getSupabase } from '@/lib/supabase'
-import { Mail, Lock, Loader2, ArrowLeft } from 'lucide-react'
+import { Lock, Loader2, ArrowLeft } from 'lucide-react'
 
-export default function LoginPage() {
+export default function ConfirmResetPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
 
-  async function handleLogin(e: React.FormEvent) {
+  async function handleUpdatePassword(e: React.FormEvent) {
     e.preventDefault()
     setError('')
+
+    if (password !== confirmPassword) {
+      setError('Parolele nu coincid.')
+      return
+    }
+
+    if (password.length < 6) {
+      setError('Parola trebuie sa aiba cel putin 6 caractere.')
+      return
+    }
+
     setLoading(true)
 
     try {
       const supabase = getSupabase()
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email,
+      const { error: updateError } = await supabase.auth.updateUser({
         password,
       })
 
-      if (signInError) throw signInError
+      if (updateError) throw updateError
 
-      window.location.href = '/tabla'
+      router.push('/tabla')
     } catch (err: any) {
-      setError(err.message || 'Email sau parola incorecta')
+      setError(err.message || 'A aparut o eroare. Incearca din nou.')
     } finally {
       setLoading(false)
     }
@@ -43,11 +53,11 @@ export default function LoginPage() {
     <main className="flex min-h-screen flex-col items-center justify-center px-5">
       <div className="w-full max-w-sm space-y-6">
         <div className="flex items-center gap-2">
-          <Link href="/" className="text-gray-400 hover:text-gray-600">
+          <Link href="/autentificare" className="text-gray-400 hover:text-gray-600">
             <ArrowLeft size={18} />
           </Link>
           <Logo size={28} />
-          <h1 className="text-lg font-bold text-gray-900">Autentificare</h1>
+          <h1 className="text-lg font-bold text-gray-900">Parola noua</h1>
         </div>
 
         {error && (
@@ -56,21 +66,15 @@ export default function LoginPage() {
           </div>
         )}
 
-        <form onSubmit={handleLogin} className="space-y-2.5">
+        <form onSubmit={handleUpdatePassword} className="space-y-2.5">
           <div className="relative">
-            <Mail size={15} className={iconClass} />
-            <input type="email" required value={email} onChange={e => setEmail(e.target.value)} placeholder="Email" className={inputClass} />
+            <Lock size={15} className={iconClass} />
+            <input type="password" required value={password} onChange={e => setPassword(e.target.value)} placeholder="Parola noua" className={inputClass} />
           </div>
 
           <div className="relative">
             <Lock size={15} className={iconClass} />
-            <input type="password" required value={password} onChange={e => setPassword(e.target.value)} placeholder="Parola" className={inputClass} />
-          </div>
-
-          <div className="text-right">
-            <Link href="/resetare-parola" className="text-xs text-primary-700 hover:underline">
-              Ai uitat parola?
-            </Link>
+            <input type="password" required value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder="Confirma parola" className={inputClass} />
           </div>
 
           <button
@@ -79,16 +83,9 @@ export default function LoginPage() {
             className="flex items-center justify-center gap-2 w-full rounded-lg bg-primary-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-primary-800 disabled:opacity-50 transition-colors"
           >
             {loading ? <Loader2 size={16} className="animate-spin" /> : null}
-            {loading ? 'Se autentifica...' : 'Intra in cont'}
+            {loading ? 'Se actualizeaza...' : 'Actualizeaza parola'}
           </button>
         </form>
-
-        <p className="text-center text-sm text-gray-500">
-          Nu ai cont?{' '}
-          <Link href="/inregistrare" className="text-primary-700 font-medium hover:underline">
-            Inregistreaza-te
-          </Link>
-        </p>
       </div>
     </main>
   )
