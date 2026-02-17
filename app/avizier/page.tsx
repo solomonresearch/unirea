@@ -2,8 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Logo } from '@/components/Logo'
-import { BottomNav } from '@/components/BottomNav'
 import { getSupabase } from '@/lib/supabase'
 import { Loader2, Send, Trash2, ChevronUp, ChevronDown, MessageCircle, Clock } from 'lucide-react'
 
@@ -242,16 +240,10 @@ export default function AvizierPage() {
   return (
     <main className="flex min-h-screen flex-col items-center bg-white px-6 py-6 pb-24">
       <div className="w-full max-w-sm space-y-4">
-        {/* Header */}
-        <div className="flex items-center gap-2">
-          <Logo size={28} />
-          <div className="min-w-0">
-            <span className="text-sm font-bold leading-tight text-gray-900">Avizier</span>
-            <p className="text-[10px] leading-tight text-gray-500 truncate">
-              {profile.highschool}
-            </p>
-          </div>
-        </div>
+        {/* Scope label */}
+        <p className="text-[10px] leading-tight text-gray-500 truncate">
+          {profile.highschool}
+        </p>
 
         {/* Create form */}
         <form onSubmit={handleSubmit} className="space-y-2">
@@ -391,8 +383,6 @@ export default function AvizierPage() {
           ))}
         </div>
       </div>
-
-      <BottomNav />
     </main>
   )
 }

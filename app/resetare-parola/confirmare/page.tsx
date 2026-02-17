@@ -38,7 +38,7 @@ export default function ConfirmResetPage() {
 
       if (updateError) throw updateError
 
-      router.push('/tabla')
+      router.push('/avizier')
     } catch (err: any) {
       setError(err.message || 'A aparut o eroare. Incearca din nou.')
     } finally {

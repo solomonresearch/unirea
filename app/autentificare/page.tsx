@@ -28,7 +28,7 @@ export default function LoginPage() {
 
       if (signInError) throw signInError
 
-      window.location.href = '/tabla'
+      window.location.href = '/avizier'
     } catch (err: any) {
       setError(err.message || 'Email sau parola incorecta')
     } finally {

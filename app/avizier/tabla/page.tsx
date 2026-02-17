@@ -2,8 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Logo } from '@/components/Logo'
-import { BottomNav } from '@/components/BottomNav'
 import { getSupabase } from '@/lib/supabase'
 import { Loader2, Send, Trash2, ChevronUp, ChevronDown, MessageCircle } from 'lucide-react'
 
@@ -229,16 +227,10 @@ export default function TablaPage() {
   return (
     <main className="flex min-h-screen flex-col items-center bg-gray-950 px-6 py-6 pb-24">
       <div className="w-full max-w-sm space-y-4">
-        {/* Header */}
-        <div className="flex items-center gap-2">
-          <Logo size={28} />
-          <div className="min-w-0">
-            <span className="text-sm font-bold leading-tight text-white">Tabla</span>
-            <p className="text-[10px] leading-tight text-gray-500 truncate">
-              {profile.highschool} &bull; <span className="font-bold text-gray-300">{profile.graduation_year}</span> &bull; <span className="font-bold text-gray-300">{profile.class}</span>
-            </p>
-          </div>
-        </div>
+        {/* Scope label */}
+        <p className="text-[10px] leading-tight text-gray-500 truncate">
+          {profile.highschool} &bull; <span className="font-bold text-gray-300">{profile.graduation_year}</span> &bull; <span className="font-bold text-gray-300">{profile.class}</span>
+        </p>
 
         {/* Post form */}
         <form onSubmit={handleSubmit} className="flex gap-2">
@@ -361,8 +353,6 @@ export default function TablaPage() {
           ))}
         </div>
       </div>
-
-      <BottomNav />
     </main>
   )
 }
