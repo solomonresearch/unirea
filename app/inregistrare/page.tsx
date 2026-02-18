@@ -101,7 +101,7 @@ export default function SignupPage() {
 
       if (profileError) throw profileError
 
-      window.location.href = '/tabla'
+      window.location.href = '/avizier'
     } catch (err: any) {
       setError(err.message || 'A aparut o eroare')
     } finally {

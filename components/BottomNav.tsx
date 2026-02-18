@@ -3,11 +3,10 @@
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { BookOpen, Megaphone, Users, MessageCircle, Search, Settings } from 'lucide-react'
+import { Megaphone, Users, MessageCircle, Search, Settings } from 'lucide-react'
 import { getSupabase } from '@/lib/supabase'
 
 const NAV_ITEMS = [
-  { href: '/tabla', label: 'Tabla', icon: BookOpen },
   { href: '/avizier', label: 'Avizier', icon: Megaphone },
   { href: '/colegi', label: 'Colegi', icon: Users },
   { href: '/mesaje', label: 'Mesaje', icon: MessageCircle },

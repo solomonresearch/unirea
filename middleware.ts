@@ -26,11 +26,11 @@ export async function middleware(request: NextRequest) {
 
   // Redirect authenticated users away from auth pages
   if (user && (request.nextUrl.pathname === '/autentificare' || request.nextUrl.pathname === '/inregistrare')) {
-    return NextResponse.redirect(new URL('/tabla', request.url))
+    return NextResponse.redirect(new URL('/avizier', request.url))
   }
 
   // Protect authenticated routes — redirect unauthenticated users to login
-  const protectedPaths = ['/profil', '/tabla', '/avizier', '/setari', '/cauta', '/colegi', '/mesaje']
+  const protectedPaths = ['/profil', '/avizier', '/setari', '/cauta', '/colegi', '/mesaje']
   if (!user && protectedPaths.some(p => request.nextUrl.pathname === p || request.nextUrl.pathname.startsWith(p + '/'))) {
     return NextResponse.redirect(new URL('/autentificare', request.url))
   }
@@ -39,5 +39,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/autentificare', '/inregistrare', '/resetare-parola', '/resetare-parola/:path*', '/profil', '/tabla', '/avizier', '/setari', '/cauta', '/colegi', '/colegi/:path*', '/mesaje', '/mesaje/:path*'],
+  matcher: ['/autentificare', '/inregistrare', '/resetare-parola', '/resetare-parola/:path*', '/profil', '/avizier', '/avizier/:path*', '/setari', '/cauta', '/colegi', '/colegi/:path*', '/mesaje', '/mesaje/:path*'],
 }
