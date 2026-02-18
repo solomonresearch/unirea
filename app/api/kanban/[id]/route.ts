@@ -80,7 +80,7 @@ export async function DELETE(
 
   const { error } = await db
     .from('kanban_cards')
-    .delete()
+    .update({ archived: true })
     .eq('id', params.id)
 
   if (error) {

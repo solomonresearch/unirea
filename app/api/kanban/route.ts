@@ -11,6 +11,7 @@ export async function GET() {
     const { data, error } = await db
       .from('kanban_cards')
       .select('*, profiles:created_by(name)')
+      .eq('archived', false)
       .order('position', { ascending: true })
 
     if (error) {
