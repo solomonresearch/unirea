@@ -45,7 +45,7 @@ export async function PATCH(
     .from('kanban_cards')
     .update(updates)
     .eq('id', params.id)
-    .select('*, profiles:created_by(full_name)')
+    .select('*, profiles:created_by(name)')
     .single()
 
   if (error) {
@@ -64,7 +64,7 @@ export async function PATCH(
     position: data.position,
     card_number: data.card_number,
     created_by: data.created_by,
-    creator_name: (data as any).profiles?.full_name ?? null,
+    creator_name: (data as any).profiles?.name ?? null,
     created_at: data.created_at,
     updated_at: data.updated_at,
   })

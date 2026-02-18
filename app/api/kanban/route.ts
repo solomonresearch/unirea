@@ -10,7 +10,7 @@ export async function GET() {
 
   const { data, error } = await supabase
     .from('kanban_cards')
-    .select('*, profiles:created_by(full_name)')
+    .select('*, profiles:created_by(name)')
     .order('position', { ascending: true })
 
   if (error) {
@@ -25,7 +25,7 @@ export async function GET() {
     position: row.position,
     card_number: row.card_number,
     created_by: row.created_by,
-    creator_name: row.profiles?.full_name ?? null,
+    creator_name: row.profiles?.name ?? null,
     created_at: row.created_at,
     updated_at: row.updated_at,
   }))
@@ -71,7 +71,7 @@ export async function POST(request: Request) {
       position: nextPosition,
       created_by: user.id,
     })
-    .select('*, profiles:created_by(full_name)')
+    .select('*, profiles:created_by(name)')
     .single()
 
   if (error) {
@@ -86,7 +86,7 @@ export async function POST(request: Request) {
     position: data.position,
     card_number: data.card_number,
     created_by: data.created_by,
-    creator_name: (data as any).profiles?.full_name ?? null,
+    creator_name: (data as any).profiles?.name ?? null,
     created_at: data.created_at,
     updated_at: data.updated_at,
   }, { status: 201 })
