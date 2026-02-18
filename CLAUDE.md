@@ -21,6 +21,20 @@
   - `GET /api/ziar` → query: `?category=&county=` → returns `{ posts: [...], canPost: boolean }`
   - `POST /api/ziar` → body: `{ title (required, max 200), body (required, max 2000), category: "stiri"|"anunt"|"apel"|"vand"|"cumpar", links?: string[] (max 5), city?, county?, country? }` → returns created post (201) or 429 if rate limited
   - `DELETE /api/ziar/[id]` → authenticated only, own posts only, soft delete → returns `{ ok: true }`
+- **API routes**: `app/api/avizier/` — server-side CRUD for avizier (notice board). Authenticated only. Scoped to user's `highschool`.
+  - `GET /api/avizier` → returns `{ announcements: [{ id, content, created_at, expires_at, user_id, profiles, upvotes, downvotes, user_vote, comments }] }`
+  - `POST /api/avizier` → body: `{ content (required), expiry_days: 3|7|14 }` → returns created announcement (201)
+  - `DELETE /api/avizier/[id]` → soft delete, own announcements only → returns `{ ok: true }`
+  - `POST /api/avizier/[id]/vote` → body: `{ vote: 1|-1|0 }` → toggles/removes vote → returns `{ ok: true }`
+  - `POST /api/avizier/[id]/comment` → body: `{ content }` → returns created comment (201)
+  - `DELETE /api/avizier/[id]/comment/[commentId]` → soft delete, own comments only → returns `{ ok: true }`
+- **API routes**: `app/api/tabla/` — server-side CRUD for tabla (whiteboard). Authenticated only. Scoped to classmates (same `highschool` + `graduation_year` + `class`).
+  - `GET /api/tabla` → returns `{ posts: [{ id, content, created_at, user_id, profiles, upvotes, downvotes, user_vote, comments }] }`
+  - `POST /api/tabla` → body: `{ content (required) }` → returns created post (201)
+  - `DELETE /api/tabla/[id]` → soft delete, own posts only → returns `{ ok: true }`
+  - `POST /api/tabla/[id]/vote` → body: `{ vote: 1|-1|0 }` → toggles/removes vote → returns `{ ok: true }`
+  - `POST /api/tabla/[id]/comment` → body: `{ content }` → returns created comment (201)
+  - `DELETE /api/tabla/[id]/comment/[commentId]` → soft delete, own comments only → returns `{ ok: true }`
 - **Ziar**: Public newspaper/bulletin board at `/ziar`. Posts expire after 3 days. Categories: stiri, anunt, apel, vand, cumpar. Anonymous users can read and post. `/avizier/ziar` redirects to `/ziar`. Shared `AvizierTabBar` component used by both `/ziar` and `/avizier` layouts.
 - **Middleware**: `middleware.ts` protects authenticated routes (`/tabla`, `/avizier`, `/colegi`, `/mesaje`, `/cauta`, `/kanban`, `/profil`, `/setari`) and redirects authenticated users from auth pages
 - **Bottom nav**: 6 tabs — Tabla, Avizier, Colegi, Mesaje, Cauta, Setari
