@@ -1,0 +1,45 @@
+import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { NextResponse } from 'next/server'
+
+export async function DELETE(
+  _request: Request,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const supabase = createServerSupabaseClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+      return NextResponse.json({ error: 'Neautorizat' }, { status: 401 })
+    }
+
+    // Verify ownership
+    const { data: post } = await supabase
+      .from('ziar_posts')
+      .select('created_by')
+      .eq('id', params.id)
+      .is('deleted_at', null)
+      .single()
+
+    if (!post) {
+      return NextResponse.json({ error: 'Postarea nu a fost gasita' }, { status: 404 })
+    }
+
+    if (post.created_by !== user.id) {
+      return NextResponse.json({ error: 'Nu poti sterge postarea altcuiva' }, { status: 403 })
+    }
+
+    const { error } = await supabase
+      .from('ziar_posts')
+      .update({ deleted_at: new Date().toISOString() })
+      .eq('id', params.id)
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+
+    return NextResponse.json({ ok: true })
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message }, { status: 500 })
+  }
+}

@@ -9,14 +9,19 @@
 - **Stack**: Next.js 14 (App Router), React 18, TypeScript, Tailwind CSS, Supabase
 - **Icons**: lucide-react — always use Lucide, never install other icon libraries
 - **Language**: All UI text is in **Romanian**
-- **Routes**: Romanian slugs — `/autentificare` (login), `/inregistrare` (signup), `/bun-venit` (welcome), `/onboarding`, `/tabla` (whiteboard), `/avizier` (notice board), `/colegi` (colleagues), `/mesaje` (messages), `/cauta` (search), `/kanban`, `/profil`, `/setari`
-- **Supabase**: Auth for sessions, `profiles` table for user data, `posts`/`post_votes`/`comments` for whiteboard, `kanban_cards` for Kanban board, `conversations`/`messages` for DMs, RLS enabled
+- **Routes**: Romanian slugs — `/autentificare` (login), `/inregistrare` (signup), `/bun-venit` (welcome), `/onboarding`, `/tabla` (whiteboard), `/avizier` (notice board), `/ziar` (newspaper — public), `/colegi` (colleagues), `/mesaje` (messages), `/cauta` (search), `/kanban`, `/profil`, `/setari`
+- **Supabase**: Auth for sessions, `profiles` table for user data, `posts`/`post_votes`/`comments` for whiteboard, `kanban_cards` for Kanban board, `ziar_posts` for Ziar (newspaper), `conversations`/`messages` for DMs, RLS enabled
 - **Client pattern**: `lib/supabase.ts` for browser, `lib/supabase-server.ts` for server components and API routes
 - **API routes**: `app/api/kanban/` — server-side CRUD for kanban cards. Uses `createServerSupabaseClient()` for auth. All routes return 401 if not logged in.
   - `GET /api/kanban` → returns `[{ id, title, description, status, position, card_number, created_by, creator_name, created_at, updated_at }]`
   - `POST /api/kanban` → body: `{ title (required), description, status: "todo"|"in_progress"|"done" }` → returns created card (201)
   - `PATCH /api/kanban/[id]` → body: any of `{ title, description, status, position }` → returns updated card
   - `DELETE /api/kanban/[id]` → returns `{ ok: true }`
+- **API routes**: `app/api/ziar/` — public CRUD for ziar (newspaper) posts. Anonymous and authenticated access. Rate limit: 1 post/week per user or IP.
+  - `GET /api/ziar` → query: `?category=&county=` → returns `{ posts: [...], canPost: boolean }`
+  - `POST /api/ziar` → body: `{ title (required, max 200), body (required, max 2000), category: "stiri"|"anunt"|"apel"|"vand"|"cumpar", links?: string[] (max 5), city?, county?, country? }` → returns created post (201) or 429 if rate limited
+  - `DELETE /api/ziar/[id]` → authenticated only, own posts only, soft delete → returns `{ ok: true }`
+- **Ziar**: Public newspaper/bulletin board at `/ziar`. Posts expire after 3 days. Categories: stiri, anunt, apel, vand, cumpar. Anonymous users can read and post. `/avizier/ziar` redirects to `/ziar`. Shared `AvizierTabBar` component used by both `/ziar` and `/avizier` layouts.
 - **Middleware**: `middleware.ts` protects authenticated routes (`/tabla`, `/avizier`, `/colegi`, `/mesaje`, `/cauta`, `/kanban`, `/profil`, `/setari`) and redirects authenticated users from auth pages
 - **Bottom nav**: 6 tabs — Tabla, Avizier, Colegi, Mesaje, Cauta, Setari
 - **Kanban**: Drag-and-drop board using `@dnd-kit`. Components in `components/kanban/`. Realtime sync via Supabase channels. Cards have auto-incrementing `card_number` displayed as `#N`.
