@@ -10,6 +10,7 @@ export interface KanbanCardData {
   description: string | null
   status: 'todo' | 'in_progress' | 'done'
   position: number
+  card_number: number | null
   created_by: string | null
   creator_name: string | null
   created_at: string
@@ -43,6 +44,9 @@ export function KanbanCard({ card, compact, overlay, onDelete }: KanbanCardProps
       <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-lg rotate-2 opacity-90">
         <div className="flex items-center gap-2">
           <GripVertical className="w-4 h-4 text-gray-400 shrink-0" />
+          {card.card_number && (
+            <span className="text-[10px] font-mono text-gray-400 shrink-0">#{card.card_number}</span>
+          )}
           <span className="text-sm font-medium text-gray-900 truncate">{card.title}</span>
         </div>
       </div>
@@ -66,6 +70,9 @@ export function KanbanCard({ card, compact, overlay, onDelete }: KanbanCardProps
           >
             <GripVertical className="w-3.5 h-3.5" />
           </button>
+          {card.card_number && (
+            <span className="text-[10px] font-mono text-gray-300 shrink-0">#{card.card_number}</span>
+          )}
           <span className="text-sm text-gray-400 line-through truncate flex-1">
             {card.title}
           </span>
@@ -104,7 +111,12 @@ export function KanbanCard({ card, compact, overlay, onDelete }: KanbanCardProps
           <GripVertical className="w-4 h-4" />
         </button>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-gray-900">{card.title}</p>
+          <div className="flex items-center gap-1.5">
+            {card.card_number && (
+              <span className="text-[10px] font-mono text-gray-400 shrink-0">#{card.card_number}</span>
+            )}
+            <p className="text-sm font-medium text-gray-900 truncate">{card.title}</p>
+          </div>
           {card.description && (
             <p className="text-xs text-gray-500 mt-1 line-clamp-2">{card.description}</p>
           )}

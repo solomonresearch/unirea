@@ -41,7 +41,6 @@ export default function KanbanPage() {
 
   const [cards, setCards] = useState<KanbanCardData[]>([])
   const [loading, setLoading] = useState(true)
-  const [userId, setUserId] = useState<string | null>(null)
   const [activeCard, setActiveCard] = useState<KanbanCardData | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [newCard, setNewCard] = useState({ title: '', description: '', status: 'todo' as Status })
@@ -57,48 +56,27 @@ export default function KanbanPage() {
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   )
 
-  useEffect(() => {
-    async function init() {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
-        router.replace('/autentificare')
-        return
-      }
-      setUserId(user.id)
-      loadCards()
-    }
-    init()
-  }, [])
-
   const loadCards = useCallback(async () => {
-    const { data, error } = await supabase
-      .from('kanban_cards')
-      .select('*, profiles:created_by(full_name)')
-      .order('position', { ascending: true })
-
-    if (error) {
-      console.error('Error loading cards:', error)
+    const res = await fetch('/api/kanban')
+    if (res.status === 401) {
+      router.replace('/autentificare')
+      return
+    }
+    if (!res.ok) {
+      console.error('Error loading cards')
       setLoading(false)
       return
     }
-
-    const mapped: KanbanCardData[] = (data || []).map((row: any) => ({
-      id: row.id,
-      title: row.title,
-      description: row.description,
-      status: row.status,
-      position: row.position,
-      created_by: row.created_by,
-      creator_name: row.profiles?.full_name ?? null,
-      created_at: row.created_at,
-      updated_at: row.updated_at,
-    }))
-
-    setCards(mapped)
+    const data: KanbanCardData[] = await res.json()
+    setCards(data)
     setLoading(false)
-  }, [supabase])
+  }, [router])
 
-  // Realtime subscription
+  useEffect(() => {
+    loadCards()
+  }, [loadCards])
+
+  // Realtime subscription (still uses client Supabase — realtime is a client concern)
   useEffect(() => {
     const channel = supabase
       .channel('kanban-realtime')
@@ -132,7 +110,6 @@ export default function KanbanPage() {
     const activeCard = cards.find(c => c.id === activeId)
     if (!activeCard) return
 
-    // Determine the target status: either the column itself or the card's column
     let targetStatus: Status
     if (STATUSES.includes(overId as Status)) {
       targetStatus = overId as Status
@@ -144,13 +121,9 @@ export default function KanbanPage() {
 
     if (activeCard.status === targetStatus) return
 
-    // Optimistic move to new column
-    setCards(prev => {
-      const updated = prev.map(c =>
-        c.id === activeId ? { ...c, status: targetStatus } : c
-      )
-      return updated
-    })
+    setCards(prev =>
+      prev.map(c => c.id === activeId ? { ...c, status: targetStatus } : c)
+    )
   }
 
   const handleDragEnd = async (event: DragEndEvent) => {
@@ -171,7 +144,6 @@ export default function KanbanPage() {
       if (overCard) targetStatus = overCard.status
     }
 
-    // Reorder within column
     const columnCards = cards.filter(c => c.status === targetStatus)
     const oldIndex = columnCards.findIndex(c => c.id === activeId)
     const newIndex = columnCards.findIndex(c => c.id === overId)
@@ -181,7 +153,7 @@ export default function KanbanPage() {
       reordered = arrayMove(columnCards, oldIndex, newIndex)
     }
 
-    // Optimistic update positions
+    // Optimistic update
     setCards(prev => {
       const others = prev.filter(c => c.status !== targetStatus)
       const updated = reordered.map((c, i) => ({
@@ -192,38 +164,37 @@ export default function KanbanPage() {
       return [...others, ...updated]
     })
 
-    // Persist to Supabase
-    const { error } = await supabase
-      .from('kanban_cards')
-      .update({ status: targetStatus, position: reordered.findIndex(c => c.id === activeId) })
-      .eq('id', activeId)
+    // Persist via API
+    const res = await fetch(`/api/kanban/${activeId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        status: targetStatus,
+        position: reordered.findIndex(c => c.id === activeId),
+      }),
+    })
 
-    if (error) {
-      console.error('Error updating card:', error)
+    if (!res.ok) {
+      console.error('Error updating card')
       loadCards()
     }
   }
 
   const createCard = async () => {
-    if (!newCard.title.trim() || !userId) return
+    if (!newCard.title.trim()) return
 
-    const columnCards = getColumnCards(newCard.status)
-    const maxPosition = columnCards.length > 0
-      ? Math.max(...columnCards.map(c => c.position))
-      : -1
-
-    const { error } = await supabase
-      .from('kanban_cards')
-      .insert({
+    const res = await fetch('/api/kanban', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
         title: newCard.title.trim(),
         description: newCard.description.trim() || null,
         status: newCard.status,
-        position: maxPosition + 1,
-        created_by: userId,
-      })
+      }),
+    })
 
-    if (error) {
-      console.error('Error creating card:', error)
+    if (!res.ok) {
+      console.error('Error creating card')
       return
     }
 
@@ -233,15 +204,12 @@ export default function KanbanPage() {
   }
 
   const deleteCard = async (cardId: string) => {
+    // Optimistic delete
     setCards(prev => prev.filter(c => c.id !== cardId))
 
-    const { error } = await supabase
-      .from('kanban_cards')
-      .delete()
-      .eq('id', cardId)
-
-    if (error) {
-      console.error('Error deleting card:', error)
+    const res = await fetch(`/api/kanban/${cardId}`, { method: 'DELETE' })
+    if (!res.ok) {
+      console.error('Error deleting card')
       loadCards()
     }
   }
