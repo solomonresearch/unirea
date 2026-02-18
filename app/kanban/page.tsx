@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
 import {
   DndContext,
   DragOverlay,
@@ -36,7 +35,6 @@ const STATUS_LABELS: Record<Status, string> = {
 }
 
 export default function KanbanPage() {
-  const router = useRouter()
   const supabase = getSupabase()
 
   const [cards, setCards] = useState<KanbanCardData[]>([])
@@ -58,10 +56,6 @@ export default function KanbanPage() {
 
   const loadCards = useCallback(async () => {
     const res = await fetch('/api/kanban')
-    if (res.status === 401) {
-      router.replace('/autentificare')
-      return
-    }
     if (!res.ok) {
       console.error('Error loading cards')
       setLoading(false)
@@ -70,7 +64,7 @@ export default function KanbanPage() {
     const data: KanbanCardData[] = await res.json()
     setCards(data)
     setLoading(false)
-  }, [router])
+  }, [])
 
   useEffect(() => {
     loadCards()
