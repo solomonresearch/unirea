@@ -1,14 +1,13 @@
-import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { createServerSupabaseClient, createServiceRoleClient } from '@/lib/supabase-server'
 import { NextResponse } from 'next/server'
 
 export async function GET() {
   const supabase = createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    return NextResponse.json({ error: 'Neautorizat' }, { status: 401 })
-  }
 
-  const { data, error } = await supabase
+  const db = user ? supabase : createServiceRoleClient()
+
+  const { data, error } = await db
     .from('kanban_cards')
     .select('*, profiles:created_by(name)')
     .order('position', { ascending: true })
@@ -36,9 +35,8 @@ export async function GET() {
 export async function POST(request: Request) {
   const supabase = createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    return NextResponse.json({ error: 'Neautorizat' }, { status: 401 })
-  }
+
+  const db = user ? supabase : createServiceRoleClient()
 
   const body = await request.json()
   const { title, description, status } = body
@@ -53,7 +51,7 @@ export async function POST(request: Request) {
   }
 
   // Get the next position for this column
-  const { data: existing } = await supabase
+  const { data: existing } = await db
     .from('kanban_cards')
     .select('position')
     .eq('status', status)
@@ -62,14 +60,14 @@ export async function POST(request: Request) {
 
   const nextPosition = existing && existing.length > 0 ? existing[0].position + 1 : 0
 
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('kanban_cards')
     .insert({
       title: title.trim(),
       description: description?.trim() || null,
       status,
       position: nextPosition,
-      created_by: user.id,
+      created_by: user?.id ?? null,
     })
     .select('*, profiles:created_by(name)')
     .single()

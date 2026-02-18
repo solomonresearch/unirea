@@ -1,4 +1,4 @@
-import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { createServerSupabaseClient, createServiceRoleClient } from '@/lib/supabase-server'
 import { NextResponse } from 'next/server'
 
 export async function PATCH(
@@ -7,9 +7,8 @@ export async function PATCH(
 ) {
   const supabase = createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    return NextResponse.json({ error: 'Neautorizat' }, { status: 401 })
-  }
+
+  const db = user ? supabase : createServiceRoleClient()
 
   const body = await request.json()
   const updates: Record<string, any> = {}
@@ -41,7 +40,7 @@ export async function PATCH(
     return NextResponse.json({ error: 'Nicio modificare' }, { status: 400 })
   }
 
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('kanban_cards')
     .update(updates)
     .eq('id', params.id)
@@ -76,11 +75,10 @@ export async function DELETE(
 ) {
   const supabase = createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    return NextResponse.json({ error: 'Neautorizat' }, { status: 401 })
-  }
 
-  const { error } = await supabase
+  const db = user ? supabase : createServiceRoleClient()
+
+  const { error } = await db
     .from('kanban_cards')
     .delete()
     .eq('id', params.id)
