@@ -137,6 +137,110 @@ unirea/
 
 All API routes authenticate via server-side Supabase client — return 401 if not logged in.
 
+### Authentication
+
+All requests must include the Supabase auth session cookie (set automatically when logged in via the browser). For programmatic access, pass the `sb-<ref>-auth-token` cookie.
+
+### Examples
+
+**List all cards:**
+```bash
+GET /api/kanban
+```
+Response:
+```json
+[
+  {
+    "id": "5b6572ee-cc95-4aaa-b5e5-1ebb1d401702",
+    "title": "Design homepage",
+    "description": "Create mockups for the landing page",
+    "status": "in_progress",
+    "position": 0,
+    "card_number": 1,
+    "created_by": "a1b2c3d4-...",
+    "creator_name": "Ion Popescu",
+    "created_at": "2026-02-18T08:56:34.646Z",
+    "updated_at": "2026-02-18T09:09:36.541Z"
+  }
+]
+```
+
+**Create a card:**
+```bash
+POST /api/kanban
+Content-Type: application/json
+
+{
+  "title": "Fix login bug",
+  "description": "Users can't log in on Safari",
+  "status": "todo"
+}
+```
+Response (`201`):
+```json
+{
+  "id": "new-uuid-here",
+  "title": "Fix login bug",
+  "description": "Users can't log in on Safari",
+  "status": "todo",
+  "position": 0,
+  "card_number": 2,
+  "created_by": "your-user-id",
+  "creator_name": "Ion Popescu",
+  "created_at": "...",
+  "updated_at": "..."
+}
+```
+
+- `title` (string, required) — card title
+- `description` (string, optional) — card description
+- `status` (string, required) — one of `"todo"`, `"in_progress"`, `"done"`
+- `position` is calculated automatically (appended to end of column)
+- `card_number` is auto-incremented by the database
+- `created_by` is set automatically from the authenticated user
+
+**Move a card to another column:**
+```bash
+PATCH /api/kanban/{id}
+Content-Type: application/json
+
+{
+  "status": "done",
+  "position": 0
+}
+```
+Response: the updated card object.
+
+**Edit a card's title and description:**
+```bash
+PATCH /api/kanban/{id}
+Content-Type: application/json
+
+{
+  "title": "Fix login bug (Safari + Firefox)",
+  "description": "Updated scope to include Firefox"
+}
+```
+All fields are optional — only send what you want to change. Valid fields: `title`, `description`, `status`, `position`.
+
+**Delete a card:**
+```bash
+DELETE /api/kanban/{id}
+```
+Response:
+```json
+{ "ok": true }
+```
+
+### Error Responses
+
+| Status | Meaning | Example body |
+|--------|---------|-------------|
+| `400` | Validation error | `{ "error": "Titlul este obligatoriu" }` |
+| `401` | Not authenticated | `{ "error": "Neautorizat" }` |
+| `404` | Card not found | `{ "error": "Card negasit" }` |
+| `500` | Server error | `{ "error": "..." }` |
+
 ## Database Schema
 
 **profiles** table (extends Supabase Auth):
