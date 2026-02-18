@@ -9,12 +9,14 @@
 - **Stack**: Next.js 14 (App Router), React 18, TypeScript, Tailwind CSS, Supabase
 - **Icons**: lucide-react — always use Lucide, never install other icon libraries
 - **Language**: All UI text is in **Romanian**
-- **Routes**: Romanian slugs — `/autentificare` (login), `/inregistrare` (signup), `/bun-venit` (welcome), `/onboarding`, `/tabla` (whiteboard), `/colegi` (colleagues), `/cauta` (search), `/profil`, `/setari`
-- **Supabase**: Auth for sessions, `profiles` table for user data, `posts`/`post_votes`/`comments` for whiteboard, RLS enabled
-- **Client pattern**: `lib/supabase.ts` for browser, `lib/supabase-server.ts` for server components
-- **Middleware**: `middleware.ts` protects authenticated routes (`/tabla`, `/colegi`, `/cauta`, `/profil`, `/setari`) and redirects authenticated users from auth pages
-- **Bottom nav**: 5 tabs — Tabla, Colegi, Cauta, Profil, Setari
-- **Design**: Mobile-first. All layouts use `max-w-sm` centered with `px-6` padding.
+- **Routes**: Romanian slugs — `/autentificare` (login), `/inregistrare` (signup), `/bun-venit` (welcome), `/onboarding`, `/tabla` (whiteboard), `/avizier` (notice board), `/colegi` (colleagues), `/mesaje` (messages), `/cauta` (search), `/kanban`, `/profil`, `/setari`
+- **Supabase**: Auth for sessions, `profiles` table for user data, `posts`/`post_votes`/`comments` for whiteboard, `kanban_cards` for Kanban board, `conversations`/`messages` for DMs, RLS enabled
+- **Client pattern**: `lib/supabase.ts` for browser, `lib/supabase-server.ts` for server components and API routes
+- **API routes**: `app/api/kanban/` — server-side CRUD for kanban cards (GET, POST, PATCH, DELETE). API routes use `createServerSupabaseClient()` for auth.
+- **Middleware**: `middleware.ts` protects authenticated routes (`/tabla`, `/avizier`, `/colegi`, `/mesaje`, `/cauta`, `/kanban`, `/profil`, `/setari`) and redirects authenticated users from auth pages
+- **Bottom nav**: 6 tabs — Tabla, Avizier, Colegi, Mesaje, Cauta, Setari
+- **Kanban**: Drag-and-drop board using `@dnd-kit`. Components in `components/kanban/`. Realtime sync via Supabase channels. Cards have auto-incrementing `card_number` displayed as `#N`.
+- **Design**: Mobile-first. All layouts use `max-w-sm` centered with `px-6` padding. Kanban uses `max-w-6xl` (needs width for columns).
 - **Environment**: `.env` has `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`
 
 ---
