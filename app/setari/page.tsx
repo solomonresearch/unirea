@@ -17,7 +17,7 @@ import { getSupabase } from '@/lib/supabase'
 import {
   LogOut, Loader2, Sparkles, Briefcase, Layers,
   MapPin, Globe, Building, Heart, Mail, Phone,
-  GraduationCap, Pencil, User, Settings,
+  GraduationCap, Pencil, User, Settings, Shield,
 } from 'lucide-react'
 
 interface Profile {
@@ -62,6 +62,7 @@ export default function SetariPage() {
   const [savingGraduation, setSavingGraduation] = useState(false)
   const [editingLocation, setEditingLocation] = useState(false)
   const [savingLocation, setSavingLocation] = useState(false)
+  const [isAdmin, setIsAdmin] = useState(false)
 
   useEffect(() => {
     async function loadProfile() {
@@ -82,6 +83,7 @@ export default function SetariPage() {
       }
 
       setProfile(data as Profile)
+      setIsAdmin(data.role === 'admin')
       setEditBio(data.bio || '')
       setEditProfession(data.profession || [])
       setEditDomain(data.domain || [])
@@ -507,9 +509,24 @@ export default function SetariPage() {
 
         {/* Setari Tab */}
         {activeTab === 'setari' && (
-          <div className="flex flex-col items-center justify-center py-16 text-gray-400">
-            <Settings size={40} strokeWidth={1} />
-            <p className="mt-3 text-sm">In curand</p>
+          <div className="space-y-3">
+            {isAdmin && (
+              <button
+                type="button"
+                onClick={() => router.push('/admin')}
+                className="w-full flex items-center gap-3 rounded-lg border border-gray-200 px-4 py-3 text-left hover:bg-gray-50 transition-colors"
+              >
+                <Shield size={20} className="text-red-600" />
+                <div>
+                  <p className="text-sm font-medium text-gray-900">Panou Admin</p>
+                  <p className="text-xs text-gray-500">Gestioneaza utilizatorii si rolurile</p>
+                </div>
+              </button>
+            )}
+            <div className="flex flex-col items-center justify-center py-12 text-gray-400">
+              <Settings size={40} strokeWidth={1} />
+              <p className="mt-3 text-sm">Mai multe setari in curand</p>
+            </div>
           </div>
         )}
 
