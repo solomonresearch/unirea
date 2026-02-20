@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { BottomNav } from '@/components/BottomNav'
 import { getSupabase } from '@/lib/supabase'
-import { Loader2, MessageCircle, ChevronRight, Users, X } from 'lucide-react'
+import { Loader2, MessageCircle, ChevronRight, Users, X, GraduationCap } from 'lucide-react'
 import Link from 'next/link'
 import { VennCanvas } from '@/components/circles/VennCanvas'
 import { ModeToggle } from '@/components/circles/ModeToggle'
@@ -39,6 +39,17 @@ interface Person {
   overlap_score: number
 }
 
+interface Classmate {
+  id: string
+  name: string
+  username: string
+  graduation_year: number
+  class: string | null
+  profession: string[]
+  domain: string[]
+  company: string | null
+}
+
 function getInitials(name: string) {
   return name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()
 }
@@ -53,6 +64,10 @@ export default function CercuriPage() {
   const [loadingPeople, setLoadingPeople] = useState(false)
   const [currentUserId, setCurrentUserId] = useState('')
   const [vennOpacity, setVennOpacity] = useState(1)
+  const [showClassmates, setShowClassmates] = useState(false)
+  const [classmates, setClassmates] = useState<Classmate[]>([])
+  const [yearmates, setYearmates] = useState<Classmate[]>([])
+  const [userClass, setUserClass] = useState<string | null>(null)
 
   useEffect(() => {
     async function init() {
@@ -60,6 +75,33 @@ export default function CercuriPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/autentificare'); return }
       setCurrentUserId(user.id)
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('highschool, graduation_year, class')
+        .eq('id', user.id)
+        .single()
+
+      if (profile) {
+        setUserClass(profile.class)
+
+        const { data: yearData } = await supabase
+          .from('profiles')
+          .select('id, name, username, graduation_year, class, profession, domain, company')
+          .eq('highschool', profile.highschool)
+          .eq('graduation_year', profile.graduation_year)
+          .eq('onboarding_completed', true)
+          .neq('id', user.id)
+          .order('name')
+
+        const all = (yearData || []) as Classmate[]
+        if (profile.class) {
+          setClassmates(all.filter(p => p.class === profile.class))
+          setYearmates(all.filter(p => p.class !== profile.class))
+        } else {
+          setYearmates(all)
+        }
+      }
 
       const { data: result, error } = await supabase.rpc('get_circles_data', { p_user_id: user.id })
       if (error) { console.error(error); setLoading(false); return }
@@ -156,12 +198,74 @@ export default function CercuriPage() {
 
       <div className="max-w-sm mx-auto px-5 py-5 space-y-4">
         {/* Header */}
-        <div>
-          <h1 className="text-2xl font-bold" style={{ color: '#fff' }}>Cercurile mele</h1>
-          <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.35)' }}>
-            Descopera unde se suprapun lumile tale
-          </p>
+        <div className="flex items-start justify-between">
+          <div>
+            <h1 className="text-2xl font-bold" style={{ color: '#fff' }}>Cercurile mele</h1>
+            <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.35)' }}>
+              Descopera unde se suprapun lumile tale
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowClassmates(prev => !prev)}
+            className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-all"
+            style={{
+              background: showClassmates ? 'rgba(255,107,74,0.15)' : 'rgba(255,255,255,0.05)',
+              border: `1.5px solid ${showClassmates ? 'rgba(255,107,74,0.4)' : 'rgba(255,255,255,0.08)'}`,
+              color: showClassmates ? '#FF6B4A' : 'rgba(255,255,255,0.45)',
+            }}
+          >
+            <GraduationCap size={14} />
+            Clasa
+          </button>
         </div>
+
+        {/* Classmates section */}
+        {showClassmates && (
+          <div className="space-y-3 rounded-xl px-4 py-3"
+            style={{ background: 'rgba(255,107,74,0.05)', border: '1px solid rgba(255,107,74,0.1)' }}
+          >
+            {userClass && (
+              <>
+                <p className="text-[10px] font-semibold uppercase tracking-wider flex items-center gap-1.5"
+                  style={{ color: 'rgba(255,255,255,0.3)', letterSpacing: '1.2px' }}
+                >
+                  <Users size={12} />
+                  Clasa {userClass} &bull; {data?.user_info.graduation_year}
+                </p>
+                {classmates.length === 0 ? (
+                  <p className="text-xs italic py-2 text-center" style={{ color: 'rgba(255,255,255,0.25)' }}>
+                    Niciun coleg din clasa ta inca
+                  </p>
+                ) : (
+                  <div className="space-y-1.5">
+                    {classmates.map(p => (
+                      <ClassmateRow key={p.id} person={p} currentUserId={currentUserId} />
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
+
+            <p className="text-[10px] font-semibold uppercase tracking-wider flex items-center gap-1.5"
+              style={{ color: 'rgba(255,255,255,0.3)', letterSpacing: '1.2px' }}
+            >
+              <GraduationCap size={12} />
+              Promotia {data?.user_info.graduation_year}
+            </p>
+            {yearmates.length === 0 ? (
+              <p className="text-xs italic py-2 text-center" style={{ color: 'rgba(255,255,255,0.25)' }}>
+                Niciun coleg din promotie inca
+              </p>
+            ) : (
+              <div className="space-y-1.5">
+                {yearmates.map(p => (
+                  <ClassmateRow key={p.id} person={p} currentUserId={currentUserId} />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Mode Toggle */}
         <ModeToggle mode={mode} onSwitch={switchMode} />
@@ -424,6 +528,97 @@ function PersonCard({ person, currentUserId }: { person: Person; currentUserId: 
         {startingChat
           ? <Loader2 size={18} strokeWidth={2.5} className="animate-spin" />
           : <MessageCircle size={18} strokeWidth={2.5} />
+        }
+      </button>
+    </div>
+  )
+}
+
+function ClassmateRow({ person, currentUserId }: { person: Classmate; currentUserId: string }) {
+  const router = useRouter()
+  const [startingChat, setStartingChat] = useState(false)
+
+  async function handleMessage(e: React.MouseEvent) {
+    e.preventDefault()
+    e.stopPropagation()
+    if (startingChat) return
+    setStartingChat(true)
+    const supabase = getSupabase()
+
+    const { data: myConvos } = await supabase
+      .from('conversation_participants')
+      .select('conversation_id')
+      .eq('user_id', currentUserId)
+
+    if (myConvos && myConvos.length > 0) {
+      const convoIds = myConvos.map(c => c.conversation_id)
+      const { data: theirConvos } = await supabase
+        .from('conversation_participants')
+        .select('conversation_id')
+        .eq('user_id', person.id)
+        .in('conversation_id', convoIds)
+
+      if (theirConvos && theirConvos.length > 0) {
+        router.push(`/mesaje/${theirConvos[0].conversation_id}`)
+        return
+      }
+    }
+
+    const newId = crypto.randomUUID()
+    const { error } = await supabase.from('conversations').insert({ id: newId })
+    if (error) { setStartingChat(false); return }
+
+    await supabase.from('conversation_participants').insert([
+      { conversation_id: newId, user_id: currentUserId },
+      { conversation_id: newId, user_id: person.id },
+    ])
+
+    router.push(`/mesaje/${newId}`)
+  }
+
+  return (
+    <div className="flex items-center gap-3 rounded-lg px-3 py-2"
+      style={{ background: 'rgba(255,255,255,0.03)' }}
+    >
+      <Link href={`/cercuri/${person.id}`} className="flex-1 min-w-0">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm font-semibold" style={{ color: '#fff' }}>{person.name}</p>
+            <p className="text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>@{person.username}</p>
+          </div>
+          <span className="text-xs font-bold" style={{ color: 'rgba(255,255,255,0.4)' }}>
+            {person.graduation_year}{person.class || ''}
+          </span>
+        </div>
+        {(person.profession?.length > 0 || person.domain?.length > 0) && (
+          <div className="mt-1 flex flex-wrap gap-1">
+            {person.profession?.slice(0, 2).map(p => (
+              <span key={p} className="inline-flex rounded px-1.5 py-0.5 text-[10px] font-medium"
+                style={{ background: 'rgba(123,97,255,0.12)', color: '#7B61FF' }}
+              >
+                {p}
+              </span>
+            ))}
+            {person.domain?.slice(0, 2).map(d => (
+              <span key={d} className="inline-flex rounded px-1.5 py-0.5 text-[10px] font-medium"
+                style={{ background: 'rgba(74,156,255,0.12)', color: '#4A9CFF' }}
+              >
+                {d}
+              </span>
+            ))}
+          </div>
+        )}
+      </Link>
+      <button
+        type="button"
+        onClick={handleMessage}
+        disabled={startingChat}
+        className="flex-shrink-0 rounded-full p-2 transition-colors disabled:opacity-50"
+        style={{ color: 'rgba(255,255,255,0.4)' }}
+      >
+        {startingChat
+          ? <Loader2 size={16} strokeWidth={2.5} className="animate-spin" />
+          : <MessageCircle size={16} strokeWidth={2.5} />
         }
       </button>
     </div>
