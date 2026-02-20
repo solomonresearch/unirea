@@ -48,17 +48,30 @@ export default function HartaPage() {
         .eq('highschool', profile.highschool)
         .eq('onboarding_completed', true)
 
-      const userMarkers: UserMarker[] = []
+      const byCity: Record<string, typeof colleagues> = {}
       for (const c of colleagues || []) {
-        if (!c.city) continue
-        const coords = CITY_COORDINATES[c.city]
-        if (coords) {
-          userMarkers.push({
-            id: c.id,
-            name: c.name,
-            city: c.city,
-            lat: coords[0],
-            lng: coords[1],
+        if (!c.city || !CITY_COORDINATES[c.city]) continue
+        if (!byCity[c.city]) byCity[c.city] = []
+        byCity[c.city]!.push(c)
+      }
+
+      const OFFSET = 0.008
+      const userMarkers: UserMarker[] = []
+      for (const [city, people] of Object.entries(byCity)) {
+        const [baseLat, baseLng] = CITY_COORDINATES[city]
+        if (people!.length === 1) {
+          const c = people![0]
+          userMarkers.push({ id: c.id, name: c.name, city, lat: baseLat, lng: baseLng })
+        } else {
+          people!.forEach((c, i) => {
+            const angle = (2 * Math.PI * i) / people!.length
+            userMarkers.push({
+              id: c.id,
+              name: c.name,
+              city,
+              lat: baseLat + OFFSET * Math.cos(angle),
+              lng: baseLng + OFFSET * Math.sin(angle),
+            })
           })
         }
       }
