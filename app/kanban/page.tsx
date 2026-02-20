@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import {
   DndContext,
   DragOverlay,
@@ -17,7 +17,7 @@ import {
   type CollisionDetection,
 } from '@dnd-kit/core'
 import { arrayMove, sortableKeyboardCoordinates } from '@dnd-kit/sortable'
-import { Plus } from 'lucide-react'
+import { Plus, Volume2, VolumeX } from 'lucide-react'
 import { getSupabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -52,11 +52,13 @@ export default function KanbanPage() {
   const [newCard, setNewCard] = useState({ title: '', description: '', status: 'todo' as Status })
   const [editCard, setEditCard] = useState<KanbanCardData | null>(null)
   const [editFields, setEditFields] = useState({ title: '', description: '' })
+  const [muted, setMuted] = useState(false)
   const [filters, setFilters] = useState<Record<Status, string>>({
     todo: '',
     in_progress: '',
     done: '',
   })
+  const audioRef = useRef<HTMLAudioElement | null>(null)
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -98,6 +100,27 @@ export default function KanbanPage() {
     [cards]
   )
 
+  const playSound = useCallback((src: string) => {
+    if (muted) return
+    if (audioRef.current) {
+      audioRef.current.pause()
+      audioRef.current.currentTime = 0
+    }
+    const audio = new Audio(src)
+    audioRef.current = audio
+    audio.play()
+  }, [muted])
+
+  const toggleMute = () => {
+    setMuted(prev => {
+      if (!prev && audioRef.current) {
+        audioRef.current.pause()
+        audioRef.current.currentTime = 0
+      }
+      return !prev
+    })
+  }
+
   const handleDragStart = (event: DragStartEvent) => {
     const card = cards.find(c => c.id === event.active.id)
     if (card) setActiveCard(card)
@@ -130,6 +153,7 @@ export default function KanbanPage() {
   }
 
   const handleDragEnd = async (event: DragEndEvent) => {
+    const draggedFrom = activeCard?.status
     setActiveCard(null)
     const { active, over } = event
     if (!over) return
@@ -145,6 +169,11 @@ export default function KanbanPage() {
     } else {
       const overCard = cards.find(c => c.id === overId)
       if (overCard) targetStatus = overCard.status
+    }
+
+    if (draggedFrom && draggedFrom !== targetStatus) {
+      if (targetStatus === 'in_progress') playSound('/sounds/viteza.mp3')
+      else if (targetStatus === 'done') playSound('/sounds/forza.mp3')
     }
 
     const columnCards = cards.filter(c => c.status === targetStatus)
@@ -256,9 +285,19 @@ export default function KanbanPage() {
     <div className="min-h-screen bg-white pb-24">
       <div className="sticky top-0 z-40 bg-white border-b border-gray-100">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-bold text-gray-900">Kanban</h1>
-            <p className="text-xs text-gray-500 mt-0.5">Gestioneaza taskurile echipei</p>
+          <div className="flex items-center gap-2">
+            <div>
+              <h1 className="text-xl font-bold text-gray-900">Kanban</h1>
+              <p className="text-xs text-gray-500 mt-0.5">Gestioneaza taskurile echipei</p>
+            </div>
+            <button
+              type="button"
+              onClick={toggleMute}
+              className={`p-1.5 rounded-md transition-colors ${muted ? 'text-gray-300 hover:text-gray-500' : 'text-blue-500 hover:text-blue-700'}`}
+              title={muted ? 'Activeaza sunetul' : 'Dezactiveaza sunetul'}
+            >
+              {muted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+            </button>
           </div>
 
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
