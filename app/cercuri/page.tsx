@@ -442,11 +442,16 @@ export default function CercuriPage() {
 function PersonTags({ person, activeFilters }: { person: Person; activeFilters: CircleKey[] }) {
   const tags: { label: string; bg: string; color: string }[] = []
 
+  const showLocation = activeFilters.includes('location')
   const showHobbies = activeFilters.includes('hobbies')
   const showProfession = activeFilters.includes('profession') || activeFilters.includes('background')
   const showDomain = activeFilters.includes('interests') || activeFilters.includes('background')
-  const showDefault = !showHobbies && !showProfession && !showDomain
+  const showDefault = !showLocation && !showHobbies && !showProfession && !showDomain
 
+  if (showLocation) {
+    const loc = [person.city, person.country].filter(Boolean).join(', ')
+    if (loc) tags.push({ label: loc, bg: 'rgba(255,184,74,0.12)', color: '#FFB84A' })
+  }
   if (showHobbies) {
     person.hobbies?.slice(0, 3).forEach(h =>
       tags.push({ label: h, bg: 'rgba(46,205,167,0.12)', color: '#2ECDA7' })
