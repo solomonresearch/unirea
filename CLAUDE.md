@@ -9,7 +9,7 @@
 - **Stack**: Next.js 14 (App Router), React 18, TypeScript, Tailwind CSS, Supabase
 - **Icons**: lucide-react — always use Lucide, never install other icon libraries
 - **Language**: All UI text is in **Romanian**
-- **Routes**: Romanian slugs — `/autentificare` (login), `/inregistrare` (signup), `/bun-venit` (welcome), `/onboarding`, `/tabla` (whiteboard), `/avizier` (notice board), `/ziar` (newspaper — public), `/colegi` (colleagues), `/mesaje` (messages), `/cauta` (search), `/kanban`, `/profil`, `/setari`
+- **Routes**: Romanian slugs — `/autentificare` (login), `/inregistrare` (signup), `/bun-venit` (welcome), `/onboarding`, `/tabla` (whiteboard), `/avizier` (notice board), `/ziar` (newspaper — public), `/colegi` (colleagues), `/mesaje` (messages), `/cauta` (search), `/harta` (map), `/kanban`, `/profil`, `/setari`
 - **Supabase**: Auth for sessions, `profiles` table for user data, `posts`/`post_votes`/`comments` for whiteboard, `kanban_cards` for Kanban board, `ziar_posts` for Ziar (newspaper), `conversations`/`messages` for DMs, RLS enabled
 - **Client pattern**: `lib/supabase.ts` for browser, `lib/supabase-server.ts` for server components and API routes
 - **API routes**: `app/api/kanban/` — server-side CRUD for kanban cards. Uses `createServerSupabaseClient()` for auth. All routes return 401 if not logged in.
@@ -36,8 +36,8 @@
   - `POST /api/tabla/[id]/comment` → body: `{ content }` → returns created comment (201)
   - `DELETE /api/tabla/[id]/comment/[commentId]` → soft delete, own comments only → returns `{ ok: true }`
 - **Ziar**: Public newspaper/bulletin board at `/ziar`. Posts expire after 3 days. Categories: stiri, anunt, apel, vand, cumpar. Anonymous users can read and post. `/avizier/ziar` redirects to `/ziar`. Shared `AvizierTabBar` component used by both `/ziar` and `/avizier` layouts.
-- **Middleware**: `middleware.ts` protects authenticated routes (`/tabla`, `/avizier`, `/colegi`, `/mesaje`, `/cauta`, `/kanban`, `/profil`, `/setari`) and redirects authenticated users from auth pages
-- **Bottom nav**: 6 tabs — Tabla, Avizier, Colegi, Mesaje, Cauta, Setari
+- **Middleware**: `middleware.ts` protects authenticated routes (`/tabla`, `/avizier`, `/colegi`, `/mesaje`, `/cauta`, `/harta`, `/kanban`, `/profil`, `/setari`) and redirects authenticated users from auth pages
+- **Bottom nav**: 7 tabs — Avizier, Colegi, Mesaje, Cauta, Harta, Setari
 - **Kanban**: Drag-and-drop board using `@dnd-kit`. Components in `components/kanban/`. Realtime sync via Supabase channels. Cards have auto-incrementing `card_number` displayed as `#N`.
 - **Design**: Mobile-first. All layouts use `max-w-sm` centered with `px-6` padding. Kanban uses `max-w-6xl` (needs width for columns).
 - **Environment**: `.env` has `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`

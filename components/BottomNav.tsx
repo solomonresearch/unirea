@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Megaphone, Users, MessageCircle, Search, Settings } from 'lucide-react'
+import { Megaphone, Users, MessageCircle, Search, Map, Settings } from 'lucide-react'
 import { getSupabase } from '@/lib/supabase'
 
 const NAV_ITEMS = [
@@ -11,6 +11,7 @@ const NAV_ITEMS = [
   { href: '/colegi', label: 'Colegi', icon: Users },
   { href: '/mesaje', label: 'Mesaje', icon: MessageCircle },
   { href: '/cauta', label: 'Cauta', icon: Search },
+  { href: '/harta', label: 'Harta', icon: Map },
   { href: '/setari', label: 'Setari', icon: Settings },
 ]
 
