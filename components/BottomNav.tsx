@@ -8,7 +8,7 @@ import { getSupabase } from '@/lib/supabase'
 
 const NAV_ITEMS = [
   { href: '/avizier', label: 'Avizier', icon: Megaphone },
-  { href: '/colegi', label: 'Colegi', icon: Users },
+  { href: '/cercuri', label: 'Cercuri', icon: Users },
   { href: '/mesaje', label: 'Mesaje', icon: MessageCircle },
   { href: '/cauta', label: 'Cauta', icon: Search },
   { href: '/harta', label: 'Harta', icon: Map },

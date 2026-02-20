@@ -55,7 +55,7 @@ export default function ColegProfilePage() {
         .eq('onboarding_completed', true)
         .single()
 
-      if (!data) { router.push('/colegi'); return }
+      if (!data) { router.push('/cercuri'); return }
       setProfile(data as Profile)
       setLoading(false)
     }
