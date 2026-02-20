@@ -18,6 +18,7 @@ import {
   LogOut, Loader2, Sparkles, Briefcase, Layers,
   MapPin, Globe, Building, Heart, Mail, Phone,
   GraduationCap, Pencil, User, Settings, Shield,
+  FlaskConical, Trash2,
 } from 'lucide-react'
 
 interface Profile {
@@ -63,6 +64,8 @@ export default function SetariPage() {
   const [editingLocation, setEditingLocation] = useState(false)
   const [savingLocation, setSavingLocation] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
+  const [mockLoading, setMockLoading] = useState<string | null>(null)
+  const [mockResult, setMockResult] = useState<string | null>(null)
 
   useEffect(() => {
     async function loadProfile() {
@@ -114,6 +117,40 @@ export default function SetariPage() {
   async function handleLogout() {
     await getSupabase().auth.signOut()
     router.push('/autentificare')
+  }
+
+  async function handleMock(scope: string) {
+    setMockLoading(scope)
+    setMockResult(null)
+    try {
+      const res = await fetch('/api/admin/mock', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ scope }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error)
+      setMockResult(`${data.created} boti creati`)
+    } catch (err: unknown) {
+      setMockResult(err instanceof Error ? err.message : 'Eroare')
+    } finally {
+      setMockLoading(null)
+    }
+  }
+
+  async function handleDeleteMock() {
+    setMockLoading('delete')
+    setMockResult(null)
+    try {
+      const res = await fetch('/api/admin/mock', { method: 'DELETE' })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error)
+      setMockResult(`${data.deleted} boti stersi`)
+    } catch (err: unknown) {
+      setMockResult(err instanceof Error ? err.message : 'Eroare')
+    } finally {
+      setMockLoading(null)
+    }
   }
 
   function toggleEditHobby(hobby: string) {
@@ -523,6 +560,60 @@ export default function SetariPage() {
                 </div>
               </button>
             )}
+
+            {isAdmin && (
+              <div className="rounded-lg border border-gray-200 p-4 space-y-3">
+                <div className="flex items-center gap-2">
+                  <FlaskConical size={18} className="text-purple-600" />
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">Date de test</p>
+                    <p className="text-xs text-gray-500">Creeaza profiluri bot pentru testare</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleMock('class')}
+                    disabled={!!mockLoading}
+                    className="flex items-center justify-center gap-1.5 rounded-lg border border-gray-200 px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 transition-colors"
+                  >
+                    {mockLoading === 'class' ? <Loader2 size={14} className="animate-spin" /> : null}
+                    Umple clasa (30)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleMock('highschool')}
+                    disabled={!!mockLoading}
+                    className="flex items-center justify-center gap-1.5 rounded-lg border border-gray-200 px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 transition-colors"
+                  >
+                    {mockLoading === 'highschool' ? <Loader2 size={14} className="animate-spin" /> : null}
+                    Umple liceul (480)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleMock('city')}
+                    disabled={!!mockLoading}
+                    className="flex items-center justify-center gap-1.5 rounded-lg border border-gray-200 px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 transition-colors"
+                  >
+                    {mockLoading === 'city' ? <Loader2 size={14} className="animate-spin" /> : null}
+                    Umple orasul (1440)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleDeleteMock}
+                    disabled={!!mockLoading}
+                    className="flex items-center justify-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-medium text-red-600 hover:bg-red-100 disabled:opacity-50 transition-colors"
+                  >
+                    {mockLoading === 'delete' ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+                    Sterge toti botii
+                  </button>
+                </div>
+                {mockResult && (
+                  <p className="text-xs text-center text-gray-600 font-medium">{mockResult}</p>
+                )}
+              </div>
+            )}
+
             <div className="flex flex-col items-center justify-center py-12 text-gray-400">
               <Settings size={40} strokeWidth={1} />
               <p className="mt-3 text-sm">Mai multe setari in curand</p>
