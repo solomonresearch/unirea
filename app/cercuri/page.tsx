@@ -428,7 +428,7 @@ export default function CercuriPage() {
               </button>
             </div>
             {people.map(person => (
-              <PersonCard key={person.id} person={person} currentUserId={currentUserId} />
+              <PersonCard key={person.id} person={person} currentUserId={currentUserId} activeFilters={activeFilters} />
             ))}
           </div>
         )}
@@ -439,7 +439,57 @@ export default function CercuriPage() {
   )
 }
 
-function PersonCard({ person, currentUserId }: { person: Person; currentUserId: string }) {
+function PersonTags({ person, activeFilters }: { person: Person; activeFilters: CircleKey[] }) {
+  const tags: { label: string; bg: string; color: string }[] = []
+
+  const showHobbies = activeFilters.includes('hobbies')
+  const showProfession = activeFilters.includes('profession') || activeFilters.includes('background')
+  const showDomain = activeFilters.includes('interests') || activeFilters.includes('background')
+  const showDefault = !showHobbies && !showProfession && !showDomain
+
+  if (showHobbies) {
+    person.hobbies?.slice(0, 3).forEach(h =>
+      tags.push({ label: h, bg: 'rgba(46,205,167,0.12)', color: '#2ECDA7' })
+    )
+  }
+  if (showProfession || showDefault) {
+    person.profession?.slice(0, 2).forEach(p =>
+      tags.push({ label: p, bg: 'rgba(123,97,255,0.12)', color: '#7B61FF' })
+    )
+  }
+  if (showDomain) {
+    person.domain?.slice(0, 2).forEach(d =>
+      tags.push({ label: d, bg: 'rgba(74,156,255,0.12)', color: '#4A9CFF' })
+    )
+  }
+
+  if (tags.length === 0 && !showDefault && person.company) {
+    return (
+      <div className="mt-1">
+        <span className="text-[10px]" style={{ color: 'rgba(255,255,255,0.4)' }}>{person.company}</span>
+      </div>
+    )
+  }
+
+  if (tags.length === 0) return null
+
+  return (
+    <div className="mt-1 flex flex-wrap gap-1">
+      {person.company && showDefault && (
+        <span className="text-[10px]" style={{ color: 'rgba(255,255,255,0.4)' }}>{person.company}</span>
+      )}
+      {tags.map(t => (
+        <span key={t.label} className="inline-flex rounded px-1.5 py-0.5 text-[10px] font-medium"
+          style={{ background: t.bg, color: t.color }}
+        >
+          {t.label}
+        </span>
+      ))}
+    </div>
+  )
+}
+
+function PersonCard({ person, currentUserId, activeFilters }: { person: Person; currentUserId: string; activeFilters: CircleKey[] }) {
   const router = useRouter()
   const [startingChat, setStartingChat] = useState(false)
 
@@ -501,20 +551,7 @@ function PersonCard({ person, currentUserId }: { person: Person; currentUserId: 
           <div className="min-w-0">
             <p className="text-sm font-semibold" style={{ color: '#fff' }}>{person.name}</p>
             <p className="text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>@{person.username}</p>
-            {(person.profession?.length > 0 || person.company) && (
-              <div className="mt-1 flex flex-wrap gap-1">
-                {person.company && (
-                  <span className="text-[10px]" style={{ color: 'rgba(255,255,255,0.4)' }}>{person.company}</span>
-                )}
-                {person.profession?.slice(0, 2).map(p => (
-                  <span key={p} className="inline-flex rounded px-1.5 py-0.5 text-[10px] font-medium"
-                    style={{ background: 'rgba(123,97,255,0.12)', color: '#7B61FF' }}
-                  >
-                    {p}
-                  </span>
-                ))}
-              </div>
-            )}
+            <PersonTags person={person} activeFilters={activeFilters} />
           </div>
         </div>
       </Link>
