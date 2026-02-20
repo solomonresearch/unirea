@@ -12,7 +12,9 @@ import {
   type DragStartEvent,
   type DragOverEvent,
   type DragEndEvent,
-  closestCorners,
+  pointerWithin,
+  rectIntersection,
+  type CollisionDetection,
 } from '@dnd-kit/core'
 import { arrayMove, sortableKeyboardCoordinates } from '@dnd-kit/sortable'
 import { Plus } from 'lucide-react'
@@ -34,6 +36,12 @@ const STATUS_LABELS: Record<Status, string> = {
   done: 'Finalizat',
 }
 
+const customCollisionDetection: CollisionDetection = (args) => {
+  const pointerCollisions = pointerWithin(args)
+  if (pointerCollisions.length > 0) return pointerCollisions
+  return rectIntersection(args)
+}
+
 export default function KanbanPage() {
   const supabase = getSupabase()
 
@@ -42,6 +50,8 @@ export default function KanbanPage() {
   const [activeCard, setActiveCard] = useState<KanbanCardData | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [newCard, setNewCard] = useState({ title: '', description: '', status: 'todo' as Status })
+  const [editCard, setEditCard] = useState<KanbanCardData | null>(null)
+  const [editFields, setEditFields] = useState({ title: '', description: '' })
   const [filters, setFilters] = useState<Record<Status, string>>({
     todo: '',
     in_progress: '',
@@ -70,7 +80,6 @@ export default function KanbanPage() {
     loadCards()
   }, [loadCards])
 
-  // Realtime subscription (still uses client Supabase — realtime is a client concern)
   useEffect(() => {
     const channel = supabase
       .channel('kanban-realtime')
@@ -147,7 +156,6 @@ export default function KanbanPage() {
       reordered = arrayMove(columnCards, oldIndex, newIndex)
     }
 
-    // Optimistic update
     setCards(prev => {
       const others = prev.filter(c => c.status !== targetStatus)
       const updated = reordered.map((c, i) => ({
@@ -158,7 +166,6 @@ export default function KanbanPage() {
       return [...others, ...updated]
     })
 
-    // Persist via API
     const res = await fetch(`/api/kanban/${activeId}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
@@ -198,12 +205,41 @@ export default function KanbanPage() {
   }
 
   const deleteCard = async (cardId: string) => {
-    // Optimistic delete
     setCards(prev => prev.filter(c => c.id !== cardId))
 
     const res = await fetch(`/api/kanban/${cardId}`, { method: 'DELETE' })
     if (!res.ok) {
       console.error('Error deleting card')
+      loadCards()
+    }
+  }
+
+  const openEditDialog = (card: KanbanCardData) => {
+    setEditCard(card)
+    setEditFields({ title: card.title, description: card.description || '' })
+  }
+
+  const saveEdit = async () => {
+    if (!editCard || !editFields.title.trim()) return
+
+    const updates = {
+      title: editFields.title.trim(),
+      description: editFields.description.trim() || null,
+    }
+
+    setCards(prev =>
+      prev.map(c => c.id === editCard.id ? { ...c, ...updates } : c)
+    )
+    setEditCard(null)
+
+    const res = await fetch(`/api/kanban/${editCard.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updates),
+    })
+
+    if (!res.ok) {
+      console.error('Error updating card')
       loadCards()
     }
   }
@@ -290,7 +326,7 @@ export default function KanbanPage() {
       <div className="max-w-6xl mx-auto px-4 py-6">
         <DndContext
           sensors={sensors}
-          collisionDetection={closestCorners}
+          collisionDetection={customCollisionDetection}
           onDragStart={handleDragStart}
           onDragOver={handleDragOver}
           onDragEnd={handleDragEnd}
@@ -304,6 +340,7 @@ export default function KanbanPage() {
                 filter={filters[status]}
                 onFilterChange={(val) => setFilters(prev => ({ ...prev, [status]: val }))}
                 onDeleteCard={deleteCard}
+                onEditCard={openEditDialog}
               />
             ))}
           </div>
@@ -313,6 +350,49 @@ export default function KanbanPage() {
           </DragOverlay>
         </DndContext>
       </div>
+
+      {/* Edit Dialog */}
+      <Dialog open={!!editCard} onOpenChange={(open) => { if (!open) setEditCard(null) }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              Editeaza card{editCard?.card_number ? ` #${editCard.card_number}` : ''}
+            </DialogTitle>
+            <DialogDescription>Modifica titlul sau descrierea cardului.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium text-gray-700 block mb-1.5">
+                Titlu *
+              </label>
+              <Input
+                placeholder="Introdu titlul"
+                value={editFields.title}
+                onChange={(e) => setEditFields(prev => ({ ...prev, title: e.target.value }))}
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium text-gray-700 block mb-1.5">
+                Descriere
+              </label>
+              <Textarea
+                placeholder="Descriere optionala"
+                value={editFields.description}
+                onChange={(e) => setEditFields(prev => ({ ...prev, description: e.target.value }))}
+                rows={3}
+              />
+            </div>
+            <div className="flex gap-2 pt-2">
+              <Button onClick={saveEdit} disabled={!editFields.title.trim()} className="flex-1 bg-blue-600 hover:bg-blue-700">
+                Salveaza
+              </Button>
+              <Button variant="outline" onClick={() => setEditCard(null)} className="flex-1">
+                Anuleaza
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <BottomNav />
     </div>
