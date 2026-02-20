@@ -6,6 +6,8 @@ import Link from 'next/link'
 import { Logo } from '@/components/Logo'
 import { getSupabase } from '@/lib/supabase'
 import { SearchSelect } from '@/components/SearchSelect'
+import { ROMANIAN_COUNTIES } from '@/lib/romanian-counties'
+import { ROMANIAN_CITIES } from '@/lib/romanian-cities'
 import { User, Mail, Phone, GraduationCap, Calendar, AtSign, Loader2, ArrowLeft, Lock, MapPin, Building } from 'lucide-react'
 
 export default function SignupPage() {
@@ -25,16 +27,23 @@ export default function SignupPage() {
     class: '',
   })
 
-  const [judete, setJudete] = useState<string[]>([])
+  const [judete, setJudete] = useState<string[]>(ROMANIAN_COUNTIES)
   const [localitati, setLocalitati] = useState<string[]>([])
   const [scoli, setScoli] = useState<string[]>([])
+  const [scoliRpcFailed, setScoliRpcFailed] = useState(false)
   const [loadingScoli, setLoadingScoli] = useState(false)
 
-  // Load judete on mount
+  // Load judete on mount — fall back to hardcoded list if RPC unavailable
   useEffect(() => {
     async function loadJudete() {
-      const { data } = await getSupabase().rpc('get_judete')
-      if (data) setJudete(data.map((r: { judet: string }) => r.judet))
+      try {
+        const { data } = await getSupabase().rpc('get_judete')
+        if (data && data.length > 0) {
+          setJudete(data.map((r: { judet: string }) => r.judet))
+        }
+      } catch {
+        // keep ROMANIAN_COUNTIES already set as initial state
+      }
     }
     loadJudete()
   }, [])
@@ -45,7 +54,11 @@ export default function SignupPage() {
     setLoadingScoli(true)
     async function loadLocalitati() {
       const { data } = await getSupabase().rpc('get_localitati', { p_judet: form.judet })
-      if (data) setLocalitati(data.map((r: { localitate: string }) => r.localitate))
+      if (data && data.length > 0) {
+        setLocalitati(data.map((r: { localitate: string }) => r.localitate))
+      } else {
+        setLocalitati(ROMANIAN_CITIES)
+      }
       setLoadingScoli(false)
     }
     loadLocalitati()
@@ -53,11 +66,17 @@ export default function SignupPage() {
 
   // Load scoli when localitate changes
   useEffect(() => {
-    if (!form.localitate || !form.judet) { setScoli([]); return }
+    if (!form.localitate || !form.judet) { setScoli([]); setScoliRpcFailed(false); return }
     setLoadingScoli(true)
     async function loadScoli() {
       const { data } = await getSupabase().rpc('get_scoli', { p_judet: form.judet, p_localitate: form.localitate })
-      if (data) setScoli(data.map((r: { denumire: string }) => r.denumire))
+      if (data && data.length > 0) {
+        setScoli(data.map((r: { denumire: string }) => r.denumire))
+        setScoliRpcFailed(false)
+      } else {
+        setScoli([])
+        setScoliRpcFailed(true)
+      }
       setLoadingScoli(false)
     }
     loadScoli()
@@ -177,16 +196,30 @@ export default function SignupPage() {
             />
           </div>
 
-          <SearchSelect
-            options={scoli}
-            value={form.highschool}
-            onChange={v => updateField('highschool', v)}
-            placeholder={loadingScoli ? 'Se incarca...' : 'Liceul'}
-            disabled={!form.localitate}
-            icon={<GraduationCap size={15} />}
-            required
-            bold
-          />
+          {scoliRpcFailed ? (
+            <div className="relative">
+              <GraduationCap size={15} className={iconClass} />
+              <input
+                type="text"
+                required
+                value={form.highschool}
+                onChange={e => updateField('highschool', e.target.value)}
+                placeholder="Liceul (scrie numele)"
+                className={`${inputClass} font-bold`}
+              />
+            </div>
+          ) : (
+            <SearchSelect
+              options={scoli}
+              value={form.highschool}
+              onChange={v => updateField('highschool', v)}
+              placeholder={loadingScoli ? 'Se incarca...' : 'Liceul'}
+              disabled={!form.localitate}
+              icon={<GraduationCap size={15} />}
+              required
+              bold
+            />
+          )}
 
           <div className="grid grid-cols-2 gap-2.5">
             <div className="relative">
