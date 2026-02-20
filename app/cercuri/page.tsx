@@ -2,39 +2,18 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { Logo } from '@/components/Logo'
 import { BottomNav } from '@/components/BottomNav'
 import { getSupabase } from '@/lib/supabase'
-import {
-  Loader2, GraduationCap, MapPin, Heart, Music, Briefcase, Building2,
-  Users, MessageCircle, ChevronRight, X,
-} from 'lucide-react'
+import { Loader2, MessageCircle, ChevronRight, Users, X } from 'lucide-react'
 import Link from 'next/link'
-
-type Mode = 'personal' | 'professional'
-type CircleKey = 'highschool' | 'location' | 'hobbies' | 'interests' | 'profession' | 'background'
-
-interface CircleConfig {
-  label: string
-  icon: typeof GraduationCap
-  color: string
-  bgColor: string
-  borderColor: string
-  shared: boolean
-  mode?: Mode
-  getDescription: (info: UserInfo) => string
-}
-
-interface UserInfo {
-  highschool: string
-  graduation_year: number
-  city: string
-  country: string
-  hobbies: string[]
-  profession: string[]
-  domain: string[]
-  company: string | null
-}
+import { VennCanvas } from '@/components/circles/VennCanvas'
+import { ModeToggle } from '@/components/circles/ModeToggle'
+import { CircleChips } from '@/components/circles/CircleChips'
+import {
+  type Mode, type CircleKey, type UserInfo,
+  CIRCLE_CONFIG, PERSONAL_CIRCLES, PROFESSIONAL_CIRCLES,
+  INTERSECTION_DOTS,
+} from '@/components/circles/circleConfig'
 
 interface CirclesData {
   circles: Record<string, number>
@@ -60,70 +39,6 @@ interface Person {
   overlap_score: number
 }
 
-const CIRCLE_CONFIG: Record<CircleKey, CircleConfig> = {
-  highschool: {
-    label: 'Liceu',
-    icon: GraduationCap,
-    color: 'text-orange-600',
-    bgColor: 'bg-orange-50',
-    borderColor: 'border-orange-200',
-    shared: true,
-    getDescription: (u) => `${u.highschool} '${String(u.graduation_year).slice(-2)}`,
-  },
-  location: {
-    label: 'Locatie',
-    icon: MapPin,
-    color: 'text-blue-600',
-    bgColor: 'bg-blue-50',
-    borderColor: 'border-blue-200',
-    shared: true,
-    getDescription: (u) => [u.city, u.country].filter(Boolean).join(', '),
-  },
-  hobbies: {
-    label: 'Hobby-uri',
-    icon: Heart,
-    color: 'text-emerald-600',
-    bgColor: 'bg-emerald-50',
-    borderColor: 'border-emerald-200',
-    shared: false,
-    mode: 'personal',
-    getDescription: (u) => u.hobbies?.slice(0, 3).join(', ') || 'Adauga hobby-uri',
-  },
-  interests: {
-    label: 'Interese',
-    icon: Music,
-    color: 'text-purple-600',
-    bgColor: 'bg-purple-50',
-    borderColor: 'border-purple-200',
-    shared: false,
-    mode: 'personal',
-    getDescription: (u) => u.domain?.slice(0, 3).join(', ') || 'Adauga interese',
-  },
-  profession: {
-    label: 'Profesie',
-    icon: Briefcase,
-    color: 'text-violet-600',
-    bgColor: 'bg-violet-50',
-    borderColor: 'border-violet-200',
-    shared: false,
-    mode: 'professional',
-    getDescription: (u) => u.profession?.slice(0, 3).join(', ') || 'Adauga profesii',
-  },
-  background: {
-    label: 'Background',
-    icon: Building2,
-    color: 'text-amber-600',
-    bgColor: 'bg-amber-50',
-    borderColor: 'border-amber-200',
-    shared: false,
-    mode: 'professional',
-    getDescription: (u) => [u.company, ...(u.domain || [])].filter(Boolean).slice(0, 3).join(', ') || 'Adauga background',
-  },
-}
-
-const PERSONAL_CIRCLES: CircleKey[] = ['highschool', 'location', 'hobbies', 'interests']
-const PROFESSIONAL_CIRCLES: CircleKey[] = ['highschool', 'location', 'profession', 'background']
-
 function getInitials(name: string) {
   return name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()
 }
@@ -137,6 +52,7 @@ export default function CercuriPage() {
   const [people, setPeople] = useState<Person[]>([])
   const [loadingPeople, setLoadingPeople] = useState(false)
   const [currentUserId, setCurrentUserId] = useState('')
+  const [vennOpacity, setVennOpacity] = useState(1)
 
   useEffect(() => {
     async function init() {
@@ -154,12 +70,20 @@ export default function CercuriPage() {
   }, [router])
 
   const visibleCircles = mode === 'personal' ? PERSONAL_CIRCLES : PROFESSIONAL_CIRCLES
+  const intersectionCounts = mode === 'personal'
+    ? data?.personal_intersections || {}
+    : data?.professional_intersections || {}
 
   const switchMode = (newMode: Mode) => {
-    const shared = activeFilters.filter(f => CIRCLE_CONFIG[f].shared)
-    setActiveFilters(shared)
-    setMode(newMode)
-    setPeople([])
+    if (newMode === mode) return
+    setVennOpacity(0.2)
+    setTimeout(() => {
+      const shared = activeFilters.filter(f => CIRCLE_CONFIG[f].shared)
+      setActiveFilters(shared)
+      setMode(newMode)
+      setPeople([])
+      setTimeout(() => setVennOpacity(1), 50)
+    }, 200)
   }
 
   const toggleFilter = (key: CircleKey) => {
@@ -185,15 +109,11 @@ export default function CercuriPage() {
       p_offset: 0,
     })
 
-    if (!error && result) {
-      setPeople(result as Person[])
-    }
+    if (!error && result) setPeople(result as Person[])
     setLoadingPeople(false)
   }, [activeFilters, currentUserId])
 
-  useEffect(() => {
-    fetchPeople()
-  }, [fetchPeople])
+  useEffect(() => { fetchPeople() }, [fetchPeople])
 
   const getIntersectionLabel = (): string | null => {
     if (activeFilters.length < 2) return null
@@ -204,140 +124,205 @@ export default function CercuriPage() {
       'highschool+hobbies': 'Colegi cu hobby-uri comune',
       'hobbies+location': 'Vecini cu hobby-uri comune',
       'interests+location': 'Vecini cu interese comune',
-      'highschool+hobbies+location': 'Cercul interior',
+      'highschool+hobbies+location': 'Cercul interior ✨',
       'highschool+profession': 'Colegi in acelasi domeniu',
       'location+profession': 'Colegi locali',
       'background+location': 'Vecini cu background similar',
       'background+profession': 'Aceeasi cariera',
-      'highschool+location+profession': 'Retea puternica',
+      'highschool+location+profession': 'Retea puternica ✨',
     }
     return labels[key] || `${activeFilters.length} cercuri combinate`
   }
 
   if (loading || !data) {
     return (
-      <main className="flex min-h-screen items-center justify-center">
-        <Loader2 size={24} className="animate-spin text-primary-700" />
+      <main className="flex min-h-screen items-center justify-center" style={{ background: '#0D0F14' }}>
+        <Loader2 size={24} className="animate-spin" style={{ color: '#FF6B4A' }} />
       </main>
     )
   }
 
   const intersectionLabel = getIntersectionLabel()
+  const dots = INTERSECTION_DOTS[mode]
 
   return (
-    <main className="flex min-h-screen flex-col items-center px-6 py-6 pb-24">
-      <div className="w-full max-w-sm space-y-4">
+    <main className="min-h-screen pb-24" style={{ background: '#0D0F14' }}>
+      <style>{`
+        @keyframes chipPulse {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.04); }
+        }
+      `}</style>
+
+      <div className="max-w-sm mx-auto px-5 py-5 space-y-4">
         {/* Header */}
-        <div className="flex items-center gap-2">
-          <Logo size={28} />
-          <span className="text-lg font-bold text-gray-900">Cercuri</span>
+        <div>
+          <h1 className="text-2xl font-bold" style={{ color: '#fff' }}>Cercurile mele</h1>
+          <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.35)' }}>
+            Descopera unde se suprapun lumile tale
+          </p>
         </div>
 
-        {/* Mode toggle */}
-        <div className="flex rounded-lg bg-gray-100 p-1">
-          <button
-            type="button"
-            onClick={() => switchMode('personal')}
-            className={`flex-1 rounded-md py-2 text-sm font-medium transition-colors ${
-              mode === 'personal'
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            Personal
-          </button>
-          <button
-            type="button"
-            onClick={() => switchMode('professional')}
-            className={`flex-1 rounded-md py-2 text-sm font-medium transition-colors ${
-              mode === 'professional'
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            Profesional
-          </button>
+        {/* Mode Toggle */}
+        <ModeToggle mode={mode} onSwitch={switchMode} />
+
+        {/* Venn Canvas */}
+        <div
+          className="transition-all duration-200"
+          style={{ opacity: vennOpacity, transform: vennOpacity < 1 ? 'scale(0.97)' : 'scale(1)' }}
+        >
+          <VennCanvas
+            mode={mode}
+            activeFilters={activeFilters}
+            counts={intersectionCounts}
+          />
         </div>
 
-        {/* Circle chips */}
-        <div className="flex flex-wrap gap-2">
-          {visibleCircles.map(key => {
-            const cfg = CIRCLE_CONFIG[key]
-            const Icon = cfg.icon
-            const count = data.circles[key] || 0
-            const active = activeFilters.includes(key)
-            return (
-              <button
-                key={key}
-                type="button"
-                onClick={() => toggleFilter(key)}
-                className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium border transition-all ${
-                  active
-                    ? `${cfg.bgColor} ${cfg.borderColor} ${cfg.color}`
-                    : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'
-                }`}
-              >
-                <Icon size={14} />
-                {cfg.label}
-                <span className={`text-[10px] ${active ? 'opacity-80' : 'text-gray-400'}`}>
-                  {count}
-                </span>
-                {active && <X size={12} className="ml-0.5" />}
-              </button>
-            )
-          })}
-        </div>
+        {/* Filter Chips */}
+        <CircleChips
+          circles={visibleCircles}
+          activeFilters={activeFilters}
+          counts={data.circles}
+          onToggle={toggleFilter}
+        />
 
         {/* Intersection label */}
         {intersectionLabel && (
-          <div className="flex items-center gap-2 rounded-lg bg-primary-50 border border-primary-200 px-3 py-2">
-            <Users size={14} className="text-primary-700" />
-            <span className="text-xs font-medium text-primary-700">{intersectionLabel}</span>
-            <span className="text-xs text-primary-500 ml-auto">{people.length} persoane</span>
+          <div className="flex items-center gap-2 rounded-xl px-3 py-2.5"
+            style={{ background: 'rgba(255,215,0,0.08)', border: '1px solid rgba(255,215,0,0.15)' }}
+          >
+            <Users size={14} style={{ color: '#FFD700' }} />
+            <span className="text-xs font-semibold" style={{ color: '#FFD700' }}>{intersectionLabel}</span>
+            <span className="text-xs ml-auto" style={{ color: 'rgba(255,215,0,0.6)' }}>{people.length} persoane</span>
           </div>
         )}
 
-        {/* Content */}
+        {/* Content: circle cards or people list */}
         {activeFilters.length === 0 ? (
           <div className="space-y-2">
+            <p className="text-[10px] font-semibold uppercase tracking-wider"
+              style={{ color: 'rgba(255,255,255,0.2)', letterSpacing: '1.2px' }}
+            >
+              {mode === 'personal' ? 'Cercurile tale personale' : 'Cercurile tale profesionale'}
+            </p>
             {visibleCircles.map(key => {
               const cfg = CIRCLE_CONFIG[key]
-              const Icon = cfg.icon
               const count = data.circles[key] || 0
               return (
                 <button
                   key={key}
                   type="button"
                   onClick={() => toggleFilter(key)}
-                  className="w-full flex items-center gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3 text-left hover:border-gray-300 transition-colors"
+                  className="w-full flex items-center gap-3 rounded-xl px-4 py-3 text-left transition-colors"
+                  style={{
+                    background: 'rgba(255,255,255,0.02)',
+                    border: '1px solid rgba(255,255,255,0.05)',
+                  }}
                 >
-                  <div className={`flex items-center justify-center w-10 h-10 rounded-full ${cfg.bgColor}`}>
-                    <Icon size={20} className={cfg.color} />
+                  <div className="flex items-center justify-center w-10 h-10 rounded-lg relative"
+                    style={{ background: `${cfg.color}18` }}
+                  >
+                    <span className="text-lg">{cfg.emoji}</span>
+                    {cfg.shared && (
+                      <span className="absolute -bottom-0.5 -right-0.5 text-[8px]">🔄</span>
+                    )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-gray-900">{cfg.label}</p>
-                    <p className="text-xs text-gray-500 truncate">{cfg.getDescription(data.user_info)}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-semibold" style={{ color: '#fff' }}>{cfg.label}</p>
+                      {cfg.shared && (
+                        <span className="rounded px-1.5 py-0.5 text-[9px] font-bold"
+                          style={{ background: 'rgba(255,184,74,0.15)', color: '#FFB84A' }}
+                        >
+                          COMUN
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs truncate" style={{ color: 'rgba(255,255,255,0.35)' }}>
+                      {cfg.getDescription(data.user_info)}
+                    </p>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <span className="text-sm font-bold text-gray-900">{count}</span>
-                    <ChevronRight size={16} className="text-gray-400" />
+                    <span className="text-sm font-bold" style={{ color: 'rgba(255,255,255,0.7)' }}>{count}</span>
+                    <ChevronRight size={16} style={{ color: 'rgba(255,255,255,0.15)' }} />
                   </div>
                 </button>
               )
             })}
+
+            {/* Intersection preview cards */}
+            {dots.filter(d => (intersectionCounts[d.key] || 0) > 0).length > 0 && (
+              <>
+                <p className="text-[10px] font-semibold uppercase tracking-wider pt-2"
+                  style={{ color: 'rgba(255,255,255,0.2)', letterSpacing: '1.2px' }}
+                >
+                  Suprapuneri
+                </p>
+                {dots.filter(d => (intersectionCounts[d.key] || 0) > 0).map(dot => {
+                  const count = intersectionCounts[dot.key] || 0
+                  const is3Plus = dot.circles.length >= 3
+                  return (
+                    <button
+                      key={dot.key}
+                      type="button"
+                      onClick={() => setActiveFilters(dot.circles as CircleKey[])}
+                      className="w-full flex items-center gap-3 rounded-xl px-4 py-3 text-left transition-colors"
+                      style={{
+                        background: 'rgba(255,255,255,0.02)',
+                        border: '1px solid rgba(255,255,255,0.05)',
+                      }}
+                    >
+                      <div className="flex items-center justify-center w-10 h-10 rounded-lg"
+                        style={{ background: `${dot.color}18` }}
+                      >
+                        <span className="text-lg">{is3Plus ? '✨' : '🔗'}</span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold" style={{ color: '#fff' }}>{dot.label}</p>
+                        <div className="flex items-center gap-1 mt-0.5">
+                          <span className="text-xs" style={{ color: 'rgba(255,255,255,0.35)' }}>
+                            {count} persoane
+                          </span>
+                          <span className="text-xs" style={{ color: 'rgba(255,255,255,0.2)' }}>·</span>
+                          {dot.circles.map(c => (
+                            <span key={c} className="text-xs">{CIRCLE_CONFIG[c as CircleKey].emoji}</span>
+                          ))}
+                        </div>
+                      </div>
+                      <ChevronRight size={16} style={{ color: 'rgba(255,255,255,0.15)' }} />
+                    </button>
+                  )
+                })}
+              </>
+            )}
           </div>
         ) : loadingPeople ? (
           <div className="flex justify-center py-12">
-            <Loader2 size={20} className="animate-spin text-primary-700" />
+            <Loader2 size={20} className="animate-spin" style={{ color: '#FF6B4A' }} />
           </div>
         ) : people.length === 0 ? (
           <div className="text-center py-12">
-            <Users size={32} strokeWidth={1} className="mx-auto text-gray-300 mb-2" />
-            <p className="text-sm text-gray-400">Nicio persoana gasita</p>
-            <p className="text-xs text-gray-300 mt-1">Incearca alte cercuri</p>
+            <Users size={32} strokeWidth={1} className="mx-auto mb-2" style={{ color: 'rgba(255,255,255,0.15)' }} />
+            <p className="text-sm" style={{ color: 'rgba(255,255,255,0.35)' }}>Nicio persoana gasita</p>
+            <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.2)' }}>Incearca alte cercuri</p>
           </div>
         ) : (
           <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <p className="text-[10px] font-semibold uppercase tracking-wider"
+                style={{ color: 'rgba(255,255,255,0.2)', letterSpacing: '1.2px' }}
+              >
+                {activeFilters.length >= 2 ? 'Suprapunere' : CIRCLE_CONFIG[activeFilters[0]].label}
+              </p>
+              <button
+                type="button"
+                onClick={() => setActiveFilters([])}
+                className="flex items-center gap-1 text-xs transition-colors"
+                style={{ color: 'rgba(255,255,255,0.3)' }}
+              >
+                <X size={12} /> Sterge filtrele
+              </button>
+            </div>
             {people.map(person => (
               <PersonCard key={person.id} person={person} currentUserId={currentUserId} />
             ))}
@@ -393,28 +378,34 @@ function PersonCard({ person, currentUserId }: { person: Person; currentUserId: 
   }
 
   return (
-    <div className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white hover:border-primary-200 transition-colors">
+    <div className="flex items-center gap-3 rounded-xl transition-colors"
+      style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}
+    >
       <Link href={`/cercuri/${person.id}`} className="flex-1 min-w-0 px-4 py-3">
         <div className="flex items-start gap-3">
           <div className="w-10 h-10 rounded-full overflow-hidden shrink-0">
             {person.avatar_url ? (
               <img src={person.avatar_url} alt={person.name} className="w-full h-full object-cover" />
             ) : (
-              <div className="w-full h-full bg-primary-100 flex items-center justify-center">
-                <span className="text-xs font-bold text-primary-700">{getInitials(person.name)}</span>
+              <div className="w-full h-full flex items-center justify-center"
+                style={{ background: 'rgba(255,107,74,0.15)' }}
+              >
+                <span className="text-xs font-bold" style={{ color: '#FF6B4A' }}>{getInitials(person.name)}</span>
               </div>
             )}
           </div>
           <div className="min-w-0">
-            <p className="text-sm font-semibold text-gray-900">{person.name}</p>
-            <p className="text-xs text-gray-400">@{person.username}</p>
+            <p className="text-sm font-semibold" style={{ color: '#fff' }}>{person.name}</p>
+            <p className="text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>@{person.username}</p>
             {(person.profession?.length > 0 || person.company) && (
               <div className="mt-1 flex flex-wrap gap-1">
                 {person.company && (
-                  <span className="text-[10px] text-gray-500">{person.company}</span>
+                  <span className="text-[10px]" style={{ color: 'rgba(255,255,255,0.4)' }}>{person.company}</span>
                 )}
                 {person.profession?.slice(0, 2).map(p => (
-                  <span key={p} className="inline-flex rounded bg-primary-50 px-1.5 py-0.5 text-[10px] font-medium text-primary-700">
+                  <span key={p} className="inline-flex rounded px-1.5 py-0.5 text-[10px] font-medium"
+                    style={{ background: 'rgba(123,97,255,0.12)', color: '#7B61FF' }}
+                  >
                     {p}
                   </span>
                 ))}
@@ -427,9 +418,13 @@ function PersonCard({ person, currentUserId }: { person: Person; currentUserId: 
         type="button"
         onClick={handleMessage}
         disabled={startingChat}
-        className="flex-shrink-0 mr-4 rounded-full p-2.5 text-gray-900 hover:bg-gray-100 transition-colors disabled:opacity-50"
+        className="flex-shrink-0 mr-3 rounded-full p-2.5 transition-colors disabled:opacity-50"
+        style={{ color: 'rgba(255,255,255,0.5)' }}
       >
-        {startingChat ? <Loader2 size={20} strokeWidth={2.5} className="animate-spin" /> : <MessageCircle size={20} strokeWidth={2.5} />}
+        {startingChat
+          ? <Loader2 size={18} strokeWidth={2.5} className="animate-spin" />
+          : <MessageCircle size={18} strokeWidth={2.5} />
+        }
       </button>
     </div>
   )
