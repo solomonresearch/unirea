@@ -112,20 +112,6 @@ function generateBotProfile(spec: BotSpec) {
   }
 }
 
-async function waitForProfile(serviceClient: ReturnType<typeof createServiceRoleClient>, userId: string, maxAttempts = 10): Promise<boolean> {
-  for (let attempt = 0; attempt < maxAttempts; attempt++) {
-    const { data } = await serviceClient
-      .from('profiles')
-      .select('id')
-      .eq('id', userId)
-      .single()
-    if (data) return true
-    console.log(`[mock] Waiting for profile trigger... attempt ${attempt + 1}/${maxAttempts} for ${userId}`)
-    await new Promise(r => setTimeout(r, 200))
-  }
-  return false
-}
-
 async function createBotsBatch(serviceClient: ReturnType<typeof createServiceRoleClient>, bots: ReturnType<typeof generateBotProfile>[]) {
   let created = 0
   for (const bot of bots) {
@@ -139,15 +125,14 @@ async function createBotsBatch(serviceClient: ReturnType<typeof createServiceRol
       continue
     }
 
-    const profileExists = await waitForProfile(serviceClient, authData.user.id)
-    if (!profileExists) {
-      console.error('[mock] Profile row never appeared for', bot.email, '(', authData.user.id, ')')
-      continue
-    }
+    const userId = authData.user.id
+    console.log('[mock] Auth user created:', bot.email, userId)
 
-    const { error: profileError } = await serviceClient
+    const { error: upsertError } = await serviceClient
       .from('profiles')
-      .update({
+      .upsert({
+        id: userId,
+        email: bot.email,
         name: bot.name,
         username: bot.username,
         highschool: bot.highschool,
@@ -160,10 +145,9 @@ async function createBotsBatch(serviceClient: ReturnType<typeof createServiceRol
         domain: bot.domain,
         onboarding_completed: bot.onboarding_completed,
       })
-      .eq('id', authData.user.id)
 
-    if (profileError) {
-      console.error('[mock] Profile update failed for', bot.name, '(', authData.user.id, '):', profileError.message)
+    if (upsertError) {
+      console.error('[mock] Profile upsert failed for', bot.name, '(', userId, '):', upsertError.message)
     } else {
       console.log('[mock] Created:', bot.name, '| class:', bot.class, '| hs:', bot.highschool)
       created++
