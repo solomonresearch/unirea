@@ -112,6 +112,20 @@ function generateBotProfile(spec: BotSpec) {
   }
 }
 
+async function waitForProfile(serviceClient: ReturnType<typeof createServiceRoleClient>, userId: string, maxAttempts = 10): Promise<boolean> {
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    const { data } = await serviceClient
+      .from('profiles')
+      .select('id')
+      .eq('id', userId)
+      .single()
+    if (data) return true
+    console.log(`[mock] Waiting for profile trigger... attempt ${attempt + 1}/${maxAttempts} for ${userId}`)
+    await new Promise(r => setTimeout(r, 200))
+  }
+  return false
+}
+
 async function createBotsBatch(serviceClient: ReturnType<typeof createServiceRoleClient>, bots: ReturnType<typeof generateBotProfile>[]) {
   let created = 0
   for (const bot of bots) {
@@ -122,6 +136,12 @@ async function createBotsBatch(serviceClient: ReturnType<typeof createServiceRol
     })
     if (authError || !authData.user) {
       console.error('[mock] Auth create failed for', bot.email, ':', authError?.message)
+      continue
+    }
+
+    const profileExists = await waitForProfile(serviceClient, authData.user.id)
+    if (!profileExists) {
+      console.error('[mock] Profile row never appeared for', bot.email, '(', authData.user.id, ')')
       continue
     }
 
@@ -145,6 +165,7 @@ async function createBotsBatch(serviceClient: ReturnType<typeof createServiceRol
     if (profileError) {
       console.error('[mock] Profile update failed for', bot.name, '(', authData.user.id, '):', profileError.message)
     } else {
+      console.log('[mock] Created:', bot.name, '| class:', bot.class, '| hs:', bot.highschool)
       created++
     }
   }
