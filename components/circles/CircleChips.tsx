@@ -12,7 +12,7 @@ interface CircleChipsProps {
 export function CircleChips({ circles, activeFilters, counts, onToggle }: CircleChipsProps) {
   return (
     <div className="space-y-1.5">
-      <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-hide">
+      <div className="grid grid-cols-2 gap-2">
         {circles.map(key => {
           const cfg = CIRCLE_CONFIG[key]
           const active = activeFilters.includes(key)
@@ -23,7 +23,7 @@ export function CircleChips({ circles, activeFilters, counts, onToggle }: Circle
               type="button"
               aria-pressed={active}
               onClick={() => onToggle(key)}
-              className="flex items-center gap-1.5 rounded-full px-3 py-2 text-xs font-semibold whitespace-nowrap shrink-0 transition-all duration-200 relative"
+              className="flex items-center gap-1.5 rounded-full px-3 py-2 text-xs font-semibold transition-all duration-200 relative"
               style={{
                 background: active ? `${cfg.color}15` : 'rgba(255,255,255,0.03)',
                 border: `1.5px solid ${active ? `${cfg.color}88` : 'rgba(255,255,255,0.08)'}`,
@@ -38,9 +38,9 @@ export function CircleChips({ circles, activeFilters, counts, onToggle }: Circle
                 />
               )}
               <span>{cfg.emoji}</span>
-              <span>{cfg.label}</span>
+              <span className="truncate">{cfg.label}</span>
               <span
-                className="rounded-full px-1.5 py-0.5 text-[10px] font-medium"
+                className="rounded-full px-1.5 py-0.5 text-[10px] font-medium ml-auto"
                 style={{
                   background: active ? `${cfg.color}20` : 'rgba(255,255,255,0.06)',
                 }}
