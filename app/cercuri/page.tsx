@@ -30,6 +30,7 @@ interface Person {
   highschool: string
   graduation_year: number
   city: string
+  county: string | null
   country: string
   hobbies: string[]
   profession: string[]
@@ -458,8 +459,11 @@ function PersonTags({ person, activeFilters }: { person: Person; activeFilters: 
   const showDefault = !showLocation && !showHobbies && !showProfession && !showBackground && !showInterests
 
   if (showLocation) {
-    const loc = [person.city, person.country].filter(Boolean).join(', ')
-    if (loc) tags.push({ label: loc, ...tagStyle('location') })
+    const s = tagStyle('location')
+    const loc = person.county
+      ? `${person.city}, ${person.county}`
+      : person.city
+    if (loc) tags.push({ label: loc, ...s })
   }
   if (showHobbies) {
     const s = tagStyle('hobbies')

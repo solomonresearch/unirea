@@ -11,6 +11,7 @@ import { SearchSelect } from '@/components/SearchSelect'
 import { HOBBY_OPTIONS } from '@/lib/hobbies'
 import { COUNTRIES } from '@/lib/countries'
 import { ROMANIAN_CITIES } from '@/lib/romanian-cities'
+import { getCountyCode } from '@/lib/city-county-map'
 import { PROFESSIONS } from '@/lib/professions'
 import { DOMAINS } from '@/lib/domains'
 import { getSupabase } from '@/lib/supabase'
@@ -35,6 +36,7 @@ interface Profile {
   company: string | null
   country: string
   city: string
+  county: string | null
   hobbies: string[]
   bio: string
   avatar_url: string | null
@@ -335,7 +337,7 @@ export default function SetariPage() {
                         type="button"
                         onClick={async () => {
                           setSavingLocation(true)
-                          await updateProfile({ country: editCountry, city: editCity })
+                          await updateProfile({ country: editCountry, city: editCity, county: editCountry === 'Romania' ? getCountyCode(editCity) : null })
                           setSavingLocation(false)
                           setEditingLocation(false)
                         }}

@@ -8,6 +8,7 @@ import { SearchSelect } from '@/components/SearchSelect'
 import { MultiTagInput } from '@/components/MultiTagInput'
 import { COUNTRIES } from '@/lib/countries'
 import { ROMANIAN_CITIES } from '@/lib/romanian-cities'
+import { getCountyCode } from '@/lib/city-county-map'
 import { PROFESSIONS } from '@/lib/professions'
 import { DOMAINS } from '@/lib/domains'
 import { HOBBY_OPTIONS } from '@/lib/hobbies'
@@ -71,6 +72,7 @@ export default function OnboardingPage() {
         company: company || null,
         country,
         city,
+        county: (country === 'Romania' ? getCountyCode(city) : null),
         hobbies,
         bio,
         onboarding_completed: true,

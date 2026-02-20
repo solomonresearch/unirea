@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createServerSupabaseClient, createServiceRoleClient } from '@/lib/supabase-server'
+import { getCountyCode } from '@/lib/city-county-map'
 
 const LAST_NAMES = [
   'Popescu', 'Ionescu', 'Popa', 'Dumitru', 'Stan', 'Stoica', 'Gheorghe',
@@ -69,7 +70,7 @@ async function getAdminProfile() {
   const serviceClient = createServiceRoleClient()
   const { data: profile, error } = await serviceClient
     .from('profiles')
-    .select('id, role, highschool, graduation_year, class, city, country')
+    .select('id, role, highschool, graduation_year, class, city, county, country')
     .eq('id', user.id)
     .single()
 
@@ -90,6 +91,7 @@ interface BotSpec {
   graduation_year: number
   classLetter: string
   city: string
+  county: string | null
   country: string
 }
 
@@ -104,6 +106,7 @@ function generateBotProfile(spec: BotSpec) {
     graduation_year: spec.graduation_year,
     class: spec.classLetter,
     city: spec.city,
+    county: spec.county || getCountyCode(spec.city),
     country: spec.country,
     hobbies: pickN(HOBBY_LABELS, 2, 4),
     profession: pickN(PROF_SUBSET, 1, 2),
@@ -139,6 +142,7 @@ async function createBotsBatch(serviceClient: ReturnType<typeof createServiceRol
         graduation_year: bot.graduation_year,
         class: bot.class,
         city: bot.city,
+        county: bot.county,
         country: bot.country,
         hobbies: bot.hobbies,
         profession: bot.profession,
@@ -180,6 +184,7 @@ export async function POST(request: Request) {
           graduation_year: admin.graduation_year,
           classLetter: admin.class || 'A',
           city: admin.city,
+          county: admin.county,
           country: admin.country,
         }))
       }
@@ -191,6 +196,7 @@ export async function POST(request: Request) {
             graduation_year: admin.graduation_year,
             classLetter: cls,
             city: admin.city,
+            county: admin.county,
             country: admin.country,
           }))
         }
@@ -207,6 +213,7 @@ export async function POST(request: Request) {
               graduation_year: admin.graduation_year,
               classLetter: cls,
               city: admin.city,
+              county: admin.county,
               country: admin.country,
             }))
           }
