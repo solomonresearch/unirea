@@ -2,7 +2,7 @@
 
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { GripVertical, Trash2, User } from 'lucide-react'
+import { GripVertical, Pencil, Trash2, User } from 'lucide-react'
 
 export interface KanbanCardData {
   id: string
@@ -22,9 +22,10 @@ interface KanbanCardProps {
   compact?: boolean
   overlay?: boolean
   onDelete?: (id: string) => void
+  onEdit?: (card: KanbanCardData) => void
 }
 
-export function KanbanCard({ card, compact, overlay, onDelete }: KanbanCardProps) {
+export function KanbanCard({ card, compact, overlay, onDelete, onEdit }: KanbanCardProps) {
   const {
     attributes,
     listeners,
@@ -81,6 +82,14 @@ export function KanbanCard({ card, compact, overlay, onDelete }: KanbanCardProps
               {card.creator_name.split(' ')[0]}
             </span>
           )}
+          {onEdit && (
+            <button
+              onClick={() => onEdit(card)}
+              className="opacity-0 group-hover:opacity-100 text-gray-300 hover:text-blue-500 transition-opacity shrink-0"
+            >
+              <Pencil className="w-3 h-3" />
+            </button>
+          )}
           {onDelete && (
             <button
               onClick={() => onDelete(card.id)}
@@ -129,14 +138,24 @@ export function KanbanCard({ card, compact, overlay, onDelete }: KanbanCardProps
             ) : (
               <span />
             )}
-            {onDelete && (
-              <button
-                onClick={() => onDelete(card.id)}
-                className="text-gray-300 hover:text-red-500 transition-colors"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-              </button>
-            )}
+            <div className="flex items-center gap-1.5">
+              {onEdit && (
+                <button
+                  onClick={() => onEdit(card)}
+                  className="text-gray-300 hover:text-blue-500 transition-colors"
+                >
+                  <Pencil className="w-3.5 h-3.5" />
+                </button>
+              )}
+              {onDelete && (
+                <button
+                  onClick={() => onDelete(card.id)}
+                  className="text-gray-300 hover:text-red-500 transition-colors"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>

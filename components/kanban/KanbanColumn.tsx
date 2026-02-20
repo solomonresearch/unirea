@@ -35,10 +35,11 @@ interface KanbanColumnProps {
   filter: string
   onFilterChange: (value: string) => void
   onDeleteCard: (id: string) => void
+  onEditCard: (card: KanbanCardData) => void
 }
 
-export function KanbanColumn({ status, cards, filter, onFilterChange, onDeleteCard }: KanbanColumnProps) {
-  const { setNodeRef } = useDroppable({ id: status })
+export function KanbanColumn({ status, cards, filter, onFilterChange, onDeleteCard, onEditCard }: KanbanColumnProps) {
+  const { setNodeRef, isOver } = useDroppable({ id: status })
   const config = COLUMN_CONFIG[status]
   const isCompact = status === 'done'
 
@@ -52,7 +53,10 @@ export function KanbanColumn({ status, cards, filter, onFilterChange, onDeleteCa
   })
 
   return (
-    <div className={`rounded-xl ${config.bodyBg} flex flex-col min-h-[200px]`}>
+    <div
+      ref={setNodeRef}
+      className={`rounded-xl ${config.bodyBg} flex flex-col min-h-[200px] transition-shadow ${isOver ? 'ring-2 ring-blue-300' : ''}`}
+    >
       <div className={`${config.headerBg} rounded-t-xl px-4 py-3 flex items-center justify-between`}>
         <h2 className={`text-sm font-semibold ${config.headerText}`}>{config.label}</h2>
         <span className={`text-xs font-medium ${config.headerText} bg-white/60 px-2 py-0.5 rounded-full`}>
@@ -73,7 +77,7 @@ export function KanbanColumn({ status, cards, filter, onFilterChange, onDeleteCa
         </div>
       </div>
 
-      <div ref={setNodeRef} className="flex-1 px-3 pb-3 pt-2">
+      <div className="flex-1 px-3 pb-3 pt-2">
         <SortableContext items={filteredCards.map(c => c.id)} strategy={verticalListSortingStrategy}>
           <div className="space-y-2">
             {filteredCards.map(card => (
@@ -82,6 +86,7 @@ export function KanbanColumn({ status, cards, filter, onFilterChange, onDeleteCa
                 card={card}
                 compact={isCompact}
                 onDelete={onDeleteCard}
+                onEdit={onEditCard}
               />
             ))}
           </div>
