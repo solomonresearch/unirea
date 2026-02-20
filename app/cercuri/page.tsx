@@ -11,7 +11,7 @@ import { ModeToggle } from '@/components/circles/ModeToggle'
 import { CircleChips } from '@/components/circles/CircleChips'
 import {
   type Mode, type CircleKey, type UserInfo,
-  CIRCLE_CONFIG, PERSONAL_CIRCLES, PROFESSIONAL_CIRCLES,
+  CIRCLE_CONFIG, CIRCLE_COLORS, PERSONAL_CIRCLES, PROFESSIONAL_CIRCLES,
   INTERSECTION_DOTS,
 } from '@/components/circles/circleConfig'
 
@@ -439,33 +439,44 @@ export default function CercuriPage() {
   )
 }
 
+function tagStyle(circleKey: CircleKey) {
+  const c = CIRCLE_COLORS[circleKey]
+  const r = parseInt(c.slice(1, 3), 16)
+  const g = parseInt(c.slice(3, 5), 16)
+  const b = parseInt(c.slice(5, 7), 16)
+  return { bg: `rgba(${r},${g},${b},0.12)`, color: c }
+}
+
 function PersonTags({ person, activeFilters }: { person: Person; activeFilters: CircleKey[] }) {
   const tags: { label: string; bg: string; color: string }[] = []
 
   const showLocation = activeFilters.includes('location')
   const showHobbies = activeFilters.includes('hobbies')
-  const showProfession = activeFilters.includes('profession') || activeFilters.includes('background')
-  const showDomain = activeFilters.includes('interests') || activeFilters.includes('background')
-  const showDefault = !showLocation && !showHobbies && !showProfession && !showDomain
+  const showProfession = activeFilters.includes('profession')
+  const showBackground = activeFilters.includes('background')
+  const showInterests = activeFilters.includes('interests')
+  const showDefault = !showLocation && !showHobbies && !showProfession && !showBackground && !showInterests
 
   if (showLocation) {
     const loc = [person.city, person.country].filter(Boolean).join(', ')
-    if (loc) tags.push({ label: loc, bg: 'rgba(255,184,74,0.12)', color: '#FFB84A' })
+    if (loc) tags.push({ label: loc, ...tagStyle('location') })
   }
   if (showHobbies) {
-    person.hobbies?.slice(0, 3).forEach(h =>
-      tags.push({ label: h, bg: 'rgba(46,205,167,0.12)', color: '#2ECDA7' })
-    )
+    const s = tagStyle('hobbies')
+    person.hobbies?.slice(0, 3).forEach(h => tags.push({ label: h, ...s }))
   }
   if (showProfession || showDefault) {
-    person.profession?.slice(0, 2).forEach(p =>
-      tags.push({ label: p, bg: 'rgba(123,97,255,0.12)', color: '#7B61FF' })
-    )
+    const s = tagStyle('profession')
+    person.profession?.slice(0, 2).forEach(p => tags.push({ label: p, ...s }))
   }
-  if (showDomain) {
-    person.domain?.slice(0, 2).forEach(d =>
-      tags.push({ label: d, bg: 'rgba(74,156,255,0.12)', color: '#4A9CFF' })
-    )
+  if (showInterests) {
+    const s = tagStyle('interests')
+    person.domain?.slice(0, 2).forEach(d => tags.push({ label: d, ...s }))
+  }
+  if (showBackground) {
+    const s = tagStyle('background')
+    person.domain?.slice(0, 2).forEach(d => tags.push({ label: d, ...s }))
+    if (person.company) tags.push({ label: person.company, ...s })
   }
 
   if (tags.length === 0 && !showDefault && person.company) {
