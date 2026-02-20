@@ -60,16 +60,28 @@ function shortId() {
 async function getAdminProfile() {
   const supabase = createServerSupabaseClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return null
+  if (!user) {
+    console.log('[mock] No authenticated user found')
+    return null
+  }
+  console.log('[mock] Authenticated user:', user.id)
 
   const serviceClient = createServiceRoleClient()
-  const { data: profile } = await serviceClient
+  const { data: profile, error } = await serviceClient
     .from('profiles')
     .select('id, role, highschool, graduation_year, class, city, country')
     .eq('id', user.id)
     .single()
 
-  if (!profile || profile.role !== 'admin') return null
+  if (error) {
+    console.error('[mock] Error fetching admin profile:', error.message)
+    return null
+  }
+  if (!profile || profile.role !== 'admin') {
+    console.log('[mock] User is not admin, role:', profile?.role)
+    return null
+  }
+  console.log('[mock] Admin verified:', { id: profile.id, highschool: profile.highschool, city: profile.city, class: profile.class })
   return profile
 }
 
@@ -108,7 +120,10 @@ async function createBotsBatch(serviceClient: ReturnType<typeof createServiceRol
       password: 'botpass123',
       email_confirm: true,
     })
-    if (authError || !authData.user) continue
+    if (authError || !authData.user) {
+      console.error('[mock] Auth create failed for', bot.email, ':', authError?.message)
+      continue
+    }
 
     const { error: profileError } = await serviceClient
       .from('profiles')
@@ -127,7 +142,11 @@ async function createBotsBatch(serviceClient: ReturnType<typeof createServiceRol
       })
       .eq('id', authData.user.id)
 
-    if (!profileError) created++
+    if (profileError) {
+      console.error('[mock] Profile update failed for', bot.name, '(', authData.user.id, '):', profileError.message)
+    } else {
+      created++
+    }
   }
   return created
 }
@@ -140,7 +159,9 @@ export async function POST(request: Request) {
     }
 
     const { scope } = await request.json()
+    console.log('[mock] POST request, scope:', scope)
     if (!['class', 'highschool', 'city'].includes(scope)) {
+      console.log('[mock] Invalid scope:', scope)
       return NextResponse.json({ error: 'Invalid scope' }, { status: 400 })
     }
 
@@ -188,6 +209,8 @@ export async function POST(request: Request) {
       }
     }
 
+    console.log('[mock] Generated', botSpecs.length, 'bot specs for scope:', scope)
+
     let totalCreated = 0
     const BATCH_SIZE = 10
     for (let i = 0; i < botSpecs.length; i += BATCH_SIZE) {
@@ -195,12 +218,16 @@ export async function POST(request: Request) {
       const results = await Promise.all(
         batch.map(bot => createBotsBatch(serviceClient, [bot]))
       )
-      totalCreated += results.reduce((sum, n) => sum + n, 0)
+      const batchCreated = results.reduce((sum, n) => sum + n, 0)
+      totalCreated += batchCreated
+      console.log(`[mock] Batch ${i / BATCH_SIZE + 1}: created ${batchCreated}/${batch.length}, total so far: ${totalCreated}/${botSpecs.length}`)
     }
 
+    console.log('[mock] Done. Total created:', totalCreated, '/', botSpecs.length)
     return NextResponse.json({ created: totalCreated })
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Server error'
+    console.error('[mock] POST error:', message)
     return NextResponse.json({ error: message }, { status: 500 })
   }
 }
@@ -212,6 +239,7 @@ export async function DELETE() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    console.log('[mock] DELETE request')
     const serviceClient = createServiceRoleClient()
     const { data: bots, error } = await serviceClient
       .from('profiles')
@@ -219,12 +247,16 @@ export async function DELETE() {
       .like('name', 'Bot %')
 
     if (error) {
+      console.error('[mock] Error fetching bot profiles:', error.message)
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
     if (!bots || bots.length === 0) {
+      console.log('[mock] No bot profiles found to delete')
       return NextResponse.json({ deleted: 0 })
     }
+
+    console.log('[mock] Found', bots.length, 'bot profiles to delete')
 
     let totalDeleted = 0
     const BATCH_SIZE = 20
@@ -232,16 +264,24 @@ export async function DELETE() {
       const batch = bots.slice(i, i + BATCH_SIZE)
       const results = await Promise.all(
         batch.map(async (bot): Promise<number> => {
-          const { error } = await serviceClient.auth.admin.deleteUser(bot.id)
-          return error ? 0 : 1
+          const { error: delError } = await serviceClient.auth.admin.deleteUser(bot.id)
+          if (delError) {
+            console.error('[mock] Failed to delete user', bot.id, ':', delError.message)
+            return 0
+          }
+          return 1
         })
       )
-      totalDeleted += results.reduce((sum, n) => sum + n, 0)
+      const batchDeleted = results.reduce((sum, n) => sum + n, 0)
+      totalDeleted += batchDeleted
+      console.log(`[mock] Delete batch ${i / BATCH_SIZE + 1}: deleted ${batchDeleted}/${batch.length}, total so far: ${totalDeleted}/${bots.length}`)
     }
 
+    console.log('[mock] Done. Total deleted:', totalDeleted, '/', bots.length)
     return NextResponse.json({ deleted: totalDeleted })
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Server error'
+    console.error('[mock] DELETE error:', message)
     return NextResponse.json({ error: message }, { status: 500 })
   }
 }
