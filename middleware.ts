@@ -30,7 +30,7 @@ export async function middleware(request: NextRequest) {
   }
 
   // Protect authenticated routes — redirect unauthenticated users to login
-  const protectedPaths = ['/profil', '/avizier', '/setari', '/cauta', '/cercuri', '/mesaje', '/harta', '/admin']
+  const protectedPaths = ['/profil', '/avizier', '/setari', '/cauta', '/cercuri', '/mesaje', '/harta', '/admin', '/sondaje']
   if (!user && protectedPaths.some(p => request.nextUrl.pathname === p || request.nextUrl.pathname.startsWith(p + '/'))) {
     return NextResponse.redirect(new URL('/autentificare', request.url))
   }
@@ -39,5 +39,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/autentificare', '/inregistrare', '/resetare-parola', '/resetare-parola/:path*', '/profil', '/avizier', '/avizier/:path*', '/setari', '/cauta', '/cercuri', '/cercuri/:path*', '/mesaje', '/mesaje/:path*', '/harta', '/admin'],
+  matcher: ['/autentificare', '/inregistrare', '/resetare-parola', '/resetare-parola/:path*', '/profil', '/avizier', '/avizier/:path*', '/setari', '/cauta', '/cercuri', '/cercuri/:path*', '/mesaje', '/mesaje/:path*', '/harta', '/admin', '/sondaje', '/sondaje/:path*'],
 }
