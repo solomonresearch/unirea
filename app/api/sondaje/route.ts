@@ -46,13 +46,13 @@ export async function GET() {
 
     const quizIds = scopedQuizzes.map((q: any) => q.id)
 
-    const [userResponsesRes, allResponsesRes] = await Promise.all([
-      supabase.from('quiz_responses').select('quiz_id').eq('user_id', user.id).in('quiz_id', quizIds),
-      supabase.from('quiz_responses').select('quiz_id').in('quiz_id', quizIds),
-    ])
+    const { data: userResponses } = await supabase
+      .from('quiz_responses')
+      .select('quiz_id')
+      .eq('user_id', user.id)
+      .in('quiz_id', quizIds)
 
-    const completedIds = new Set((userResponsesRes.data || []).map((r: any) => r.quiz_id))
-    const allResponses = allResponsesRes.data || []
+    const completedIds = new Set((userResponses || []).map((r: any) => r.quiz_id))
 
     const quizzes = scopedQuizzes.map((quiz: any) => {
       const questions = (quiz.quiz_questions || [])
@@ -72,7 +72,10 @@ export async function GET() {
         created_at: quiz.created_at,
         questions,
         completed: completedIds.has(quiz.id),
-        response_count: allResponses.filter((r: any) => r.quiz_id === quiz.id).length,
+        response_count: quiz.response_count ?? 0,
+        reveal_threshold: quiz.reveal_threshold ?? 10,
+        results_unlocked_at: quiz.results_unlocked_at ?? null,
+        anonymous_mode: quiz.anonymous_mode ?? false,
       }
     })
 
@@ -102,7 +105,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json()
-    const { title, description, target_scope, target_highschool, target_year, target_class, expires_at, active, questions } = body
+    const { title, description, target_scope, target_highschool, target_year, target_class, expires_at, active, questions, reveal_threshold, anonymous_mode } = body
 
     if (!title?.trim()) {
       return NextResponse.json({ error: 'Titlul este obligatoriu' }, { status: 400 })
@@ -118,6 +121,9 @@ export async function POST(request: Request) {
       }
     }
 
+    const parsedThreshold = Number(reveal_threshold ?? 10)
+    const clampedThreshold = Math.min(100, Math.max(2, isNaN(parsedThreshold) ? 10 : parsedThreshold))
+
     const { data: quiz, error: quizError } = await supabase
       .from('quizzes')
       .insert({
@@ -130,6 +136,8 @@ export async function POST(request: Request) {
         expires_at: expires_at || null,
         active: active ?? true,
         created_by: user.id,
+        reveal_threshold: clampedThreshold,
+        anonymous_mode: anonymous_mode ?? false,
       })
       .select()
       .single()

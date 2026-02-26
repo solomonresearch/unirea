@@ -1,4 +1,4 @@
-import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { createServerSupabaseClient, createServiceRoleClient } from '@/lib/supabase-server'
 import { NextResponse } from 'next/server'
 
 export async function GET(request: Request, { params }: { params: { id: string } }) {
@@ -12,7 +12,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
 
     const { data: quiz } = await supabase
       .from('quizzes')
-      .select('*, quiz_questions(*, quiz_options(*))')
+      .select('results_unlocked_at, quiz_questions(*, quiz_options(*))')
       .eq('id', params.id)
       .single()
 
@@ -20,8 +20,14 @@ export async function GET(request: Request, { params }: { params: { id: string }
       return NextResponse.json({ error: 'Sondajul nu a fost gasit' }, { status: 404 })
     }
 
+    if (!quiz.results_unlocked_at) {
+      return NextResponse.json({ error: 'Rezultatele nu sunt inca deblocate' }, { status: 403 })
+    }
+
+    const serviceClient = createServiceRoleClient()
+
     const [responsesRes, userResponseRes] = await Promise.all([
-      supabase.from('quiz_responses').select('answers').eq('quiz_id', params.id),
+      serviceClient.from('quiz_responses').select('answers').eq('quiz_id', params.id),
       supabase.from('quiz_responses').select('answers').eq('quiz_id', params.id).eq('user_id', user.id).single(),
     ])
 
