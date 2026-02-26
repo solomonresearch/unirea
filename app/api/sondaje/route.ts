@@ -46,13 +46,13 @@ export async function GET() {
 
     const quizIds = scopedQuizzes.map((q: any) => q.id)
 
-    const { data: userResponses } = await supabase
-      .from('quiz_responses')
-      .select('quiz_id')
-      .eq('user_id', user.id)
-      .in('quiz_id', quizIds)
+    const [{ data: userResponses }, { data: userPeeks }] = await Promise.all([
+      supabase.from('quiz_responses').select('quiz_id').eq('user_id', user.id).in('quiz_id', quizIds),
+      supabase.from('quiz_peeks').select('quiz_id').eq('user_id', user.id).in('quiz_id', quizIds),
+    ])
 
     const completedIds = new Set((userResponses || []).map((r: any) => r.quiz_id))
+    const peekedIds = new Set((userPeeks || []).map((r: any) => r.quiz_id))
 
     const quizzes = scopedQuizzes.map((quiz: any) => {
       const questions = (quiz.quiz_questions || [])
@@ -72,6 +72,7 @@ export async function GET() {
         created_at: quiz.created_at,
         questions,
         completed: completedIds.has(quiz.id),
+        has_peeked: peekedIds.has(quiz.id),
         response_count: quiz.response_count ?? 0,
         reveal_threshold: quiz.reveal_threshold ?? 10,
         results_unlocked_at: quiz.results_unlocked_at ?? null,
