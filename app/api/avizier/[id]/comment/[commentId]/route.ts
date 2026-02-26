@@ -14,10 +14,10 @@ export async function DELETE(
     }
 
     const { data: comment } = await supabase
-      .from('announcement_comments')
+      .from('avizier_post_comments')
       .select('user_id')
       .eq('id', params.commentId)
-      .eq('announcement_id', params.id)
+      .eq('post_id', params.id)
       .is('deleted_at', null)
       .single()
 
@@ -30,7 +30,7 @@ export async function DELETE(
     }
 
     const { error } = await supabase
-      .from('announcement_comments')
+      .from('avizier_post_comments')
       .update({ deleted_at: new Date().toISOString() })
       .eq('id', params.commentId)
 

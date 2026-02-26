@@ -21,38 +21,38 @@ export async function POST(
     }
 
     const { data: existing } = await supabase
-      .from('announcement_votes')
+      .from('avizier_post_votes')
       .select('vote')
-      .eq('announcement_id', params.id)
+      .eq('post_id', params.id)
       .eq('user_id', user.id)
       .single()
 
     if (vote === 0) {
       if (existing) {
         await supabase
-          .from('announcement_votes')
+          .from('avizier_post_votes')
           .delete()
-          .eq('announcement_id', params.id)
+          .eq('post_id', params.id)
           .eq('user_id', user.id)
       }
     } else if (existing) {
       if (existing.vote === vote) {
         await supabase
-          .from('announcement_votes')
+          .from('avizier_post_votes')
           .delete()
-          .eq('announcement_id', params.id)
+          .eq('post_id', params.id)
           .eq('user_id', user.id)
       } else {
         await supabase
-          .from('announcement_votes')
+          .from('avizier_post_votes')
           .update({ vote })
-          .eq('announcement_id', params.id)
+          .eq('post_id', params.id)
           .eq('user_id', user.id)
       }
     } else {
       const { error } = await supabase
-        .from('announcement_votes')
-        .insert({ announcement_id: params.id, user_id: user.id, vote })
+        .from('avizier_post_votes')
+        .insert({ post_id: params.id, user_id: user.id, vote })
 
       if (error) {
         return NextResponse.json({ error: error.message }, { status: 500 })
