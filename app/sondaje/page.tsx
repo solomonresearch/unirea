@@ -78,11 +78,16 @@ export default function SondajePage() {
   }
 
   function openPeek(quiz: Quiz) {
-    setQuizzes(prev =>
-      prev.map(q => q.id === quiz.id ? { ...q, has_peeked: true } : q)
-    )
     setActiveQuiz(quiz)
     setOverlayMode('peek')
+  }
+
+  function onPeeked() {
+    if (activeQuiz) {
+      setQuizzes(prev =>
+        prev.map(q => q.id === activeQuiz.id ? { ...q, has_peeked: true } : q)
+      )
+    }
   }
 
   function closeOverlay() {
@@ -249,6 +254,7 @@ export default function SondajePage() {
           mode={overlayMode}
           onClose={closeOverlay}
           onCompleted={onQuizCompleted}
+          onPeeked={onPeeked}
         />
       )}
 

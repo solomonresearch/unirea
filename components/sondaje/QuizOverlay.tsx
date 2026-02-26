@@ -56,9 +56,10 @@ interface Props {
   mode: 'take' | 'results' | 'peek'
   onClose: () => void
   onCompleted: (unlockData: UnlockData) => void
+  onPeeked?: () => void
 }
 
-export function QuizOverlay({ quiz, mode, onClose, onCompleted }: Props) {
+export function QuizOverlay({ quiz, mode, onClose, onCompleted, onPeeked }: Props) {
   const [phase, setPhase] = useState<'taking' | 'submitting' | 'results' | 'loading-results'>(
     mode === 'results' || mode === 'peek' ? 'loading-results' : 'taking'
   )
@@ -68,6 +69,7 @@ export function QuizOverlay({ quiz, mode, onClose, onCompleted }: Props) {
   const [stats, setStats] = useState<Stats | null>(null)
   const [currentSlide, setCurrentSlide] = useState(0)
   const [barsAnimated, setBarsAnimated] = useState(false)
+  const [peekError, setPeekError] = useState<string | null>(null)
 
   useEffect(() => {
     if (mode === 'results') fetchStats()
@@ -96,10 +98,12 @@ export function QuizOverlay({ quiz, mode, onClose, onCompleted }: Props) {
     const res = await fetch(`/api/sondaje/${quiz.id}/peek`, { method: 'POST' })
     if (res.ok) {
       const data = await res.json()
+      onPeeked?.()
       setStats(data)
       setPhase('results')
     } else {
-      onClose()
+      const data = await res.json().catch(() => ({}))
+      setPeekError(data.error || 'Nu s-au putut încărca rezultatele.')
     }
   }
 
@@ -155,14 +159,28 @@ export function QuizOverlay({ quiz, mode, onClose, onCompleted }: Props) {
 
   const questions = quiz.questions
 
-  // — Loading results
+  // — Loading results / peek error
   if (phase === 'loading-results') {
     return (
       <div className="fixed inset-0 z-50 bg-white flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-5xl mb-4">📊</div>
-          <p className="text-gray-500 text-sm">Se încarcă rezultatele...</p>
-        </div>
+        {peekError ? (
+          <div className="text-center px-8">
+            <div className="text-5xl mb-4">😕</div>
+            <p className="text-gray-700 text-sm font-medium mb-1">Eroare la încărcare</p>
+            <p className="text-gray-400 text-xs mb-5">{peekError}</p>
+            <button
+              onClick={onClose}
+              className="px-5 py-2 bg-gray-100 text-gray-700 rounded-xl text-sm font-medium hover:bg-gray-200 transition-colors"
+            >
+              Închide
+            </button>
+          </div>
+        ) : (
+          <div className="text-center">
+            <div className="text-5xl mb-4">📊</div>
+            <p className="text-gray-500 text-sm">Se încarcă rezultatele...</p>
+          </div>
+        )}
       </div>
     )
   }
