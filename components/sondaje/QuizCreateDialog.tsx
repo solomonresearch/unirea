@@ -54,6 +54,8 @@ export function QuizCreateDialog({ open, onOpenChange, userProfile, onCreated }:
   const [targetClass, setTargetClass] = useState(userProfile.class || '')
   const [expiresAt, setExpiresAt] = useState('')
   const [active, setActive] = useState(true)
+  const [revealThreshold, setRevealThreshold] = useState(10)
+  const [anonymousMode, setAnonymousMode] = useState(false)
 
   // Steps 1–4 — questions
   const [questions, setQuestions] = useState<QuestionData[]>([
@@ -95,6 +97,8 @@ export function QuizCreateDialog({ open, onOpenChange, userProfile, onCreated }:
     setTargetClass(userProfile.class || '')
     setExpiresAt('')
     setActive(true)
+    setRevealThreshold(10)
+    setAnonymousMode(false)
     setQuestions([emptyQuestion(), emptyQuestion(), emptyQuestion(), emptyQuestion()])
     setError('')
   }
@@ -112,6 +116,8 @@ export function QuizCreateDialog({ open, onOpenChange, userProfile, onCreated }:
         target_class: targetScope === 'class' ? targetClass : undefined,
         expires_at: expiresAt || undefined,
         active,
+        reveal_threshold: revealThreshold,
+        anonymous_mode: anonymousMode,
         questions: questions.map((q, qi) => ({
           question_text: q.question_text.trim(),
           emoji: q.emoji.trim() || undefined,
@@ -237,6 +243,34 @@ export function QuizCreateDialog({ open, onOpenChange, userProfile, onCreated }:
                 className={inputCls}
               />
             </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Deblochează rezultatele după
+              </label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  min={2}
+                  max={100}
+                  value={revealThreshold}
+                  onChange={e => setRevealThreshold(Math.min(100, Math.max(2, parseInt(e.target.value) || 2)))}
+                  className={`${inputCls} w-24`}
+                />
+                <span className="text-sm text-gray-500">răspunsuri necesare</span>
+              </div>
+            </div>
+            <label className="flex items-start gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={anonymousMode}
+                onChange={e => setAnonymousMode(e.target.checked)}
+                className="w-4 h-4 rounded accent-blue-600 mt-0.5"
+              />
+              <div>
+                <span className="text-sm font-medium text-gray-700">Răspunsuri anonime</span>
+                <p className="text-xs text-gray-400 mt-0.5">Participanții nu vor fi identificați în rezultate</p>
+              </div>
+            </label>
           </div>
         )}
 
@@ -302,6 +336,10 @@ export function QuizCreateDialog({ open, onOpenChange, userProfile, onCreated }:
             <div className="bg-gray-50 rounded-xl p-4">
               <h3 className="font-semibold text-gray-900">{title}</h3>
               {description && <p className="text-sm text-gray-500 mt-1">{description}</p>}
+              <p className="text-xs text-gray-400 mt-2">
+                Se deblochează după {revealThreshold} răspunsuri
+                {anonymousMode && ' · Răspunsuri anonime'}
+              </p>
             </div>
             {questions.map((q, qi) => (
               <div key={qi} className="border border-gray-200 rounded-xl p-3">
