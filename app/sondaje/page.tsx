@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Plus, CheckCircle2, Clock, Users } from 'lucide-react'
+import { Plus, CheckCircle2, Clock, Users, Lock } from 'lucide-react'
 import { QuizOverlay } from '@/components/sondaje/QuizOverlay'
 import { QuizCreateDialog } from '@/components/sondaje/QuizCreateDialog'
 
@@ -31,6 +31,9 @@ interface Quiz {
   questions: QuizQuestion[]
   completed: boolean
   response_count: number
+  reveal_threshold: number
+  results_unlocked_at: string | null
+  anonymous_mode: boolean
 }
 
 interface Profile {
@@ -77,12 +80,17 @@ export default function SondajePage() {
     setActiveQuiz(null)
   }
 
-  function onQuizCompleted() {
+  function onQuizCompleted({ unlocked, response_count }: { unlocked: boolean; response_count: number; reveal_threshold: number }) {
     if (activeQuiz) {
       setQuizzes(prev =>
         prev.map(q =>
           q.id === activeQuiz.id
-            ? { ...q, completed: true, response_count: q.response_count + 1 }
+            ? {
+                ...q,
+                completed: true,
+                response_count,
+                results_unlocked_at: unlocked ? new Date().toISOString() : null,
+              }
             : q
         )
       )
@@ -133,52 +141,80 @@ export default function SondajePage() {
 
           {!loading && quizzes.length > 0 && (
             <div className="space-y-3">
-              {quizzes.map(quiz => (
-                <div key={quiz.id} className="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-gray-900">{quiz.title}</h3>
-                      {quiz.description && (
-                        <p className="text-sm text-gray-500 mt-0.5 line-clamp-2">{quiz.description}</p>
+              {quizzes.map(quiz => {
+                const resultsUnlocked = quiz.results_unlocked_at != null
+                const resultsLocked = quiz.completed && !resultsUnlocked
+                const progressPct = Math.min(100, Math.round((quiz.response_count / quiz.reveal_threshold) * 100))
+
+                return (
+                  <div key={quiz.id} className="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-gray-900">{quiz.title}</h3>
+                        {quiz.description && (
+                          <p className="text-sm text-gray-500 mt-0.5 line-clamp-2">{quiz.description}</p>
+                        )}
+                      </div>
+                      {quiz.completed && resultsUnlocked && (
+                        <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0 mt-0.5" />
+                      )}
+                      {resultsLocked && (
+                        <Lock className="w-5 h-5 text-gray-400 shrink-0 mt-0.5" />
                       )}
                     </div>
-                    {quiz.completed && (
-                      <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0 mt-0.5" />
-                    )}
-                  </div>
 
-                  <div className="flex items-center gap-3 mt-3">
-                    <span className="flex items-center gap-1 text-xs text-gray-400">
-                      <Users className="w-3 h-3" />
-                      {quiz.response_count} {quiz.response_count === 1 ? 'răspuns' : 'răspunsuri'}
-                    </span>
-                    {quiz.expires_at && (
+                    <div className="flex items-center gap-3 mt-3">
                       <span className="flex items-center gap-1 text-xs text-gray-400">
-                        <Clock className="w-3 h-3" />
-                        {formatExpiry(quiz.expires_at)}
+                        <Users className="w-3 h-3" />
+                        {quiz.response_count} {quiz.response_count === 1 ? 'răspuns' : 'răspunsuri'}
                       </span>
-                    )}
-                  </div>
+                      {quiz.expires_at && (
+                        <span className="flex items-center gap-1 text-xs text-gray-400">
+                          <Clock className="w-3 h-3" />
+                          {formatExpiry(quiz.expires_at)}
+                        </span>
+                      )}
+                    </div>
 
-                  <div className="mt-3">
-                    {quiz.completed ? (
-                      <button
-                        onClick={() => openResults(quiz)}
-                        className="w-full py-2.5 border-2 border-blue-600 text-blue-600 rounded-xl text-sm font-semibold hover:bg-blue-50 transition-colors"
-                      >
-                        Vezi rezultate
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => openTake(quiz)}
-                        className="w-full py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors"
-                      >
-                        Începe
-                      </button>
+                    {/* Waiting state: completed but results locked */}
+                    {resultsLocked && (
+                      <div className="mt-3">
+                        <div className="flex justify-between items-center mb-1.5">
+                          <p className="text-xs text-gray-500">
+                            Așteptăm {quiz.response_count}/{quiz.reveal_threshold} colegi...
+                          </p>
+                          <p className="text-xs text-gray-400">{progressPct}%</p>
+                        </div>
+                        <div className="h-2 rounded-full bg-gray-200 overflow-hidden">
+                          <div
+                            className="h-full rounded-full bg-blue-600 transition-all"
+                            style={{ width: `${progressPct}%` }}
+                          />
+                        </div>
+                      </div>
                     )}
+
+                    <div className="mt-3">
+                      {!quiz.completed && (
+                        <button
+                          onClick={() => openTake(quiz)}
+                          className="w-full py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors"
+                        >
+                          Începe
+                        </button>
+                      )}
+                      {quiz.completed && resultsUnlocked && (
+                        <button
+                          onClick={() => openResults(quiz)}
+                          className="w-full py-2.5 border-2 border-blue-600 text-blue-600 rounded-xl text-sm font-semibold hover:bg-blue-50 transition-colors"
+                        >
+                          Vezi rezultate
+                        </button>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           )}
         </div>

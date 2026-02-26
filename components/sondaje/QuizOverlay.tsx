@@ -45,11 +45,17 @@ interface Stats {
   user_answers: Record<string, string> | null
 }
 
+interface UnlockData {
+  unlocked: boolean
+  response_count: number
+  reveal_threshold: number
+}
+
 interface Props {
   quiz: Quiz
   mode: 'take' | 'results'
   onClose: () => void
-  onCompleted: () => void
+  onCompleted: (unlockData: UnlockData) => void
 }
 
 export function QuizOverlay({ quiz, mode, onClose, onCompleted }: Props) {
@@ -112,9 +118,19 @@ export function QuizOverlay({ quiz, mode, onClose, onCompleted }: Props) {
       body: JSON.stringify({ answers: finalAnswers }),
     })
     if (res.ok) {
-      onCompleted()
-      await fetchStats()
-      setCurrentSlide(0)
+      const data = await res.json()
+      const unlockData: UnlockData = {
+        unlocked: data.unlocked,
+        response_count: data.response_count,
+        reveal_threshold: data.reveal_threshold,
+      }
+      onCompleted(unlockData)
+      if (data.unlocked) {
+        await fetchStats()
+        setCurrentSlide(0)
+      } else {
+        onClose()
+      }
     }
   }
 
