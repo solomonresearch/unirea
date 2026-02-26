@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Plus, CheckCircle2, Clock, Users, Lock } from 'lucide-react'
+import { Plus, CheckCircle2, Clock, Users, Lock, Eye } from 'lucide-react'
 import { QuizOverlay } from '@/components/sondaje/QuizOverlay'
 import { QuizCreateDialog } from '@/components/sondaje/QuizCreateDialog'
 
@@ -30,6 +30,7 @@ interface Quiz {
   created_at: string
   questions: QuizQuestion[]
   completed: boolean
+  has_peeked: boolean
   response_count: number
   reveal_threshold: number
   results_unlocked_at: string | null
@@ -74,6 +75,14 @@ export default function SondajePage() {
   function openResults(quiz: Quiz) {
     setActiveQuiz(quiz)
     setOverlayMode('results')
+  }
+
+  function openPeek(quiz: Quiz) {
+    setQuizzes(prev =>
+      prev.map(q => q.id === quiz.id ? { ...q, has_peeked: true } : q)
+    )
+    setActiveQuiz(quiz)
+    setOverlayMode('peek')
   }
 
   function closeOverlay() {
@@ -194,7 +203,7 @@ export default function SondajePage() {
                       </div>
                     )}
 
-                    <div className="mt-3">
+                    <div className="mt-3 space-y-2">
                       {!quiz.completed && (
                         <button
                           onClick={() => openTake(quiz)}
@@ -209,6 +218,20 @@ export default function SondajePage() {
                           className="w-full py-2.5 border-2 border-blue-600 text-blue-600 rounded-xl text-sm font-semibold hover:bg-blue-50 transition-colors"
                         >
                           Vezi rezultate
+                        </button>
+                      )}
+                      {resultsLocked && (
+                        <button
+                          onClick={() => !quiz.has_peeked && openPeek(quiz)}
+                          disabled={quiz.has_peeked}
+                          className={`w-full flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-medium transition-colors ${
+                            quiz.has_peeked
+                              ? 'text-gray-300 cursor-not-allowed'
+                              : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'
+                          }`}
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                          {quiz.has_peeked ? 'Ai folosit privirea rapidă' : 'Privire rapidă'}
                         </button>
                       )}
                     </div>

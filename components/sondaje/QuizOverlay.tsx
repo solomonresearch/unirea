@@ -53,14 +53,14 @@ interface UnlockData {
 
 interface Props {
   quiz: Quiz
-  mode: 'take' | 'results'
+  mode: 'take' | 'results' | 'peek'
   onClose: () => void
   onCompleted: (unlockData: UnlockData) => void
 }
 
 export function QuizOverlay({ quiz, mode, onClose, onCompleted }: Props) {
   const [phase, setPhase] = useState<'taking' | 'submitting' | 'results' | 'loading-results'>(
-    mode === 'results' ? 'loading-results' : 'taking'
+    mode === 'results' || mode === 'peek' ? 'loading-results' : 'taking'
   )
   const [currentQuestion, setCurrentQuestion] = useState(0)
   const [localAnswers, setLocalAnswers] = useState<Record<string, string>>({})
@@ -70,9 +70,8 @@ export function QuizOverlay({ quiz, mode, onClose, onCompleted }: Props) {
   const [barsAnimated, setBarsAnimated] = useState(false)
 
   useEffect(() => {
-    if (mode === 'results') {
-      fetchStats()
-    }
+    if (mode === 'results') fetchStats()
+    if (mode === 'peek') fetchPeek()
   }, [])
 
   // Trigger bar animation whenever the slide changes
@@ -90,6 +89,17 @@ export function QuizOverlay({ quiz, mode, onClose, onCompleted }: Props) {
       const data = await res.json()
       setStats(data)
       setPhase('results')
+    }
+  }
+
+  async function fetchPeek() {
+    const res = await fetch(`/api/sondaje/${quiz.id}/peek`, { method: 'POST' })
+    if (res.ok) {
+      const data = await res.json()
+      setStats(data)
+      setPhase('results')
+    } else {
+      onClose()
     }
   }
 
