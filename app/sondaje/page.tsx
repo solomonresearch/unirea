@@ -49,7 +49,7 @@ export default function SondajePage() {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
   const [activeQuiz, setActiveQuiz] = useState<Quiz | null>(null)
-  const [overlayMode, setOverlayMode] = useState<'take' | 'results'>('take')
+  const [overlayMode, setOverlayMode] = useState<'take' | 'results' | 'peek'>('take')
   const [createOpen, setCreateOpen] = useState(false)
 
   useEffect(() => {
