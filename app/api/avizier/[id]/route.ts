@@ -13,23 +13,23 @@ export async function DELETE(
       return NextResponse.json({ error: 'Neautorizat' }, { status: 401 })
     }
 
-    const { data: announcement } = await supabase
-      .from('announcements')
+    const { data: post } = await supabase
+      .from('avizier_posts')
       .select('user_id')
       .eq('id', params.id)
       .is('deleted_at', null)
       .single()
 
-    if (!announcement) {
-      return NextResponse.json({ error: 'Anuntul nu a fost gasit' }, { status: 404 })
+    if (!post) {
+      return NextResponse.json({ error: 'Postarea nu a fost gasita' }, { status: 404 })
     }
 
-    if (announcement.user_id !== user.id) {
-      return NextResponse.json({ error: 'Nu poti sterge anuntul altcuiva' }, { status: 403 })
+    if (post.user_id !== user.id) {
+      return NextResponse.json({ error: 'Nu poti sterge postarea altcuiva' }, { status: 403 })
     }
 
     const { error } = await supabase
-      .from('announcements')
+      .from('avizier_posts')
       .update({ deleted_at: new Date().toISOString() })
       .eq('id', params.id)
 

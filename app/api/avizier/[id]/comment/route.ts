@@ -21,13 +21,13 @@ export async function POST(
     }
 
     const { data, error } = await supabase
-      .from('announcement_comments')
+      .from('avizier_post_comments')
       .insert({
-        announcement_id: params.id,
+        post_id: params.id,
         user_id: user.id,
         content: content.trim(),
       })
-      .select('id, announcement_id, content, created_at, user_id, profiles(name, username)')
+      .select('id, post_id, content, created_at, user_id, profiles!user_id(name, username)')
       .single()
 
     if (error) {
