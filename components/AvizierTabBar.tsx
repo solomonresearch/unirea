@@ -6,7 +6,6 @@ import { usePathname } from 'next/navigation'
 const TABS = [
   { href: '/ziar', label: 'Ziar', dotColor: 'bg-gray-400' },
   { href: '/avizier', label: 'Avizier', dotColor: 'bg-gray-800 ring-1 ring-gray-300' },
-  { href: '/sondaje', label: 'Sondaje', dotColor: 'bg-blue-500' },
 ]
 
 export function AvizierTabBar() {

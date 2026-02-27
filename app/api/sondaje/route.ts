@@ -1,7 +1,7 @@
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { NextResponse } from 'next/server'
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const supabase = createServerSupabaseClient()
     const { data: { user } } = await supabase.auth.getUser()
@@ -20,6 +20,9 @@ export async function GET() {
       return NextResponse.json({ error: 'Profilul nu a fost gasit' }, { status: 400 })
     }
 
+    const { searchParams } = new URL(request.url)
+    const scopeFilter = searchParams.get('scope') // 'school' | 'year' | 'class' | null
+
     const { data: allQuizzes, error } = await supabase
       .from('quizzes')
       .select('*, quiz_questions(*, quiz_options(*))')
@@ -33,6 +36,8 @@ export async function GET() {
     const now = new Date()
     const scopedQuizzes = (allQuizzes || []).filter((quiz: any) => {
       if (quiz.expires_at && new Date(quiz.expires_at) < now) return false
+      // If a scope filter was passed, only return quizzes matching that target_scope
+      if (scopeFilter && quiz.target_scope !== scopeFilter) return false
       if (quiz.target_scope === 'all') return true
       if (quiz.target_scope === 'school') return quiz.target_highschool === profile.highschool
       if (quiz.target_scope === 'year') return quiz.target_highschool === profile.highschool && quiz.target_year === profile.graduation_year
@@ -101,7 +106,7 @@ export async function POST(request: Request) {
       .eq('id', user.id)
       .single()
 
-    if (!profile || !['admin', 'moderator'].includes(profile.role)) {
+    if (!profile || profile.role !== 'admin') {
       return NextResponse.json({ error: 'Acces interzis' }, { status: 403 })
     }
 
@@ -112,13 +117,17 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Titlul este obligatoriu' }, { status: 400 })
     }
 
-    if (!questions || questions.length !== 4) {
-      return NextResponse.json({ error: 'Sondajul trebuie sa aiba exact 4 intrebari' }, { status: 400 })
+    if (!expires_at) {
+      return NextResponse.json({ error: 'Data de expirare este obligatorie' }, { status: 400 })
+    }
+
+    if (!questions || questions.length < 2 || questions.length > 6) {
+      return NextResponse.json({ error: 'Sondajul trebuie sa aiba intre 2 si 6 intrebari' }, { status: 400 })
     }
 
     for (const q of questions) {
-      if (!q.options || q.options.length !== 4) {
-        return NextResponse.json({ error: 'Fiecare intrebare trebuie sa aiba exact 4 optiuni' }, { status: 400 })
+      if (!q.options || q.options.length < 2 || q.options.length > 6) {
+        return NextResponse.json({ error: 'Fiecare intrebare trebuie sa aiba intre 2 si 6 optiuni' }, { status: 400 })
       }
     }
 
@@ -130,7 +139,7 @@ export async function POST(request: Request) {
       .insert({
         title: title.trim(),
         description: description?.trim() || null,
-        target_scope: target_scope || 'all',
+        target_scope: target_scope || 'school',
         target_highschool: target_highschool || null,
         target_year: target_year || null,
         target_class: target_class || null,
@@ -153,7 +162,6 @@ export async function POST(request: Request) {
         .insert({
           quiz_id: quiz.id,
           question_text: q.question_text,
-          emoji: q.emoji || null,
           order_index: q.order_index,
         })
         .select()
@@ -163,13 +171,15 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: qError.message }, { status: 500 })
       }
 
+      // Filter out empty optional options
+      const validOptions = q.options.filter((opt: any) => opt.option_text?.trim())
+
       const { error: optError } = await supabase
         .from('quiz_options')
         .insert(
-          q.options.map((opt: any) => ({
+          validOptions.map((opt: any) => ({
             question_id: question.id,
-            option_text: opt.option_text,
-            emoji: opt.emoji || null,
+            option_text: opt.option_text.trim(),
             order_index: opt.order_index,
           }))
         )
