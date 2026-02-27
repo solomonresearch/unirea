@@ -36,20 +36,26 @@ export default function AdminPage() {
   const [updatingId, setUpdatingId] = useState<string | null>(null)
 
   useEffect(() => {
+    let cancelled = false
     async function init() {
       const { data: { user } } = await getSupabase().auth.getUser()
+      if (cancelled) return
       if (!user) { router.push('/autentificare'); return }
       setCurrentUserId(user.id)
 
       const res = await fetch('/api/admin/users')
+      if (cancelled) return
       if (res.status === 401) { router.push('/avizier'); return }
 
       const data = await res.json()
+      if (cancelled) return
       setUsers(data.users || [])
       setLoading(false)
     }
     init()
-  }, [router])
+    return () => { cancelled = true }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   async function changeRole(userId: string, newRole: string) {
     setUpdatingId(userId)
