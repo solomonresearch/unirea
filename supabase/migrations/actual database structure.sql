@@ -55,7 +55,7 @@ CREATE TABLE public.carusel_posts (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
   user_id uuid NOT NULL,
   caption text,
-  drive_file_id text NOT NULL,
+  storage_path text NOT NULL,
   original_filename text,
   mime_type text NOT NULL,
   file_size integer,

@@ -1,5 +1,4 @@
 import { createServerSupabaseClient } from '@/lib/supabase-server'
-import { uploadFile } from '@/lib/google-drive'
 import { NextResponse } from 'next/server'
 
 const MAX_FILE_SIZE = 4 * 1024 * 1024 // 4MB
@@ -16,7 +15,7 @@ export async function GET() {
 
     const { data: rawPosts, error } = await supabase
       .from('carusel_posts')
-      .select('id, caption, user_id, mime_type, created_at, profiles!user_id(name, username)')
+      .select('id, caption, user_id, storage_path, created_at, profiles!user_id(name, username)')
       .is('deleted_at', null)
       .order('created_at', { ascending: false })
 
@@ -50,7 +49,7 @@ export async function GET() {
       return {
         id: p.id,
         caption: p.caption,
-        image_url: `/api/carusel/image/${p.id}`,
+        image_url: supabase.storage.from('carusel').getPublicUrl(p.storage_path).data.publicUrl,
         user_id: p.user_id,
         profiles: p.profiles,
         likes: pLikes.length,
@@ -97,16 +96,24 @@ export async function POST(request: Request) {
 
     const buffer = Buffer.from(await file.arrayBuffer())
     const sanitizedName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_')
-    const driveFilename = `${user.id}_${Date.now()}_${sanitizedName}`
+    const storagePath = `${user.id}/${Date.now()}_${sanitizedName}`
 
-    const driveFileId = await uploadFile(buffer, driveFilename, file.type)
+    const { error: uploadError } = await supabase.storage
+      .from('carusel')
+      .upload(storagePath, buffer, { contentType: file.type })
+
+    if (uploadError) {
+      return NextResponse.json({ error: uploadError.message }, { status: 500 })
+    }
+
+    const { data: urlData } = supabase.storage.from('carusel').getPublicUrl(storagePath)
 
     const { data, error } = await supabase
       .from('carusel_posts')
       .insert({
         user_id: user.id,
         caption: caption || null,
-        drive_file_id: driveFileId,
+        storage_path: storagePath,
         original_filename: file.name,
         mime_type: file.type,
         file_size: file.size,
@@ -115,18 +122,14 @@ export async function POST(request: Request) {
       .single()
 
     if (error) {
-      // Cleanup: delete from Drive if DB insert fails
-      try {
-        const { deleteFile } = await import('@/lib/google-drive')
-        await deleteFile(driveFileId)
-      } catch {}
+      await supabase.storage.from('carusel').remove([storagePath])
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
     return NextResponse.json({
       id: data.id,
       caption: data.caption,
-      image_url: `/api/carusel/image/${data.id}`,
+      image_url: urlData.publicUrl,
       user_id: data.user_id,
       profiles: (data as any).profiles,
       likes: 0,

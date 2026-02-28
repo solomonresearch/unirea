@@ -15,7 +15,7 @@ export async function DELETE(
 
     const { data: post } = await supabase
       .from('carusel_posts')
-      .select('user_id')
+      .select('user_id, storage_path')
       .eq('id', params.id)
       .is('deleted_at', null)
       .single()
@@ -36,6 +36,8 @@ export async function DELETE(
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
+
+    await supabase.storage.from('carusel').remove([post.storage_path])
 
     return NextResponse.json({ ok: true })
   } catch (err: any) {
