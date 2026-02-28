@@ -39,21 +39,20 @@
 - **API routes**: `app/api/admin/users/` — admin-only user management. Requires caller's `profile.role = 'admin'`.
   - `GET /api/admin/users` → returns `{ users: [{ id, name, username, email, role, created_at }] }`
   - `PATCH /api/admin/users` → body: `{ userId, role: 'admin'|'moderator'|'user' }` → updates user role, prevents self-demotion → returns `{ ok: true }`
-- **API routes**: `app/api/carusel/` — server-side CRUD for carusel (photo sharing). Authenticated only. Photos stored in Google Drive, served through proxy.
+- **API routes**: `app/api/carusel/` — server-side CRUD for carusel (photo sharing). Authenticated only. Photos stored in Supabase Storage (`carusel` bucket, public).
   - `GET /api/carusel` → returns `{ posts: [{ id, caption, image_url, user_id, profiles, likes, liked, comments, created_at }] }`
   - `POST /api/carusel` → multipart/form-data: `file` (required, image/jpeg|png|webp, max 4MB), `caption` (optional, max 500) → returns created post (201)
-  - `DELETE /api/carusel/[id]` → soft delete, own posts only → returns `{ ok: true }`
+  - `DELETE /api/carusel/[id]` → soft delete + storage cleanup, own posts only → returns `{ ok: true }`
   - `POST /api/carusel/[id]/like` → toggle like → returns `{ ok: true, liked: boolean }`
   - `POST /api/carusel/[id]/comment` → body: `{ content }` (max 500) → returns created comment (201)
   - `DELETE /api/carusel/[id]/comment/[commentId]` → soft delete, own comments only → returns `{ ok: true }`
-  - `GET /api/carusel/image/[id]` → proxied image from Google Drive, cached 24h
-- **Carusel**: Photo sharing at `/carusel`. Images uploaded via Google Drive API (service account). `lib/google-drive.ts` provides `uploadFile`, `getFileBuffer`, `deleteFile`. Drive file IDs never exposed to client — images served through `/api/carusel/image/[id]` proxy.
+- **Carusel**: Photo sharing at `/carusel`. Images stored in Supabase Storage (`carusel` bucket, public). `carusel_posts.storage_path` holds the path within the bucket. Public URLs served directly from Supabase Storage — no proxy needed.
 - **Ziar**: Public newspaper/bulletin board at `/ziar`. Posts expire after 3 days. Categories: stiri, anunt, apel, vand, cumpar. Anonymous users can read and post. `/avizier/ziar` redirects to `/ziar`. Shared `AvizierTabBar` component used by both `/ziar` and `/avizier` layouts.
 - **Middleware**: `middleware.ts` protects authenticated routes (`/tabla`, `/avizier`, `/cercuri`, `/mesaje`, `/cauta`, `/carusel`, `/harta`, `/kanban`, `/profil`, `/setari`, `/admin`) and redirects authenticated users from auth pages
 - **Bottom nav**: 6 tabs — Avizier, Cercuri, Mesaje, Cauta, Carusel, Setari
 - **Kanban**: Drag-and-drop board using `@dnd-kit`. Components in `components/kanban/`. Realtime sync via Supabase channels. Cards have auto-incrementing `card_number` displayed as `#N`.
 - **Design**: Mobile-first. All layouts use `max-w-sm` centered with `px-6` padding. Kanban uses `max-w-6xl` (needs width for columns).
-- **Environment**: `.env` has `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `GOOGLE_SERVICE_ACCOUNT_EMAIL`, `GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY`, `GOOGLE_DRIVE_FOLDER_ID`
+- **Environment**: `.env` has `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`
 
 ---
 
