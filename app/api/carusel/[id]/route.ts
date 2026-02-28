@@ -1,4 +1,4 @@
-import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { createServerSupabaseClient, createServiceRoleClient } from '@/lib/supabase-server'
 import { NextResponse } from 'next/server'
 
 export async function DELETE(
@@ -37,7 +37,7 @@ export async function DELETE(
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    await supabase.storage.from('carusel').remove([post.storage_path])
+    await createServiceRoleClient().storage.from('carusel').remove([post.storage_path])
 
     return NextResponse.json({ ok: true })
   } catch (err: any) {

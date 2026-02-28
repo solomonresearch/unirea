@@ -1,4 +1,4 @@
-import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { createServerSupabaseClient, createServiceRoleClient } from '@/lib/supabase-server'
 import { NextResponse } from 'next/server'
 
 const MAX_FILE_SIZE = 4 * 1024 * 1024 // 4MB
@@ -98,7 +98,9 @@ export async function POST(request: Request) {
     const sanitizedName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_')
     const storagePath = `${user.id}/${Date.now()}_${sanitizedName}`
 
-    const { error: uploadError } = await supabase.storage
+    const storage = createServiceRoleClient()
+
+    const { error: uploadError } = await storage.storage
       .from('carusel')
       .upload(storagePath, buffer, { contentType: file.type })
 
@@ -106,7 +108,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: uploadError.message }, { status: 500 })
     }
 
-    const { data: urlData } = supabase.storage.from('carusel').getPublicUrl(storagePath)
+    const { data: urlData } = storage.storage.from('carusel').getPublicUrl(storagePath)
 
     const { data, error } = await supabase
       .from('carusel_posts')
@@ -122,7 +124,7 @@ export async function POST(request: Request) {
       .single()
 
     if (error) {
-      await supabase.storage.from('carusel').remove([storagePath])
+      await storage.storage.from('carusel').remove([storagePath])
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
