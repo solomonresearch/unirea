@@ -9,7 +9,7 @@
 - **Stack**: Next.js 14 (App Router), React 18, TypeScript, Tailwind CSS, Supabase
 - **Icons**: lucide-react — always use Lucide, never install other icon libraries
 - **Language**: All UI text is in **Romanian**
-- **Routes**: Romanian slugs — `/autentificare` (login), `/inregistrare` (signup), `/bun-venit` (welcome), `/onboarding`, `/tabla` (whiteboard), `/avizier` (notice board), `/ziar` (newspaper — public), `/cercuri` (circles), `/mesaje` (messages), `/cauta` (search + map, list/map toggle), `/kanban`, `/profil`, `/setari`, `/admin` (admin panel — admin only). `/harta` redirects to `/cauta`.
+- **Routes**: Romanian slugs — `/autentificare` (login), `/inregistrare` (signup), `/bun-venit` (welcome), `/onboarding`, `/tabla` (whiteboard), `/avizier` (notice board), `/ziar` (newspaper — public), `/cercuri` (circles), `/mesaje` (messages), `/cauta` (search + map, list/map toggle), `/carusel` (nostalgia photo carousel — mockup), `/kanban`, `/profil`, `/setari`, `/admin` (admin panel — admin only). `/harta` redirects to `/cauta`.
 - **Supabase**: Auth for sessions, `profiles` table for user data, `posts`/`post_votes`/`comments` for whiteboard, `kanban_cards` for Kanban board, `ziar_posts` for Ziar (newspaper), `conversations`/`messages` for DMs, RLS enabled
 - **Roles**: `profiles.role` column — `'admin'` | `'moderator'` | `'user'` (default: `'user'`). Admin check is done in API routes and page-level guards, not middleware.
 - **Client pattern**: `lib/supabase.ts` for browser, `lib/supabase-server.ts` for server components and API routes
@@ -40,8 +40,8 @@
   - `GET /api/admin/users` → returns `{ users: [{ id, name, username, email, role, created_at }] }`
   - `PATCH /api/admin/users` → body: `{ userId, role: 'admin'|'moderator'|'user' }` → updates user role, prevents self-demotion → returns `{ ok: true }`
 - **Ziar**: Public newspaper/bulletin board at `/ziar`. Posts expire after 3 days. Categories: stiri, anunt, apel, vand, cumpar. Anonymous users can read and post. `/avizier/ziar` redirects to `/ziar`. Shared `AvizierTabBar` component used by both `/ziar` and `/avizier` layouts.
-- **Middleware**: `middleware.ts` protects authenticated routes (`/tabla`, `/avizier`, `/cercuri`, `/mesaje`, `/cauta`, `/harta`, `/kanban`, `/profil`, `/setari`, `/admin`) and redirects authenticated users from auth pages
-- **Bottom nav**: 5 tabs — Avizier, Cercuri, Mesaje, Cauta, Setari
+- **Middleware**: `middleware.ts` protects authenticated routes (`/tabla`, `/avizier`, `/cercuri`, `/mesaje`, `/cauta`, `/carusel`, `/harta`, `/kanban`, `/profil`, `/setari`, `/admin`) and redirects authenticated users from auth pages
+- **Bottom nav**: 6 tabs — Avizier, Cercuri, Mesaje, Cauta, Carusel, Setari
 - **Kanban**: Drag-and-drop board using `@dnd-kit`. Components in `components/kanban/`. Realtime sync via Supabase channels. Cards have auto-incrementing `card_number` displayed as `#N`.
 - **Design**: Mobile-first. All layouts use `max-w-sm` centered with `px-6` padding. Kanban uses `max-w-6xl` (needs width for columns).
 - **Environment**: `.env` has `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`
