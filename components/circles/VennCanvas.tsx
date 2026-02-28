@@ -2,16 +2,16 @@
 
 import { useRef, useEffect, useCallback } from 'react'
 import {
-  type Mode, type CircleKey,
-  CIRCLE_POSITIONS, INTERSECTION_DOTS, CIRCLE_COLORS,
-  PERSONAL_CIRCLES, PROFESSIONAL_CIRCLES, CIRCLE_CONFIG,
+  type CircleKey, type CirclePosition, type IntersectionDot,
+  CIRCLE_COLORS, CIRCLE_CONFIG,
 } from './circleConfig'
 
 interface VennCanvasProps {
-  mode: Mode
+  circles: CircleKey[]
+  positions: CirclePosition[]
+  dots: IntersectionDot[]
   activeFilters: CircleKey[]
   counts: Record<string, number>
-  onIntersectionTap?: (key: string, label: string, x: number, y: number) => void
 }
 
 const CANVAS_W = 700
@@ -24,14 +24,10 @@ function hexToRgba(hex: string, alpha: number) {
   return `rgba(${r},${g},${b},${alpha})`
 }
 
-export function VennCanvas({ mode, activeFilters, counts, onIntersectionTap }: VennCanvasProps) {
+export function VennCanvas({ circles, positions, dots, activeFilters, counts }: VennCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const phaseRef = useRef(0)
   const rafRef = useRef<number>(0)
-
-  const circles = mode === 'personal' ? PERSONAL_CIRCLES : PROFESSIONAL_CIRCLES
-  const positions = CIRCLE_POSITIONS[mode]
-  const dots = INTERSECTION_DOTS[mode]
 
   const draw = useCallback((ctx: CanvasRenderingContext2D) => {
     const W = CANVAS_W
@@ -126,34 +122,12 @@ export function VennCanvas({ mode, activeFilters, counts, onIntersectionTap }: V
     return () => cancelAnimationFrame(rafRef.current)
   }, [draw])
 
-  function handleClick(e: React.MouseEvent<HTMLCanvasElement>) {
-    if (!onIntersectionTap) return
-    const canvas = canvasRef.current
-    if (!canvas) return
-    const rect = canvas.getBoundingClientRect()
-    const x = (e.clientX - rect.left) * (CANVAS_W / rect.width)
-    const y = (e.clientY - rect.top) * (CANVAS_H / rect.height)
-
-    for (const dot of dots) {
-      const px = CANVAS_W * dot.x
-      const py = CANVAS_H * dot.y
-      const dist = Math.sqrt((x - px) ** 2 + (y - py) ** 2)
-      if (dist < 30) {
-        const screenX = e.clientX - rect.left
-        const screenY = e.clientY - rect.top
-        onIntersectionTap(dot.key, dot.label, screenX, screenY)
-        return
-      }
-    }
-  }
-
   return (
     <div className="relative rounded-2xl overflow-hidden" style={{ background: '#0D0F14' }}>
       <canvas
         ref={canvasRef}
         width={CANVAS_W}
         height={CANVAS_H}
-        onClick={handleClick}
         className="w-full"
         style={{ aspectRatio: `${CANVAS_W}/${CANVAS_H}` }}
         aria-label={`Diagrama Venn cu ${circles.length} cercuri${activeFilters.length > 0 ? `, ${activeFilters.length} active` : ''}`}
@@ -162,7 +136,7 @@ export function VennCanvas({ mode, activeFilters, counts, onIntersectionTap }: V
         <div className="absolute top-3 right-3 rounded-full px-3 py-1 text-[11px] font-semibold"
           style={{ background: 'rgba(255,215,0,0.15)', border: '1px solid rgba(255,215,0,0.25)', color: '#FFD700' }}
         >
-          {counts[getIntersectionKey(activeFilters)] || 0} suprapuneri ✨
+          {counts[getIntersectionKey(activeFilters)] || 0} suprapuneri
         </div>
       )}
     </div>
@@ -176,6 +150,7 @@ function getIntersectionKey(filters: CircleKey[]): string {
     'highschool,hobbies': 'hs_hobbies',
     'hobbies,location': 'location_hobbies',
     'interests,location': 'location_interests',
+    'hobbies,interests': 'hobbies_interests',
     'highschool,hobbies,location': 'hs_location_hobbies',
     'highschool,profession': 'hs_profession',
     'location,profession': 'location_profession',

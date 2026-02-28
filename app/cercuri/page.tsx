@@ -7,12 +7,11 @@ import { getSupabase } from '@/lib/supabase'
 import { Loader2, MessageCircle, ChevronRight, Users, X, GraduationCap } from 'lucide-react'
 import Link from 'next/link'
 import { VennCanvas } from '@/components/circles/VennCanvas'
-import { ModeToggle } from '@/components/circles/ModeToggle'
+import { CircleSummary } from '@/components/circles/ModeToggle'
 import { CircleChips } from '@/components/circles/CircleChips'
 import {
-  type Mode, type CircleKey, type UserInfo,
-  CIRCLE_CONFIG, CIRCLE_COLORS, PERSONAL_CIRCLES, PROFESSIONAL_CIRCLES,
-  INTERSECTION_DOTS,
+  type CircleKey, type UserInfo,
+  CIRCLE_CONFIG, CIRCLE_COLORS, ALL_CIRCLES, ALL_POSITIONS, ALL_DOTS,
 } from '@/components/circles/circleConfig'
 
 interface CirclesData {
@@ -58,13 +57,11 @@ function getInitials(name: string) {
 export default function CercuriPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
-  const [mode, setMode] = useState<Mode>('personal')
   const [activeFilters, setActiveFilters] = useState<CircleKey[]>([])
   const [data, setData] = useState<CirclesData | null>(null)
   const [people, setPeople] = useState<Person[]>([])
   const [loadingPeople, setLoadingPeople] = useState(false)
   const [currentUserId, setCurrentUserId] = useState('')
-  const [vennOpacity, setVennOpacity] = useState(1)
   const [showClassmates, setShowClassmates] = useState(false)
   const [classmates, setClassmates] = useState<Classmate[]>([])
   const [yearmates, setYearmates] = useState<Classmate[]>([])
@@ -112,21 +109,9 @@ export default function CercuriPage() {
     init()
   }, [router])
 
-  const visibleCircles = mode === 'personal' ? PERSONAL_CIRCLES : PROFESSIONAL_CIRCLES
-  const intersectionCounts = mode === 'personal'
-    ? data?.personal_intersections || {}
-    : data?.professional_intersections || {}
-
-  const switchMode = (newMode: Mode) => {
-    if (newMode === mode) return
-    setVennOpacity(0.2)
-    setTimeout(() => {
-      const shared = activeFilters.filter(f => CIRCLE_CONFIG[f].shared)
-      setActiveFilters(shared)
-      setMode(newMode)
-      setPeople([])
-      setTimeout(() => setVennOpacity(1), 50)
-    }, 200)
+  const intersectionCounts = {
+    ...(data?.personal_intersections || {}),
+    ...(data?.professional_intersections || {}),
   }
 
   const toggleFilter = (key: CircleKey) => {
@@ -167,6 +152,7 @@ export default function CercuriPage() {
       'highschool+hobbies': 'Colegi cu hobby-uri comune',
       'hobbies+location': 'Vecini cu hobby-uri comune',
       'interests+location': 'Vecini cu interese comune',
+      'hobbies+interests': 'Hobby-uri & interese comune',
       'highschool+hobbies+location': 'Cercul interior ✨',
       'highschool+profession': 'Colegi in acelasi domeniu',
       'location+profession': 'Colegi locali',
@@ -186,7 +172,6 @@ export default function CercuriPage() {
   }
 
   const intersectionLabel = getIntersectionLabel()
-  const dots = INTERSECTION_DOTS[mode]
 
   return (
     <main className="min-h-screen pb-24" style={{ background: '#0D0F14' }}>
@@ -268,24 +253,21 @@ export default function CercuriPage() {
           </div>
         )}
 
-        {/* Mode Toggle */}
-        <ModeToggle mode={mode} onSwitch={switchMode} />
+        {/* Circle summary */}
+        <CircleSummary />
 
         {/* Venn Canvas */}
-        <div
-          className="transition-all duration-200"
-          style={{ opacity: vennOpacity, transform: vennOpacity < 1 ? 'scale(0.97)' : 'scale(1)' }}
-        >
-          <VennCanvas
-            mode={mode}
-            activeFilters={activeFilters}
-            counts={intersectionCounts}
-          />
-        </div>
+        <VennCanvas
+          circles={ALL_CIRCLES}
+          positions={ALL_POSITIONS}
+          dots={ALL_DOTS}
+          activeFilters={activeFilters}
+          counts={intersectionCounts}
+        />
 
         {/* Filter Chips */}
         <CircleChips
-          circles={visibleCircles}
+          circles={ALL_CIRCLES}
           activeFilters={activeFilters}
           counts={data.circles}
           onToggle={toggleFilter}
@@ -308,9 +290,9 @@ export default function CercuriPage() {
             <p className="text-[10px] font-semibold uppercase tracking-wider"
               style={{ color: 'rgba(255,255,255,0.2)', letterSpacing: '1.2px' }}
             >
-              {mode === 'personal' ? 'Cercurile tale personale' : 'Cercurile tale profesionale'}
+              Cercurile tale
             </p>
-            {visibleCircles.map(key => {
+            {ALL_CIRCLES.map(key => {
               const cfg = CIRCLE_CONFIG[key]
               const count = data.circles[key] || 0
               return (
@@ -324,25 +306,13 @@ export default function CercuriPage() {
                     border: '1px solid rgba(255,255,255,0.05)',
                   }}
                 >
-                  <div className="flex items-center justify-center w-10 h-10 rounded-lg relative"
+                  <div className="flex items-center justify-center w-10 h-10 rounded-lg"
                     style={{ background: `${cfg.color}18` }}
                   >
                     <span className="text-lg">{cfg.emoji}</span>
-                    {cfg.shared && (
-                      <span className="absolute -bottom-0.5 -right-0.5 text-[8px]">🔄</span>
-                    )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="text-sm font-semibold" style={{ color: '#fff' }}>{cfg.label}</p>
-                      {cfg.shared && (
-                        <span className="rounded px-1.5 py-0.5 text-[9px] font-bold"
-                          style={{ background: 'rgba(255,184,74,0.15)', color: '#FFB84A' }}
-                        >
-                          COMUN
-                        </span>
-                      )}
-                    </div>
+                    <p className="text-sm font-semibold" style={{ color: '#fff' }}>{cfg.label}</p>
                     <p className="text-xs truncate" style={{ color: 'rgba(255,255,255,0.35)' }}>
                       {cfg.getDescription(data.user_info)}
                     </p>
@@ -356,14 +326,14 @@ export default function CercuriPage() {
             })}
 
             {/* Intersection preview cards */}
-            {dots.filter(d => (intersectionCounts[d.key] || 0) > 0).length > 0 && (
+            {ALL_DOTS.filter(d => (intersectionCounts[d.key] || 0) > 0).length > 0 && (
               <>
                 <p className="text-[10px] font-semibold uppercase tracking-wider pt-2"
                   style={{ color: 'rgba(255,255,255,0.2)', letterSpacing: '1.2px' }}
                 >
                   Suprapuneri
                 </p>
-                {dots.filter(d => (intersectionCounts[d.key] || 0) > 0).map(dot => {
+                {ALL_DOTS.filter(d => (intersectionCounts[d.key] || 0) > 0).map(dot => {
                   const count = intersectionCounts[dot.key] || 0
                   const is3Plus = dot.circles.length >= 3
                   return (
