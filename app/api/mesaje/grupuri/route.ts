@@ -1,4 +1,4 @@
-import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { createServerSupabaseClient, createServiceRoleClient } from '@/lib/supabase-server'
 import { NextResponse } from 'next/server'
 
 export async function POST(request: Request) {
@@ -17,9 +17,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Numele grupului este obligatoriu (max 100 caractere)' }, { status: 400 })
     }
 
+    const serviceClient = createServiceRoleClient()
     const invite_code = crypto.randomUUID().slice(0, 8)
 
-    const { data: conversation, error: convError } = await supabase
+    const { data: conversation, error: convError } = await serviceClient
       .from('conversations')
       .insert({
         name: name.trim(),
@@ -31,6 +32,7 @@ export async function POST(request: Request) {
       .single()
 
     if (convError) {
+      console.error('Group create error:', convError)
       return NextResponse.json({ error: convError.message }, { status: 500 })
     }
 
@@ -43,11 +45,12 @@ export async function POST(request: Request) {
       }
     }
 
-    const { error: partError } = await supabase
+    const { error: partError } = await serviceClient
       .from('conversation_participants')
       .insert(participants)
 
     if (partError) {
+      console.error('Participant insert error:', partError)
       return NextResponse.json({ error: partError.message }, { status: 500 })
     }
 

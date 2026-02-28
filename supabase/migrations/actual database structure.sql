@@ -92,12 +92,12 @@ CREATE TABLE public.carusel_posts (
   original_filename text,
   mime_type text NOT NULL,
   file_size integer,
-  scope text NOT NULL DEFAULT 'promotion' CHECK (scope = ANY (ARRAY['class', 'promotion', 'school'])),
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  deleted_at timestamp with time zone,
+  scope text NOT NULL DEFAULT 'promotion'::text CHECK (scope = ANY (ARRAY['class'::text, 'promotion'::text, 'school'::text])),
   highschool text,
   graduation_year integer,
   class text,
-  created_at timestamp with time zone NOT NULL DEFAULT now(),
-  deleted_at timestamp with time zone,
   CONSTRAINT carusel_posts_pkey PRIMARY KEY (id),
   CONSTRAINT carusel_posts_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id)
 );
@@ -123,7 +123,12 @@ CREATE TABLE public.conversation_participants (
 CREATE TABLE public.conversations (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
   created_at timestamp with time zone DEFAULT now(),
-  CONSTRAINT conversations_pkey PRIMARY KEY (id)
+  name text,
+  is_group boolean NOT NULL DEFAULT false,
+  invite_code text,
+  created_by uuid,
+  CONSTRAINT conversations_pkey PRIMARY KEY (id),
+  CONSTRAINT conversations_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.profiles(id)
 );
 CREATE TABLE public.kanban_cards (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
