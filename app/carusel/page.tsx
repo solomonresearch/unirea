@@ -234,20 +234,6 @@ export default function CaruselPage() {
           ))}
         </div>
 
-        {/* Quick upload CTA */}
-        <button
-          onClick={() => setShowUpload(true)}
-          className="w-full rounded-lg border border-dashed border-gray-200 bg-gray-50 px-4 py-3 flex items-center gap-3 hover:border-primary-300 hover:bg-primary-50/30 transition-colors"
-        >
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-100">
-            <Camera size={16} className="text-primary-700" />
-          </div>
-          <div className="text-left">
-            <p className="text-sm font-medium text-gray-900">Distribuie o amintire</p>
-            <p className="text-[11px] text-gray-400">Incarca o fotografie din anii de liceu</p>
-          </div>
-        </button>
-
         {/* Polaroid Carousel */}
         {posts.length > 0 && (
           <section>
