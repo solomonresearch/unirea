@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Camera, Heart, MessageCircle, Send, X, ChevronLeft, Plus, Image as ImageIcon } from 'lucide-react'
+import { Camera, Heart, MessageCircle, Send, Share2, X, ChevronLeft, Plus, Image as ImageIcon } from 'lucide-react'
 import { Logo } from '@/components/Logo'
 import { BottomNav } from '@/components/BottomNav'
 
@@ -153,6 +153,20 @@ export default function CaruselPage() {
           </button>
         </div>
 
+        {/* Quick upload CTA */}
+        <button
+          onClick={() => setShowUpload(true)}
+          className="w-full rounded-lg border border-dashed border-gray-200 bg-gray-50 px-4 py-3 flex items-center gap-3 hover:border-primary-300 hover:bg-primary-50/30 transition-colors"
+        >
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-100">
+            <Camera size={16} className="text-primary-700" />
+          </div>
+          <div className="text-left">
+            <p className="text-sm font-medium text-gray-900">Distribuie o amintire</p>
+            <p className="text-[11px] text-gray-400">Incarca o fotografie din anii de liceu</p>
+          </div>
+        </button>
+
         {/* Polaroid Carousel */}
         <section>
           <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
@@ -232,6 +246,12 @@ export default function CaruselPage() {
                       <MessageCircle size={13} />
                       <span>{photo.comments.length}</span>
                     </button>
+                    <button
+                      onClick={e => { e.stopPropagation(); navigator.share?.({ title: photo.caption, text: `${photo.caption} — ${photo.author}` }).catch(() => {}) }}
+                      className="flex items-center gap-1 text-[11px] text-gray-400 ml-auto"
+                    >
+                      <Share2 size={13} />
+                    </button>
                   </div>
                 </div>
               </div>
@@ -303,6 +323,12 @@ export default function CaruselPage() {
                     <MessageCircle size={20} />
                     <span className="text-sm">{selectedPhoto.comments.length}</span>
                   </div>
+                  <button
+                    onClick={() => navigator.share?.({ title: selectedPhoto.caption, text: `${selectedPhoto.caption} — ${selectedPhoto.author}` }).catch(() => {})}
+                    className="flex items-center gap-1.5 text-gray-400 ml-auto hover:text-gray-600 transition-colors"
+                  >
+                    <Share2 size={20} />
+                  </button>
                 </div>
 
                 <p className="mt-3 text-sm text-gray-900">{selectedPhoto.caption}</p>
