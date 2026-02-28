@@ -7,11 +7,11 @@ import { Megaphone, Users, MessageCircle, Search, GalleryHorizontal, Settings } 
 import { getSupabase } from '@/lib/supabase'
 
 const NAV_ITEMS = [
-  { href: '/avizier', label: 'Avizier', icon: Megaphone },
+  { href: '/carusel', label: 'Carusel', icon: GalleryHorizontal },
   { href: '/cercuri', label: 'Cercuri', icon: Users },
   { href: '/mesaje', label: 'Mesaje', icon: MessageCircle },
   { href: '/cauta', label: 'Cauta', icon: Search },
-  { href: '/carusel', label: 'Carusel', icon: GalleryHorizontal },
+  { href: '/avizier', label: 'Avizier', icon: Megaphone },
   { href: '/setari', label: 'Setari', icon: Settings },
 ]
 
