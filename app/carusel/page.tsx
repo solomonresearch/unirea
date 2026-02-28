@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { getSupabase } from '@/lib/supabase'
-import { Camera, Heart, MessageCircle, Send, Share2, X, ChevronLeft, Plus, Image as ImageIcon, Loader2, Trash2 } from 'lucide-react'
+import { Camera, Heart, MessageCircle, Share2, X, Plus, Image as ImageIcon, Loader2, Trash2 } from 'lucide-react'
 import { Logo } from '@/components/Logo'
 import { BottomNav } from '@/components/BottomNav'
 
@@ -66,10 +66,7 @@ export default function CaruselPage() {
   const [userId, setUserId] = useState<string | null>(null)
   const [posts, setPosts] = useState<CaruselPost[]>([])
   const [loading, setLoading] = useState(true)
-  const [selectedPhoto, setSelectedPhoto] = useState<CaruselPost | null>(null)
   const [showUpload, setShowUpload] = useState(false)
-  const [commentText, setCommentText] = useState('')
-  const [commentSubmitting, setCommentSubmitting] = useState(false)
 
   // Upload state
   const [uploadFile, setUploadFile] = useState<File | null>(null)
@@ -149,55 +146,10 @@ export default function CaruselPage() {
     const newLikes = newLiked ? post.likes + 1 : post.likes - 1
 
     setPosts(prev => prev.map(p => p.id === postId ? { ...p, liked: newLiked, likes: newLikes } : p))
-    if (selectedPhoto?.id === postId) {
-      setSelectedPhoto(prev => prev ? { ...prev, liked: newLiked, likes: newLikes } : prev)
-    }
 
     const res = await fetch(`/api/carusel/${postId}/like`, { method: 'POST' })
     if (!res.ok) {
       setPosts(prev => prev.map(p => p.id === postId ? { ...p, liked: post.liked, likes: post.likes } : p))
-      if (selectedPhoto?.id === postId) {
-        setSelectedPhoto(prev => prev ? { ...prev, liked: post.liked, likes: post.likes } : prev)
-      }
-    }
-  }
-
-  async function addComment(postId: string) {
-    if (!commentText.trim() || commentSubmitting) return
-    setCommentSubmitting(true)
-
-    const res = await fetch(`/api/carusel/${postId}/comment`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ content: commentText.trim() }),
-    })
-
-    if (res.ok) {
-      const newComment = await res.json()
-      setPosts(prev => prev.map(p =>
-        p.id === postId ? { ...p, comments: [...p.comments, newComment] } : p
-      ))
-      if (selectedPhoto?.id === postId) {
-        setSelectedPhoto(prev =>
-          prev ? { ...prev, comments: [...prev.comments, newComment] } : prev
-        )
-      }
-      setCommentText('')
-    }
-    setCommentSubmitting(false)
-  }
-
-  async function deleteComment(postId: string, commentId: string) {
-    const res = await fetch(`/api/carusel/${postId}/comment/${commentId}`, { method: 'DELETE' })
-    if (res.ok) {
-      setPosts(prev => prev.map(p =>
-        p.id === postId ? { ...p, comments: p.comments.filter(c => c.id !== commentId) } : p
-      ))
-      if (selectedPhoto?.id === postId) {
-        setSelectedPhoto(prev =>
-          prev ? { ...prev, comments: prev.comments.filter(c => c.id !== commentId) } : prev
-        )
-      }
     }
   }
 
@@ -205,7 +157,6 @@ export default function CaruselPage() {
     const res = await fetch(`/api/carusel/${postId}`, { method: 'DELETE' })
     if (res.ok) {
       setPosts(prev => prev.filter(p => p.id !== postId))
-      if (selectedPhoto?.id === postId) setSelectedPhoto(null)
     }
   }
 
@@ -269,7 +220,7 @@ export default function CaruselPage() {
               {posts.map(photo => (
                 <button
                   key={photo.id}
-                  onClick={() => setSelectedPhoto(photo)}
+                  onClick={() => router.push(`/carusel/${photo.id}`)}
                   className="snap-center flex-shrink-0 w-44 bg-white rounded-sm p-2 pb-8 shadow-md border border-gray-100 transition-transform hover:scale-105"
                   style={{ transform: `rotate(${getRotation(photo.id)}deg)` }}
                 >
@@ -303,7 +254,7 @@ export default function CaruselPage() {
                   className="flex gap-3 rounded-lg border border-gray-200 bg-white p-3"
                 >
                   <button
-                    onClick={() => setSelectedPhoto(photo)}
+                    onClick={() => router.push(`/carusel/${photo.id}`)}
                     className="flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden"
                   >
                     <img
@@ -335,7 +286,7 @@ export default function CaruselPage() {
                         </span>
                       </button>
                       <button
-                        onClick={() => setSelectedPhoto(photo)}
+                        onClick={() => router.push(`/carusel/${photo.id}`)}
                         className="flex items-center gap-1 text-[11px] text-gray-400"
                       >
                         <MessageCircle size={13} />
@@ -350,7 +301,7 @@ export default function CaruselPage() {
                         </button>
                       )}
                       <button
-                        onClick={e => { e.stopPropagation(); navigator.share?.({ title: photo.caption || 'Amintire', text: `${photo.caption || 'Amintire'} — ${photo.profiles.name}` }).catch(() => {}) }}
+                        onClick={e => { e.stopPropagation(); navigator.share?.({ title: photo.caption || 'Amintire', url: `${window.location.origin}/carusel/${photo.id}` }).catch(() => {}) }}
                         className="flex items-center gap-1 text-[11px] text-gray-400 ml-auto"
                       >
                         <Share2 size={13} />
@@ -383,123 +334,6 @@ export default function CaruselPage() {
           </div>
         </button>
       </div>
-
-      {/* Photo Detail Modal */}
-      {selectedPhoto && (
-        <div className="fixed inset-0 z-50 bg-black/50 flex flex-col">
-          <div className="flex-1 flex flex-col bg-white">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
-              <button
-                onClick={() => { setSelectedPhoto(null); setCommentText('') }}
-                className="flex items-center gap-1 text-sm text-gray-600 hover:text-gray-900"
-              >
-                <ChevronLeft size={18} />
-                Inapoi
-              </button>
-              <div className="flex items-center gap-2">
-                <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary-100 text-[9px] font-bold text-primary-700">
-                  {getInitials(selectedPhoto.profiles.name)}
-                </div>
-                <span className="text-xs font-medium text-gray-900">{selectedPhoto.profiles.name}</span>
-                {selectedPhoto.user_id === userId && (
-                  <button
-                    onClick={() => deletePost(selectedPhoto.id)}
-                    className="ml-2 p-1 text-gray-400 hover:text-red-500 transition-colors"
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                )}
-              </div>
-            </div>
-
-            <div className="flex-1 overflow-y-auto">
-              <div className="mx-auto max-w-sm px-4 py-4">
-                <div className="w-full overflow-hidden rounded-lg">
-                  <img
-                    src={selectedPhoto.image_url}
-                    alt={selectedPhoto.caption || 'Amintire'}
-                    className="w-full object-cover sepia-[.2]"
-                  />
-                </div>
-
-                <div className="mt-3 flex items-center gap-4">
-                  <button
-                    onClick={() => toggleLike(selectedPhoto.id)}
-                    className="flex items-center gap-1.5 transition-colors"
-                  >
-                    <Heart
-                      size={20}
-                      className={selectedPhoto.liked ? 'fill-red-500 text-red-500' : 'text-gray-400'}
-                    />
-                    <span className={`text-sm ${selectedPhoto.liked ? 'text-red-500' : 'text-gray-500'}`}>
-                      {selectedPhoto.likes}
-                    </span>
-                  </button>
-                  <div className="flex items-center gap-1.5 text-gray-400">
-                    <MessageCircle size={20} />
-                    <span className="text-sm">{selectedPhoto.comments.length}</span>
-                  </div>
-                  <button
-                    onClick={() => navigator.share?.({ title: selectedPhoto.caption || 'Amintire', text: `${selectedPhoto.caption || 'Amintire'} — ${selectedPhoto.profiles.name}` }).catch(() => {})}
-                    className="flex items-center gap-1.5 text-gray-400 ml-auto hover:text-gray-600 transition-colors"
-                  >
-                    <Share2 size={20} />
-                  </button>
-                </div>
-
-                {selectedPhoto.caption && (
-                  <p className="mt-3 text-sm text-gray-900">{selectedPhoto.caption}</p>
-                )}
-                <p className="mt-1 text-xs text-gray-400">{relativeTime(selectedPhoto.created_at)}</p>
-
-                {/* Comments */}
-                <div className="mt-4 space-y-3 pb-4">
-                  {selectedPhoto.comments.map(c => (
-                    <div key={c.id} className="flex gap-2">
-                      <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-gray-100 text-[8px] font-bold text-gray-500">
-                        {getInitials(c.profiles.name)}
-                      </div>
-                      <div className="flex-1">
-                        <span className="text-xs font-medium text-gray-900">{c.profiles.name}</span>
-                        <p className="text-xs text-gray-600 mt-0.5">{c.content}</p>
-                      </div>
-                      {c.user_id === userId && (
-                        <button
-                          onClick={() => deleteComment(selectedPhoto.id, c.id)}
-                          className="p-1 text-gray-300 hover:text-red-500 transition-colors"
-                        >
-                          <Trash2 size={12} />
-                        </button>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Comment input */}
-            <div className="border-t border-gray-200 bg-white px-4 py-3">
-              <div className="mx-auto max-w-sm flex gap-2">
-                <input
-                  type="text"
-                  value={commentText}
-                  onChange={e => setCommentText(e.target.value)}
-                  onKeyDown={e => { if (e.key === 'Enter') addComment(selectedPhoto.id) }}
-                  placeholder="Scrie un comentariu..."
-                  className="flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none"
-                />
-                <button
-                  onClick={() => addComment(selectedPhoto.id)}
-                  disabled={!commentText.trim() || commentSubmitting}
-                  className="flex h-9 w-9 items-center justify-center rounded-lg bg-gray-900 text-white hover:bg-gray-700 disabled:opacity-50 transition-colors"
-                >
-                  {commentSubmitting ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Upload Modal */}
       {showUpload && (
