@@ -15,12 +15,33 @@ export async function GET(
 
     const { data: post, error } = await supabase
       .from('carusel_posts')
-      .select('id, caption, user_id, storage_path, created_at, profiles!user_id(name, username)')
+      .select('id, caption, user_id, storage_path, scope, highschool, graduation_year, class, created_at, profiles!user_id(name, username)')
       .eq('id', params.id)
       .is('deleted_at', null)
       .single()
 
     if (error || !post) {
+      return NextResponse.json({ error: 'Postarea nu a fost gasita' }, { status: 404 })
+    }
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('id, highschool, graduation_year, class')
+      .eq('id', user.id)
+      .single()
+
+    if (!profile) {
+      return NextResponse.json({ error: 'Postarea nu a fost gasita' }, { status: 404 })
+    }
+
+    const p = post as any
+    if (p.highschool && p.highschool !== profile.highschool) {
+      return NextResponse.json({ error: 'Postarea nu a fost gasita' }, { status: 404 })
+    }
+    if ((p.scope === 'promotion' || p.scope === 'class') && p.graduation_year !== profile.graduation_year) {
+      return NextResponse.json({ error: 'Postarea nu a fost gasita' }, { status: 404 })
+    }
+    if (p.scope === 'class' && p.class !== profile.class) {
       return NextResponse.json({ error: 'Postarea nu a fost gasita' }, { status: 404 })
     }
 
@@ -40,9 +61,9 @@ export async function GET(
     return NextResponse.json({
       id: post.id,
       caption: post.caption,
-      image_url: supabase.storage.from('carusel').getPublicUrl((post as any).storage_path).data.publicUrl,
+      image_url: supabase.storage.from('carusel').getPublicUrl(p.storage_path).data.publicUrl,
       user_id: post.user_id,
-      profiles: (post as any).profiles,
+      profiles: p.profiles,
       likes: likes.length,
       liked: likes.some(l => l.user_id === user.id),
       comments,

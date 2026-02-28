@@ -4,7 +4,13 @@ import { NextResponse } from 'next/server'
 const MAX_FILE_SIZE = 4 * 1024 * 1024 // 4MB
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp']
 
-export async function GET() {
+const SCOPE_MAP: Record<string, string> = {
+  clasa: 'class',
+  promotie: 'promotion',
+  liceu: 'school',
+}
+
+export async function GET(request: Request) {
   try {
     const supabase = createServerSupabaseClient()
     const { data: { user } } = await supabase.auth.getUser()
@@ -13,11 +19,43 @@ export async function GET() {
       return NextResponse.json({ error: 'Neautorizat' }, { status: 401 })
     }
 
-    const { data: rawPosts, error } = await supabase
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('id, highschool, graduation_year, class')
+      .eq('id', user.id)
+      .single()
+
+    if (!profile?.highschool) {
+      return NextResponse.json({ error: 'Profilul nu are liceul setat' }, { status: 400 })
+    }
+
+    const url = new URL(request.url)
+    const scopeParam = url.searchParams.get('scope') ?? 'promotie'
+    const dbScope = SCOPE_MAP[scopeParam] ?? 'promotion'
+
+    let query = supabase
       .from('carusel_posts')
       .select('id, caption, user_id, storage_path, created_at, profiles!user_id(name, username)')
+      .eq('scope', dbScope)
+      .eq('highschool', profile.highschool)
       .is('deleted_at', null)
       .order('created_at', { ascending: false })
+
+    if (dbScope === 'promotion' || dbScope === 'class') {
+      if (!profile.graduation_year) {
+        return NextResponse.json({ posts: [] })
+      }
+      query = query.eq('graduation_year', profile.graduation_year)
+    }
+
+    if (dbScope === 'class') {
+      if (!profile.class) {
+        return NextResponse.json({ posts: [] })
+      }
+      query = query.eq('class', profile.class)
+    }
+
+    const { data: rawPosts, error } = await query
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 })
@@ -77,6 +115,8 @@ export async function POST(request: Request) {
     const formData = await request.formData()
     const file = formData.get('file') as File | null
     const caption = (formData.get('caption') as string || '').trim()
+    const scopeParam = (formData.get('scope') as string || 'promotie').trim()
+    const dbScope = SCOPE_MAP[scopeParam] ?? 'promotion'
 
     if (!file) {
       return NextResponse.json({ error: 'Fisierul este obligatoriu' }, { status: 400 })
@@ -92,6 +132,24 @@ export async function POST(request: Request) {
 
     if (caption.length > 500) {
       return NextResponse.json({ error: 'Descrierea depaseste 500 caractere' }, { status: 400 })
+    }
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('id, highschool, graduation_year, class')
+      .eq('id', user.id)
+      .single()
+
+    if (!profile?.highschool) {
+      return NextResponse.json({ error: 'Profilul nu are liceul setat' }, { status: 400 })
+    }
+
+    if ((dbScope === 'promotion' || dbScope === 'class') && !profile.graduation_year) {
+      return NextResponse.json({ error: 'Profilul nu are anul de absolvire setat' }, { status: 400 })
+    }
+
+    if (dbScope === 'class' && !profile.class) {
+      return NextResponse.json({ error: 'Profilul nu are clasa setata' }, { status: 400 })
     }
 
     const buffer = Buffer.from(await file.arrayBuffer())
@@ -119,6 +177,10 @@ export async function POST(request: Request) {
         original_filename: file.name,
         mime_type: file.type,
         file_size: file.size,
+        scope: dbScope,
+        highschool: profile.highschool,
+        graduation_year: dbScope !== 'school' ? profile.graduation_year : null,
+        class: dbScope === 'class' ? profile.class : null,
       })
       .select('id, caption, user_id, created_at, profiles!user_id(name, username)')
       .single()
