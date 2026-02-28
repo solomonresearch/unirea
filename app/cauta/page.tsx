@@ -197,50 +197,61 @@ export default function CautaPage() {
           <button
             type="button"
             onClick={() => setFiltersOpen(!filtersOpen)}
-            className="flex w-full items-center justify-between px-4 py-3 text-sm font-medium text-gray-700"
+            className="flex w-full items-center justify-between px-3 py-2 text-sm font-medium text-gray-700"
           >
             <span className="flex items-center gap-2">
-              <SlidersHorizontal size={16} className="text-gray-400" />
+              <SlidersHorizontal size={14} className="text-gray-400" />
               Filtre
             </span>
             <SlidersHorizontal
-              size={14}
+              size={12}
               className={`text-gray-400 transition-transform ${filtersOpen ? 'rotate-90' : ''}`}
             />
           </button>
 
           {filtersOpen && (
-            <div className="space-y-2.5 px-4 pb-4">
-              {/* Name filter */}
-              <div className="relative">
-                <User size={15} className="absolute left-3 top-2.5 text-gray-400 pointer-events-none" />
-                <input
-                  type="text"
-                  value={name}
-                  onChange={e => setName(e.target.value)}
-                  placeholder="Nume"
-                  className="w-full rounded-lg border border-gray-300 pl-9 pr-3 py-2.5 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none"
-                />
+            <div className="space-y-2 px-3 pb-3">
+              <div className="grid grid-cols-2 gap-2">
+                <div className="relative">
+                  <User size={14} className="absolute left-2.5 top-2 text-gray-400 pointer-events-none" />
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={e => setName(e.target.value)}
+                    placeholder="Nume"
+                    className="w-full rounded-lg border border-gray-300 pl-8 pr-2 py-1.5 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none"
+                  />
+                </div>
+                <div className="relative">
+                  <Building2 size={14} className="absolute left-2.5 top-2 text-gray-400 pointer-events-none" />
+                  <input
+                    type="text"
+                    value={company}
+                    onChange={e => setCompany(e.target.value)}
+                    placeholder="Companie"
+                    className="w-full rounded-lg border border-gray-300 pl-8 pr-2 py-1.5 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none"
+                  />
+                </div>
               </div>
-              <div className="grid grid-cols-2 gap-2.5">
+              <div className="grid grid-cols-2 gap-2">
                 <SearchSelect
                   options={['', ...PROFESSIONS]}
                   value={profession}
                   onChange={setProfession}
                   placeholder="Profesie"
-                  icon={<Briefcase size={15} />}
+                  icon={<Briefcase size={14} />}
                 />
                 <SearchSelect
                   options={['', ...DOMAINS]}
                   value={domain}
                   onChange={setDomain}
                   placeholder="Domeniu"
-                  icon={<Layers size={15} />}
+                  icon={<Layers size={14} />}
                 />
               </div>
-              <div className="grid grid-cols-2 gap-2.5">
+              <div className="grid grid-cols-2 gap-2">
                 <div className="relative">
-                  <GraduationCap size={15} className="absolute left-3 top-2.5 text-gray-400 pointer-events-none" />
+                  <GraduationCap size={14} className="absolute left-2.5 top-2 text-gray-400 pointer-events-none" />
                   <input
                     type="number"
                     value={year}
@@ -248,7 +259,7 @@ export default function CautaPage() {
                     placeholder="Anul"
                     min={1950}
                     max={2030}
-                    className="w-full rounded-lg border border-gray-300 pl-9 pr-3 py-2.5 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    className="w-full rounded-lg border border-gray-300 pl-8 pr-2 py-1.5 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   />
                 </div>
                 <SearchSelect
@@ -256,25 +267,15 @@ export default function CautaPage() {
                   value={cls}
                   onChange={setCls}
                   placeholder="Clasa"
-                  icon={<Users size={15} />}
-                />
-              </div>
-              <div className="relative">
-                <Building2 size={15} className="absolute left-3 top-2.5 text-gray-400 pointer-events-none" />
-                <input
-                  type="text"
-                  value={company}
-                  onChange={e => setCompany(e.target.value)}
-                  placeholder="Companie"
-                  className="w-full rounded-lg border border-gray-300 pl-9 pr-3 py-2.5 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none"
+                  icon={<Users size={14} />}
                 />
               </div>
               <button
                 type="button"
                 onClick={search}
-                className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-primary-800 transition-colors"
+                className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-primary-700 px-3 py-1.5 text-sm font-semibold text-white hover:bg-primary-800 transition-colors"
               >
-                <Search size={16} />
+                <Search size={14} />
                 Cauta
               </button>
             </div>
