@@ -4,7 +4,8 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { getSupabase } from '@/lib/supabase'
 import { BottomNav } from '@/components/BottomNav'
-import { Loader2, ArrowLeft, Send } from 'lucide-react'
+import { GroupInfoPanel } from '@/components/mesaje/GroupInfoPanel'
+import { Loader2, ArrowLeft, Send, Users } from 'lucide-react'
 
 interface Message {
   id: string
@@ -14,11 +15,17 @@ interface Message {
   created_at: string
 }
 
-interface OtherUser {
+interface Profile {
   id: string
   name: string
   username: string
   avatar_url: string | null
+}
+
+interface GroupMeta {
+  name: string
+  is_group: boolean
+  invite_code: string | null
 }
 
 function relativeTime(dateStr: string): string {
@@ -54,10 +61,14 @@ export default function ChatPage() {
   const conversationId = params.id as string
   const [loading, setLoading] = useState(true)
   const [currentUserId, setCurrentUserId] = useState<string>('')
-  const [otherUser, setOtherUser] = useState<OtherUser | null>(null)
+  const [otherUser, setOtherUser] = useState<Profile | null>(null)
+  const [groupMeta, setGroupMeta] = useState<GroupMeta | null>(null)
+  const [members, setMembers] = useState<Profile[]>([])
+  const [participantMap, setParticipantMap] = useState<Map<string, Profile>>(new Map())
   const [messages, setMessages] = useState<Message[]>([])
   const [newMessage, setNewMessage] = useState('')
   const [sending, setSending] = useState(false)
+  const [showGroupInfo, setShowGroupInfo] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   function scrollToBottom() {
@@ -71,6 +82,17 @@ export default function ChatPage() {
       if (!user) { router.push('/autentificare'); return }
       setCurrentUserId(user.id)
 
+      // Fetch conversation metadata
+      const { data: convo } = await supabase
+        .from('conversations')
+        .select('name, is_group, invite_code')
+        .eq('id', conversationId)
+        .single()
+
+      const isGroup = convo?.is_group || false
+      if (convo) setGroupMeta(convo)
+
+      // Fetch participants
       const { data: participants } = await supabase
         .from('conversation_participants')
         .select('user_id, profiles(id, name, username, avatar_url)')
@@ -87,15 +109,40 @@ export default function ChatPage() {
         return
       }
 
-      const other = participants.find(p => p.user_id !== user.id)
-      if (other?.profiles) {
-        const profile = other.profiles as any
-        setOtherUser({
-          id: profile.id,
-          name: profile.name,
-          username: profile.username,
-          avatar_url: profile.avatar_url,
-        })
+      // Build participant map for sender name lookups
+      const pMap = new Map<string, Profile>()
+      const memberList: Profile[] = []
+      participants.forEach(p => {
+        const profile = p.profiles as any
+        if (profile) {
+          pMap.set(p.user_id, {
+            id: profile.id,
+            name: profile.name,
+            username: profile.username,
+            avatar_url: profile.avatar_url,
+          })
+          memberList.push({
+            id: profile.id,
+            name: profile.name,
+            username: profile.username,
+            avatar_url: profile.avatar_url,
+          })
+        }
+      })
+      setParticipantMap(pMap)
+      setMembers(memberList)
+
+      if (!isGroup) {
+        const other = participants.find(p => p.user_id !== user.id)
+        if (other?.profiles) {
+          const profile = other.profiles as any
+          setOtherUser({
+            id: profile.id,
+            name: profile.name,
+            username: profile.username,
+            avatar_url: profile.avatar_url,
+          })
+        }
       }
 
       const { data: msgs } = await supabase
@@ -166,6 +213,8 @@ export default function ChatPage() {
     setSending(false)
   }
 
+  const isGroup = groupMeta?.is_group || false
+
   if (loading) {
     return (
       <main className="flex min-h-screen items-center justify-center">
@@ -186,7 +235,22 @@ export default function ChatPage() {
           >
             <ArrowLeft size={20} />
           </button>
-          {otherUser && (
+
+          {isGroup ? (
+            <button
+              type="button"
+              onClick={() => setShowGroupInfo(true)}
+              className="flex items-center gap-2 min-w-0"
+            >
+              <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
+                <Users size={16} className="text-primary-700" />
+              </div>
+              <div className="text-left min-w-0">
+                <p className="text-sm font-semibold text-gray-900 leading-tight truncate">{groupMeta?.name}</p>
+                <p className="text-[11px] text-gray-400">{members.length} membri</p>
+              </div>
+            </button>
+          ) : otherUser && (
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
                 {otherUser.avatar_url ? (
@@ -208,7 +272,9 @@ export default function ChatPage() {
         {/* Messages */}
         <div className="flex-1 overflow-y-auto space-y-2 py-2">
           {messages.length === 0 && (
-            <p className="text-center text-sm text-gray-400 py-8">Niciun mesaj inca. Spune salut!</p>
+            <p className="text-center text-sm text-gray-400 py-8">
+              {isGroup ? 'Niciun mesaj in grup. Spune salut!' : 'Niciun mesaj inca. Spune salut!'}
+            </p>
           )}
           {messages.map((msg, i) => {
             const isOwn = msg.user_id === currentUserId
@@ -216,9 +282,20 @@ export default function ChatPage() {
               messages[i + 1].user_id !== msg.user_id ||
               new Date(messages[i + 1].created_at).getTime() - new Date(msg.created_at).getTime() > 300000
 
+            // For group chats, show sender name when it's a different sender than prev message
+            const showSenderName = isGroup && !isOwn && (
+              i === 0 || messages[i - 1].user_id !== msg.user_id
+            )
+            const senderProfile = participantMap.get(msg.user_id)
+
             return (
               <div key={msg.id} className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}>
                 <div className={`max-w-[75%] ${isOwn ? 'items-end' : 'items-start'}`}>
+                  {showSenderName && senderProfile && (
+                    <p className="text-[11px] text-primary-700 font-medium mb-0.5 ml-1">
+                      {senderProfile.name.split(' ')[0]}
+                    </p>
+                  )}
                   <div className={`px-3 py-2 rounded-2xl text-sm ${
                     isOwn
                       ? 'bg-primary-700 text-white rounded-br-md'
@@ -258,6 +335,25 @@ export default function ChatPage() {
           </form>
         </div>
       </div>
+
+      {/* Group info panel */}
+      {showGroupInfo && groupMeta && (
+        <GroupInfoPanel
+          conversationId={conversationId}
+          name={groupMeta.name}
+          inviteCode={groupMeta.invite_code || ''}
+          members={members}
+          currentUserId={currentUserId}
+          onClose={() => setShowGroupInfo(false)}
+          onNameUpdated={(name) => setGroupMeta(prev => prev ? { ...prev, name } : prev)}
+          onMembersUpdated={(updated) => {
+            setMembers(updated)
+            const newMap = new Map<string, Profile>()
+            updated.forEach(m => newMap.set(m.id, m))
+            setParticipantMap(newMap)
+          }}
+        />
+      )}
 
       <BottomNav />
     </main>
