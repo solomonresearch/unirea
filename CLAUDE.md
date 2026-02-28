@@ -42,11 +42,12 @@
 - **API routes**: `app/api/carusel/` — server-side CRUD for carusel (photo sharing). Authenticated only. Photos stored in Supabase Storage (`carusel` bucket, public).
   - `GET /api/carusel` → returns `{ posts: [{ id, caption, image_url, user_id, profiles, likes, liked, comments, created_at }] }`
   - `POST /api/carusel` → multipart/form-data: `file` (required, image/jpeg|png|webp, max 4MB), `caption` (optional, max 500) → returns created post (201)
+  - `GET /api/carusel/[id]` → returns single post `{ id, caption, image_url, user_id, profiles, likes, liked, comments, created_at }` or 404
   - `DELETE /api/carusel/[id]` → soft delete + storage cleanup, own posts only → returns `{ ok: true }`
   - `POST /api/carusel/[id]/like` → toggle like → returns `{ ok: true, liked: boolean }`
   - `POST /api/carusel/[id]/comment` → body: `{ content }` (max 500) → returns created comment (201)
   - `DELETE /api/carusel/[id]/comment/[commentId]` → soft delete, own comments only → returns `{ ok: true }`
-- **Carusel**: Photo sharing at `/carusel`. Images stored in Supabase Storage (`carusel` bucket, public). `carusel_posts.storage_path` holds the path within the bucket. Public URLs served directly from Supabase Storage — no proxy needed.
+- **Carusel**: Photo sharing at `/carusel`. Individual posts at `/carusel/[id]` (shareable). Images stored in Supabase Storage (`carusel` bucket, public). `carusel_posts.storage_path` holds the path within the bucket. Public URLs served directly from Supabase Storage — no proxy needed.
 - **Ziar**: Public newspaper/bulletin board at `/ziar`. Posts expire after 3 days. Categories: stiri, anunt, apel, vand, cumpar. Anonymous users can read and post. `/avizier/ziar` redirects to `/ziar`. Shared `AvizierTabBar` component used by both `/ziar` and `/avizier` layouts.
 - **Middleware**: `middleware.ts` protects authenticated routes (`/tabla`, `/avizier`, `/cercuri`, `/mesaje`, `/cauta`, `/carusel`, `/harta`, `/kanban`, `/profil`, `/setari`, `/admin`) and redirects authenticated users from auth pages
 - **Bottom nav**: 6 tabs — Avizier, Cercuri, Mesaje, Cauta, Carusel, Setari
