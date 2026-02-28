@@ -125,9 +125,13 @@ export default function SetariPage() {
     setMockLoading(scope)
     setMockResult(null)
     try {
+      const { data: { session } } = await getSupabase().auth.getSession()
       const res = await fetch('/api/admin/mock', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(session ? { Authorization: `Bearer ${session.access_token}` } : {}),
+        },
         body: JSON.stringify({ scope }),
       })
       const data = await res.json()
@@ -144,7 +148,11 @@ export default function SetariPage() {
     setMockLoading('delete')
     setMockResult(null)
     try {
-      const res = await fetch('/api/admin/mock', { method: 'DELETE' })
+      const { data: { session } } = await getSupabase().auth.getSession()
+      const res = await fetch('/api/admin/mock', {
+        method: 'DELETE',
+        headers: session ? { Authorization: `Bearer ${session.access_token}` } : {},
+      })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)
       setMockResult(`${data.deleted} boti stersi`)
