@@ -5,17 +5,29 @@ const VALID_ROLES = ['admin', 'moderator', 'user'] as const
 
 async function getAdminProfile() {
   const supabase = createServerSupabaseClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return null
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  if (!user) {
+    console.log('[admin] auth.getUser failed:', authError?.message || 'no user')
+    return null
+  }
+  console.log('[admin] authenticated user:', user.id)
 
   const serviceClient = createServiceRoleClient()
-  const { data: profile } = await serviceClient
+  const { data: profile, error: profileError } = await serviceClient
     .from('profiles')
     .select('id, role')
     .eq('id', user.id)
     .single()
 
-  if (!profile || profile.role !== 'admin') return null
+  if (profileError) {
+    console.log('[admin] profile query error:', profileError.message)
+    return null
+  }
+  if (!profile || profile.role !== 'admin') {
+    console.log('[admin] not admin, role:', profile?.role)
+    return null
+  }
+  console.log('[admin] admin verified:', profile.id)
   return profile
 }
 
