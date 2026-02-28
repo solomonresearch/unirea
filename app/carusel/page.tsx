@@ -135,28 +135,27 @@ export default function CaruselPage() {
   }
 
   return (
-    <div className="min-h-screen bg-stone-900 pb-24">
-      {/* Header */}
-      <div className="sticky top-0 z-40 bg-stone-900/95 backdrop-blur-sm border-b border-stone-800">
-        <div className="mx-auto max-w-sm px-6 py-4 flex items-center gap-3">
+    <div className="flex min-h-screen flex-col items-center px-6 py-6 pb-24">
+      <div className="w-full max-w-sm space-y-4">
+        {/* Header */}
+        <div className="flex items-center gap-2">
           <Logo size={32} />
-          <h1 className="text-lg font-bold text-amber-100">Carusel</h1>
-          <div className="ml-auto">
-            <button
-              onClick={() => setShowUpload(true)}
-              className="flex items-center gap-1.5 rounded-full bg-amber-700 px-3 py-1.5 text-xs font-medium text-amber-100 hover:bg-amber-600 transition-colors"
-            >
-              <Plus size={14} />
-              Adauga
-            </button>
+          <div>
+            <h1 className="text-lg font-bold text-gray-900">Carusel</h1>
+            <p className="text-xs text-gray-400">Amintiri din liceu</p>
           </div>
+          <button
+            onClick={() => setShowUpload(true)}
+            className="ml-auto flex items-center gap-1.5 rounded-lg bg-gray-900 px-3 py-2 text-xs font-semibold text-white hover:bg-gray-700 transition-colors"
+          >
+            <Plus size={14} />
+            Adauga
+          </button>
         </div>
-      </div>
 
-      <div className="mx-auto max-w-sm px-6">
         {/* Polaroid Carousel */}
-        <section className="mt-6">
-          <h2 className="text-sm font-semibold text-amber-200/70 uppercase tracking-wider mb-4">
+        <section>
+          <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
             Amintiri recente
           </h2>
           <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide -mx-6 px-6">
@@ -164,7 +163,7 @@ export default function CaruselPage() {
               <button
                 key={photo.id}
                 onClick={() => setSelectedPhoto(photo)}
-                className="snap-center flex-shrink-0 w-44 bg-amber-50 rounded-sm p-2 pb-8 shadow-lg transition-transform hover:scale-105"
+                className="snap-center flex-shrink-0 w-44 bg-white rounded-sm p-2 pb-8 shadow-md border border-gray-100 transition-transform hover:scale-105"
                 style={{ transform: `rotate(${photo.rotation}deg)` }}
               >
                 <div className="aspect-square w-full overflow-hidden">
@@ -174,25 +173,25 @@ export default function CaruselPage() {
                     className="h-full w-full object-cover sepia-[.3]"
                   />
                 </div>
-                <p className="mt-2 text-[10px] text-stone-600 font-handwriting truncate text-left">
+                <p className="mt-2 text-[10px] text-gray-600 truncate text-left">
                   {photo.caption}
                 </p>
-                <p className="text-[9px] text-stone-400 mt-0.5 text-left">{photo.date}</p>
+                <p className="text-[9px] text-gray-400 mt-0.5 text-left">{photo.date}</p>
               </button>
             ))}
           </div>
         </section>
 
         {/* Activity Feed */}
-        <section className="mt-8">
-          <h2 className="text-sm font-semibold text-amber-200/70 uppercase tracking-wider mb-4">
+        <section>
+          <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
             Activitate
           </h2>
-          <div className="space-y-4">
+          <div className="space-y-3">
             {photos.map(photo => (
               <div
                 key={photo.id}
-                className="flex gap-3 rounded-xl bg-stone-800/60 p-3 border border-stone-700/50"
+                className="flex gap-3 rounded-lg border border-gray-200 bg-white p-3"
               >
                 <button
                   onClick={() => setSelectedPhoto(photo)}
@@ -206,13 +205,13 @@ export default function CaruselPage() {
                 </button>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-amber-700 text-[8px] font-bold text-amber-100">
+                    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary-100 text-[8px] font-bold text-primary-700">
                       {photo.authorAvatar}
                     </div>
-                    <span className="text-xs font-medium text-amber-100">{photo.author}</span>
-                    <span className="text-[10px] text-stone-500 ml-auto">{photo.date}</span>
+                    <span className="text-xs font-medium text-gray-900">{photo.author}</span>
+                    <span className="text-[10px] text-gray-400 ml-auto">{photo.date}</span>
                   </div>
-                  <p className="mt-1 text-xs text-stone-300 line-clamp-2">{photo.caption}</p>
+                  <p className="mt-1 text-xs text-gray-600 line-clamp-2">{photo.caption}</p>
                   <div className="mt-2 flex items-center gap-4">
                     <button
                       onClick={() => toggleLike(photo.id)}
@@ -220,15 +219,15 @@ export default function CaruselPage() {
                     >
                       <Heart
                         size={13}
-                        className={photo.liked ? 'fill-red-400 text-red-400' : 'text-stone-500'}
+                        className={photo.liked ? 'fill-red-500 text-red-500' : 'text-gray-400'}
                       />
-                      <span className={photo.liked ? 'text-red-400' : 'text-stone-500'}>
+                      <span className={photo.liked ? 'text-red-500' : 'text-gray-400'}>
                         {photo.likes}
                       </span>
                     </button>
                     <button
                       onClick={() => setSelectedPhoto(photo)}
-                      className="flex items-center gap-1 text-[11px] text-stone-500"
+                      className="flex items-center gap-1 text-[11px] text-gray-400"
                     >
                       <MessageCircle size={13} />
                       <span>{photo.comments.length}</span>
@@ -241,110 +240,110 @@ export default function CaruselPage() {
         </section>
 
         {/* Add memory prompt */}
-        <section className="mt-8 mb-6">
-          <button
-            onClick={() => setShowUpload(true)}
-            className="w-full rounded-xl border-2 border-dashed border-stone-700 bg-stone-800/30 p-6 flex flex-col items-center gap-3 hover:border-amber-700/50 hover:bg-stone-800/50 transition-colors"
-          >
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-amber-700/20">
-              <Camera size={24} className="text-amber-500" />
-            </div>
-            <div className="text-center">
-              <p className="text-sm font-medium text-amber-100">Distribuie o amintire</p>
-              <p className="text-xs text-stone-500 mt-1">
-                Incarca o fotografie din anii de liceu
-              </p>
-            </div>
-          </button>
-        </section>
+        <button
+          onClick={() => setShowUpload(true)}
+          className="w-full rounded-xl border-2 border-dashed border-gray-200 bg-gray-50 p-6 flex flex-col items-center gap-3 hover:border-primary-300 hover:bg-primary-50/30 transition-colors"
+        >
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary-100">
+            <Camera size={24} className="text-primary-700" />
+          </div>
+          <div className="text-center">
+            <p className="text-sm font-medium text-gray-900">Distribuie o amintire</p>
+            <p className="text-xs text-gray-400 mt-1">
+              Incarca o fotografie din anii de liceu
+            </p>
+          </div>
+        </button>
       </div>
 
       {/* Photo Detail Modal */}
       {selectedPhoto && (
-        <div className="fixed inset-0 z-50 bg-black/90 flex flex-col">
-          <div className="flex items-center justify-between px-4 py-3">
-            <button
-              onClick={() => { setSelectedPhoto(null); setCommentText('') }}
-              className="flex items-center gap-1 text-sm text-amber-200 hover:text-amber-100"
-            >
-              <ChevronLeft size={18} />
-              Inapoi
-            </button>
-            <div className="flex items-center gap-2">
-              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-amber-700 text-[9px] font-bold text-amber-100">
-                {selectedPhoto.authorAvatar}
+        <div className="fixed inset-0 z-50 bg-black/50 flex flex-col">
+          <div className="flex-1 flex flex-col bg-white">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
+              <button
+                onClick={() => { setSelectedPhoto(null); setCommentText('') }}
+                className="flex items-center gap-1 text-sm text-gray-600 hover:text-gray-900"
+              >
+                <ChevronLeft size={18} />
+                Inapoi
+              </button>
+              <div className="flex items-center gap-2">
+                <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary-100 text-[9px] font-bold text-primary-700">
+                  {selectedPhoto.authorAvatar}
+                </div>
+                <span className="text-xs font-medium text-gray-900">{selectedPhoto.author}</span>
               </div>
-              <span className="text-xs text-amber-100">{selectedPhoto.author}</span>
             </div>
-          </div>
 
-          <div className="flex-1 overflow-y-auto">
-            <div className="mx-auto max-w-sm px-4">
-              <div className="w-full overflow-hidden rounded-lg">
-                <img
-                  src={selectedPhoto.imageUrl}
-                  alt={selectedPhoto.caption}
-                  className="w-full object-cover sepia-[.2]"
-                />
-              </div>
-
-              <div className="mt-3 flex items-center gap-4">
-                <button
-                  onClick={() => toggleLike(selectedPhoto.id)}
-                  className="flex items-center gap-1.5 transition-colors"
-                >
-                  <Heart
-                    size={20}
-                    className={selectedPhoto.liked ? 'fill-red-400 text-red-400' : 'text-stone-400'}
+            <div className="flex-1 overflow-y-auto">
+              <div className="mx-auto max-w-sm px-4 py-4">
+                <div className="w-full overflow-hidden rounded-lg">
+                  <img
+                    src={selectedPhoto.imageUrl}
+                    alt={selectedPhoto.caption}
+                    className="w-full object-cover sepia-[.2]"
                   />
-                  <span className={`text-sm ${selectedPhoto.liked ? 'text-red-400' : 'text-stone-400'}`}>
-                    {selectedPhoto.likes}
-                  </span>
-                </button>
-                <div className="flex items-center gap-1.5 text-stone-400">
-                  <MessageCircle size={20} />
-                  <span className="text-sm">{selectedPhoto.comments.length}</span>
+                </div>
+
+                <div className="mt-3 flex items-center gap-4">
+                  <button
+                    onClick={() => toggleLike(selectedPhoto.id)}
+                    className="flex items-center gap-1.5 transition-colors"
+                  >
+                    <Heart
+                      size={20}
+                      className={selectedPhoto.liked ? 'fill-red-500 text-red-500' : 'text-gray-400'}
+                    />
+                    <span className={`text-sm ${selectedPhoto.liked ? 'text-red-500' : 'text-gray-500'}`}>
+                      {selectedPhoto.likes}
+                    </span>
+                  </button>
+                  <div className="flex items-center gap-1.5 text-gray-400">
+                    <MessageCircle size={20} />
+                    <span className="text-sm">{selectedPhoto.comments.length}</span>
+                  </div>
+                </div>
+
+                <p className="mt-3 text-sm text-gray-900">{selectedPhoto.caption}</p>
+                <p className="mt-1 text-xs text-gray-400">{selectedPhoto.date}</p>
+
+                {/* Comments */}
+                <div className="mt-4 space-y-3 pb-4">
+                  {selectedPhoto.comments.map((c, i) => (
+                    <div key={i} className="flex gap-2">
+                      <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-gray-100 text-[8px] font-bold text-gray-500">
+                        {c.author.split(' ').map(w => w[0]).join('')}
+                      </div>
+                      <div>
+                        <span className="text-xs font-medium text-gray-900">{c.author}</span>
+                        <p className="text-xs text-gray-600 mt-0.5">{c.text}</p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
-
-              <p className="mt-3 text-sm text-amber-100">{selectedPhoto.caption}</p>
-              <p className="mt-1 text-xs text-stone-500">{selectedPhoto.date}</p>
-
-              {/* Comments */}
-              <div className="mt-4 space-y-3 pb-20">
-                {selectedPhoto.comments.map((c, i) => (
-                  <div key={i} className="flex gap-2">
-                    <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-stone-700 text-[8px] font-bold text-stone-300">
-                      {c.author.split(' ').map(w => w[0]).join('')}
-                    </div>
-                    <div>
-                      <span className="text-xs font-medium text-amber-200">{c.author}</span>
-                      <p className="text-xs text-stone-300 mt-0.5">{c.text}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
             </div>
-          </div>
 
-          {/* Comment input */}
-          <div className="border-t border-stone-800 bg-stone-900 px-4 py-3">
-            <div className="mx-auto max-w-sm flex gap-2">
-              <input
-                type="text"
-                value={commentText}
-                onChange={e => setCommentText(e.target.value)}
-                onKeyDown={e => { if (e.key === 'Enter') addComment(selectedPhoto.id) }}
-                placeholder="Scrie un comentariu..."
-                className="flex-1 rounded-full bg-stone-800 border border-stone-700 px-4 py-2 text-sm text-stone-200 placeholder:text-stone-500 focus:outline-none focus:border-amber-700"
-              />
-              <button
-                onClick={() => addComment(selectedPhoto.id)}
-                disabled={!commentText.trim()}
-                className="flex h-9 w-9 items-center justify-center rounded-full bg-amber-700 text-amber-100 hover:bg-amber-600 disabled:opacity-40 disabled:hover:bg-amber-700 transition-colors"
-              >
-                <Send size={16} />
-              </button>
+            {/* Comment input */}
+            <div className="border-t border-gray-200 bg-white px-4 py-3">
+              <div className="mx-auto max-w-sm flex gap-2">
+                <input
+                  type="text"
+                  value={commentText}
+                  onChange={e => setCommentText(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter') addComment(selectedPhoto.id) }}
+                  placeholder="Scrie un comentariu..."
+                  className="flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none"
+                />
+                <button
+                  onClick={() => addComment(selectedPhoto.id)}
+                  disabled={!commentText.trim()}
+                  className="flex h-9 w-9 items-center justify-center rounded-lg bg-gray-900 text-white hover:bg-gray-700 disabled:opacity-50 transition-colors"
+                >
+                  <Send size={16} />
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -352,34 +351,34 @@ export default function CaruselPage() {
 
       {/* Upload Modal */}
       {showUpload && (
-        <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-6">
-          <div className="w-full max-w-sm rounded-2xl bg-stone-800 border border-stone-700 p-6">
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-6">
+          <div className="w-full max-w-sm rounded-xl border border-gray-200 bg-white p-6">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-bold text-amber-100">Amintire noua</h2>
+              <h2 className="text-lg font-bold text-gray-900">Amintire noua</h2>
               <button
                 onClick={() => setShowUpload(false)}
-                className="text-stone-400 hover:text-stone-200"
+                className="p-1 text-gray-400 hover:text-gray-600"
               >
                 <X size={20} />
               </button>
             </div>
 
-            <button className="w-full aspect-[4/3] rounded-xl border-2 border-dashed border-stone-600 bg-stone-700/30 flex flex-col items-center justify-center gap-3 hover:border-amber-700/50 transition-colors">
-              <ImageIcon size={32} className="text-stone-500" />
-              <p className="text-sm text-stone-400">Alege o fotografie</p>
+            <button className="w-full aspect-[4/3] rounded-xl border-2 border-dashed border-gray-200 bg-gray-50 flex flex-col items-center justify-center gap-3 hover:border-primary-300 hover:bg-primary-50/30 transition-colors">
+              <ImageIcon size={32} className="text-gray-400" />
+              <p className="text-sm text-gray-500">Alege o fotografie</p>
             </button>
 
             <div className="mt-4">
               <textarea
                 placeholder="Povesteste despre aceasta amintire..."
                 rows={3}
-                className="w-full rounded-xl bg-stone-700/50 border border-stone-600 px-4 py-3 text-sm text-stone-200 placeholder:text-stone-500 resize-none focus:outline-none focus:border-amber-700"
+                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 resize-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none"
               />
             </div>
 
             <button
               onClick={() => setShowUpload(false)}
-              className="mt-4 w-full rounded-xl bg-amber-700 py-3 text-sm font-semibold text-amber-100 hover:bg-amber-600 transition-colors"
+              className="mt-4 w-full rounded-lg bg-gray-900 py-2.5 text-sm font-semibold text-white hover:bg-gray-700 transition-colors"
             >
               Distribuie amintirea
             </button>
