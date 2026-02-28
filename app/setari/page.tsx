@@ -610,6 +610,15 @@ export default function SetariPage() {
                   </button>
                   <button
                     type="button"
+                    onClick={() => handleMock('country')}
+                    disabled={!!mockLoading}
+                    className="flex items-center justify-center gap-1.5 rounded-lg border border-gray-200 px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 transition-colors col-span-2"
+                  >
+                    {mockLoading === 'country' ? <Loader2 size={14} className="animate-spin" /> : null}
+                    Umple Romania (~450)
+                  </button>
+                  <button
+                    type="button"
                     onClick={handleDeleteMock}
                     disabled={!!mockLoading}
                     className="flex items-center justify-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-medium text-red-600 hover:bg-red-100 disabled:opacity-50 transition-colors"
