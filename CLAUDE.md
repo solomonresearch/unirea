@@ -50,7 +50,7 @@
 - **Carusel**: Photo sharing at `/carusel`. Individual posts at `/carusel/[id]` (shareable). Images stored in Supabase Storage (`carusel` bucket, public). `carusel_posts.storage_path` holds the path within the bucket. Public URLs served directly from Supabase Storage — no proxy needed.
 - **Ziar**: Public newspaper/bulletin board at `/ziar`. Posts expire after 3 days. Categories: stiri, anunt, apel, vand, cumpar. Anonymous users can read and post. `/avizier/ziar` redirects to `/ziar`. Shared `AvizierTabBar` component used by both `/ziar` and `/avizier` layouts.
 - **Middleware**: `middleware.ts` protects authenticated routes (`/tabla`, `/avizier`, `/cercuri`, `/mesaje`, `/cauta`, `/carusel`, `/harta`, `/kanban`, `/profil`, `/setari`, `/admin`) and redirects authenticated users from auth pages
-- **Bottom nav**: 6 tabs — Avizier, Cercuri, Mesaje, Cauta, Carusel, Setari
+- **Bottom nav**: 6 tabs — Carusel, Cercuri, Mesaje, Cauta, Avizier, Setari
 - **Kanban**: Drag-and-drop board using `@dnd-kit`. Components in `components/kanban/`. Realtime sync via Supabase channels. Cards have auto-incrementing `card_number` displayed as `#N`.
 - **Design**: Mobile-first. All layouts use `max-w-sm` centered with `px-6` padding. Kanban uses `max-w-6xl` (needs width for columns).
 - **Environment**: `.env` has `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`
