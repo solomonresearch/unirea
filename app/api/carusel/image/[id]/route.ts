@@ -27,7 +27,7 @@ export async function GET(
 
     const { buffer, mimeType } = await getFileBuffer(post.drive_file_id)
 
-    return new Response(buffer, {
+    return new Response(new Uint8Array(buffer), {
       headers: {
         'Content-Type': mimeType || post.mime_type,
         'Cache-Control': 'public, max-age=86400, immutable',

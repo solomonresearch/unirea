@@ -4,12 +4,11 @@ import { Readable } from 'stream'
 const SCOPES = ['https://www.googleapis.com/auth/drive.file']
 
 function getAuthClient() {
-  return new google.auth.JWT(
-    process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
-    undefined,
-    process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-    SCOPES
-  )
+  return new google.auth.JWT({
+    email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
+    key: process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+    scopes: SCOPES,
+  })
 }
 
 function getDrive() {
