@@ -38,12 +38,14 @@ export default function AdminPage() {
   useEffect(() => {
     let cancelled = false
     async function init() {
-      const { data: { user } } = await getSupabase().auth.getUser()
+      const { data: { session } } = await getSupabase().auth.getSession()
       if (cancelled) return
-      if (!user) { router.push('/autentificare'); return }
-      setCurrentUserId(user.id)
+      if (!session) { router.push('/autentificare'); return }
+      setCurrentUserId(session.user.id)
 
-      const res = await fetch('/api/admin/users')
+      const res = await fetch('/api/admin/users', {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      })
       if (cancelled) return
       if (res.status === 401) { router.push('/avizier'); return }
 
@@ -59,9 +61,13 @@ export default function AdminPage() {
 
   async function changeRole(userId: string, newRole: string) {
     setUpdatingId(userId)
+    const { data: { session } } = await getSupabase().auth.getSession()
     const res = await fetch('/api/admin/users', {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        ...(session ? { Authorization: `Bearer ${session.access_token}` } : {}),
+      },
       body: JSON.stringify({ userId, role: newRole }),
     })
 

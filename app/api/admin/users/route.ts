@@ -1,18 +1,19 @@
-import { NextResponse } from 'next/server'
-import { createServerSupabaseClient, createServiceRoleClient } from '@/lib/supabase-server'
+import { NextRequest, NextResponse } from 'next/server'
+import { createServiceRoleClient } from '@/lib/supabase-server'
 
 const VALID_ROLES = ['admin', 'moderator', 'user'] as const
 
-async function getAdminProfile() {
-  const supabase = createServerSupabaseClient()
-  const { data: { user }, error: authError } = await supabase.auth.getUser()
-  if (!user) {
-    console.log('[admin] auth.getUser failed:', authError?.message || 'no user')
-    return null
-  }
-  console.log('[admin] authenticated user:', user.id)
+async function getAdminProfile(request: NextRequest) {
+  const token = request.headers.get('Authorization')?.replace('Bearer ', '')
+  if (!token) return null
 
   const serviceClient = createServiceRoleClient()
+  const { data: { user }, error: authError } = await serviceClient.auth.getUser(token)
+  if (!user) {
+    console.log('[admin] auth.getUser failed:', authError?.message)
+    return null
+  }
+
   const { data: profile, error: profileError } = await serviceClient
     .from('profiles')
     .select('id, role')
@@ -27,13 +28,12 @@ async function getAdminProfile() {
     console.log('[admin] not admin, role:', profile?.role)
     return null
   }
-  console.log('[admin] admin verified:', profile.id)
   return profile
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const admin = await getAdminProfile()
+    const admin = await getAdminProfile(request)
     if (!admin) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -55,9 +55,9 @@ export async function GET() {
   }
 }
 
-export async function PATCH(request: Request) {
+export async function PATCH(request: NextRequest) {
   try {
-    const admin = await getAdminProfile()
+    const admin = await getAdminProfile(request)
     if (!admin) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }

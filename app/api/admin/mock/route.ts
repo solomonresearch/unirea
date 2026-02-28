@@ -1,5 +1,5 @@
-import { NextResponse } from 'next/server'
-import { createServerSupabaseClient, createServiceRoleClient } from '@/lib/supabase-server'
+import { NextRequest, NextResponse } from 'next/server'
+import { createServiceRoleClient } from '@/lib/supabase-server'
 import { getCountyCode } from '@/lib/city-county-map'
 
 const LAST_NAMES = [
@@ -58,16 +58,21 @@ function shortId() {
   return Math.random().toString(36).slice(2, 8)
 }
 
-async function getAdminProfile() {
-  const supabase = createServerSupabaseClient()
-  const { data: { user } } = await supabase.auth.getUser()
+async function getAdminProfile(request: NextRequest) {
+  const token = request.headers.get('Authorization')?.replace('Bearer ', '')
+  if (!token) {
+    console.log('[mock] No Authorization header')
+    return null
+  }
+
+  const serviceClient = createServiceRoleClient()
+  const { data: { user }, error: authError } = await serviceClient.auth.getUser(token)
   if (!user) {
-    console.log('[mock] No authenticated user found')
+    console.log('[mock] auth.getUser failed:', authError?.message)
     return null
   }
   console.log('[mock] Authenticated user:', user.id)
 
-  const serviceClient = createServiceRoleClient()
   const { data: profile, error } = await serviceClient
     .from('profiles')
     .select('id, role, highschool, graduation_year, class, city, county, country')
@@ -160,9 +165,9 @@ async function createBotsBatch(serviceClient: ReturnType<typeof createServiceRol
   return created
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
-    const admin = await getAdminProfile()
+    const admin = await getAdminProfile(request)
     if (!admin) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -244,9 +249,9 @@ export async function POST(request: Request) {
   }
 }
 
-export async function DELETE() {
+export async function DELETE(request: NextRequest) {
   try {
-    const admin = await getAdminProfile()
+    const admin = await getAdminProfile(request)
     if (!admin) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
