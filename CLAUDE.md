@@ -39,10 +39,10 @@
 - **API routes**: `app/api/admin/users/` — admin-only user management. Requires caller's `profile.role = 'admin'`.
   - `GET /api/admin/users` → returns `{ users: [{ id, name, username, email, role, created_at }] }`
   - `PATCH /api/admin/users` → body: `{ userId, role: 'admin'|'moderator'|'user' }` → updates user role, prevents self-demotion → returns `{ ok: true }`
-- **API routes**: `app/api/carusel/` — server-side CRUD for carusel (photo sharing). Authenticated only. Photos stored in Supabase Storage (`carusel` bucket, public).
-  - `GET /api/carusel` → returns `{ posts: [{ id, caption, image_url, user_id, profiles, likes, liked, comments, created_at }] }`
-  - `POST /api/carusel` → multipart/form-data: `file` (required, image/jpeg|png|webp, max 4MB), `caption` (optional, max 500) → returns created post (201)
-  - `GET /api/carusel/[id]` → returns single post `{ id, caption, image_url, user_id, profiles, likes, liked, comments, created_at }` or 404
+- **API routes**: `app/api/carusel/` — server-side CRUD for carusel (photo sharing). Authenticated only. Photos stored in Supabase Storage (`carusel` bucket, public). Posts scoped by `scope` column: `school` (highschool), `promotion` (highschool + graduation_year), `class` (highschool + graduation_year + class). Default scope: `promotion`.
+  - `GET /api/carusel` → query: `?scope=liceu|promotie|clasa` (default: `promotie`) → returns `{ posts: [{ id, caption, image_url, user_id, profiles, likes, liked, comments, created_at }] }` filtered by user's matching attributes
+  - `POST /api/carusel` → multipart/form-data: `file` (required, image/jpeg|png|webp, max 4MB), `caption` (optional, max 500), `scope` (optional, `liceu`|`promotie`|`clasa`, default: `promotie`) → returns created post (201)
+  - `GET /api/carusel/[id]` → returns single post `{ id, caption, image_url, user_id, profiles, likes, liked, comments, created_at }` or 404 (access controlled by post scope)
   - `DELETE /api/carusel/[id]` → soft delete + storage cleanup, own posts only → returns `{ ok: true }`
   - `POST /api/carusel/[id]/like` → toggle like → returns `{ ok: true, liked: boolean }`
   - `POST /api/carusel/[id]/comment` → body: `{ content }` (max 500) → returns created comment (201)
