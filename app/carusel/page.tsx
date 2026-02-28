@@ -7,6 +7,14 @@ import { Camera, Heart, MessageCircle, Share2, X, Plus, Image as ImageIcon, Load
 import { Logo } from '@/components/Logo'
 import { BottomNav } from '@/components/BottomNav'
 
+type Scope = 'liceu' | 'promotie' | 'clasa'
+
+const SCOPE_LABELS: Record<Scope, string> = {
+  liceu: 'Liceu',
+  promotie: 'Promotie',
+  clasa: 'Clasa',
+}
+
 interface CaruselComment {
   id: string
   post_id: string
@@ -67,17 +75,19 @@ export default function CaruselPage() {
   const [posts, setPosts] = useState<CaruselPost[]>([])
   const [loading, setLoading] = useState(true)
   const [showUpload, setShowUpload] = useState(false)
+  const [scope, setScope] = useState<Scope>('promotie')
 
   // Upload state
   const [uploadFile, setUploadFile] = useState<File | null>(null)
   const [uploadPreview, setUploadPreview] = useState<string | null>(null)
   const [uploadCaption, setUploadCaption] = useState('')
+  const [uploadScope, setUploadScope] = useState<Scope>('promotie')
   const [uploading, setUploading] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const fetchPosts = useCallback(async () => {
-    const res = await fetch('/api/carusel')
+  const fetchPosts = useCallback(async (s: Scope) => {
+    const res = await fetch(`/api/carusel?scope=${s}`)
     if (res.ok) {
       const data = await res.json()
       setPosts(data.posts)
@@ -90,11 +100,18 @@ export default function CaruselPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/autentificare'); return }
       setUserId(user.id)
-      await fetchPosts()
+      await fetchPosts('promotie')
       setLoading(false)
     }
     init()
   }, [router, fetchPosts])
+
+  async function handleScopeChange(newScope: Scope) {
+    setScope(newScope)
+    setLoading(true)
+    await fetchPosts(newScope)
+    setLoading(false)
+  }
 
   function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -109,6 +126,7 @@ export default function CaruselPage() {
     setUploadFile(null)
     setUploadPreview(null)
     setUploadCaption('')
+    setUploadScope('promotie')
     setUploadError(null)
     setShowUpload(false)
     if (fileInputRef.current) fileInputRef.current.value = ''
@@ -122,6 +140,7 @@ export default function CaruselPage() {
     const formData = new FormData()
     formData.append('file', uploadFile)
     formData.append('caption', uploadCaption)
+    formData.append('scope', uploadScope)
 
     const res = await fetch('/api/carusel', { method: 'POST', body: formData })
 
@@ -133,7 +152,9 @@ export default function CaruselPage() {
     }
 
     const newPost = await res.json()
-    setPosts(prev => [newPost, ...prev])
+    if (uploadScope === scope) {
+      setPosts(prev => [newPost, ...prev])
+    }
     clearUpload()
     setUploading(false)
   }
@@ -194,6 +215,23 @@ export default function CaruselPage() {
             <Plus size={14} />
             Adauga
           </button>
+        </div>
+
+        {/* Scope filter toggles */}
+        <div className="flex gap-2">
+          {(['liceu', 'promotie', 'clasa'] as Scope[]).map(s => (
+            <button
+              key={s}
+              onClick={() => handleScopeChange(s)}
+              className={`flex-1 rounded-lg py-2 text-xs font-semibold transition-colors ${
+                scope === s
+                  ? 'bg-gray-900 text-white'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              {SCOPE_LABELS[s]}
+            </button>
+          ))}
         </div>
 
         {/* Quick upload CTA */}
@@ -385,6 +423,26 @@ export default function CaruselPage() {
                 className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 resize-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none"
               />
               <p className="text-right text-[10px] text-gray-400 mt-1">{uploadCaption.length}/500</p>
+            </div>
+
+            {/* Scope selector */}
+            <div className="mt-3">
+              <p className="text-xs font-medium text-gray-600 mb-2">Cine poate vedea?</p>
+              <div className="flex gap-2">
+                {(['liceu', 'promotie', 'clasa'] as Scope[]).map(s => (
+                  <button
+                    key={s}
+                    onClick={() => setUploadScope(s)}
+                    className={`flex-1 rounded-lg py-2 text-xs font-semibold transition-colors ${
+                      uploadScope === s
+                        ? 'bg-gray-900 text-white'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`}
+                  >
+                    {SCOPE_LABELS[s]}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {uploadError && (
