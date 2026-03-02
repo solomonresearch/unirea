@@ -22,9 +22,10 @@ interface Props {
   open: boolean
   onOpenChange: (open: boolean) => void
   onSaved: () => void
+  onDeleted: () => void
 }
 
-export function QuizEditDialog({ quiz, open, onOpenChange, onSaved }: Props) {
+export function QuizEditDialog({ quiz, open, onOpenChange, onSaved, onDeleted }: Props) {
   const [title, setTitle] = useState(quiz.title)
   const [description, setDescription] = useState(quiz.description || '')
   const [expiresAt, setExpiresAt] = useState(
@@ -34,8 +35,29 @@ export function QuizEditDialog({ quiz, open, onOpenChange, onSaved }: Props) {
   const [active, setActive] = useState(quiz.active)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [confirmDelete, setConfirmDelete] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   const inputCls = 'w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
+
+  async function handleDelete() {
+    setDeleting(true)
+    setError('')
+    try {
+      const res = await fetch(`/api/sondaje/${quiz.id}`, { method: 'DELETE' })
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || 'Eroare la stergere')
+      }
+      onDeleted()
+      onOpenChange(false)
+    } catch (err: any) {
+      setError(err.message)
+      setConfirmDelete(false)
+    } finally {
+      setDeleting(false)
+    }
+  }
 
   async function handleSave() {
     if (!title.trim()) { setError('Titlul este obligatoriu'); return }
@@ -128,19 +150,45 @@ export function QuizEditDialog({ quiz, open, onOpenChange, onSaved }: Props) {
         </div>
 
         <div className="flex gap-2 pt-2">
-          <button
-            onClick={() => onOpenChange(false)}
-            className="px-4 py-2.5 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50"
-          >
-            Anulează
-          </button>
-          <button
-            onClick={handleSave}
-            disabled={loading}
-            className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 disabled:opacity-40 transition-colors"
-          >
-            {loading ? 'Se salvează...' : 'Salvează'}
-          </button>
+          {confirmDelete ? (
+            <>
+              <button
+                onClick={() => setConfirmDelete(false)}
+                className="px-4 py-2.5 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50"
+              >
+                Anulează
+              </button>
+              <button
+                onClick={handleDelete}
+                disabled={deleting}
+                className="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-xl text-sm font-semibold hover:bg-red-700 disabled:opacity-40 transition-colors"
+              >
+                {deleting ? 'Se șterge...' : 'Confirm șterge'}
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                onClick={() => setConfirmDelete(true)}
+                className="px-4 py-2.5 border border-red-200 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
+              >
+                Șterge
+              </button>
+              <button
+                onClick={() => onOpenChange(false)}
+                className="px-4 py-2.5 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50"
+              >
+                Anulează
+              </button>
+              <button
+                onClick={handleSave}
+                disabled={loading}
+                className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 disabled:opacity-40 transition-colors"
+              >
+                {loading ? 'Se salvează...' : 'Salvează'}
+              </button>
+            </>
+          )}
         </div>
       </DialogContent>
     </Dialog>
