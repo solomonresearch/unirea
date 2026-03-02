@@ -275,25 +275,29 @@ export default function KanbanPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-sm text-gray-500">Se incarca...</div>
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--cream2)' }}>
+        <div className="text-sm" style={{ color: 'var(--ink3)' }}>Se incarca...</div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-white pb-24">
-      <div className="sticky top-0 z-40 bg-white border-b border-gray-100">
+    <div className="min-h-screen pb-24" style={{ background: 'var(--cream2)' }}>
+      <div
+        className="sticky top-0 z-40"
+        style={{ background: 'var(--cream)', borderBottom: '1px solid var(--border)', paddingTop: '44px' }}
+      >
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div>
-              <h1 className="text-xl font-bold text-gray-900">Kanban</h1>
-              <p className="text-xs text-gray-500 mt-0.5">Gestioneaza taskurile echipei</p>
+              <h1 className="font-display text-xl" style={{ color: 'var(--ink)' }}>Kanban</h1>
+              <p className="text-xs mt-0.5" style={{ color: 'var(--ink3)' }}>Gestioneaza taskurile echipei</p>
             </div>
             <button
               type="button"
               onClick={toggleMute}
-              className={`p-1.5 rounded-md transition-colors ${muted ? 'text-gray-300 hover:text-gray-500' : 'text-blue-500 hover:text-blue-700'}`}
+              className="p-1.5 rounded-md transition-colors"
+              style={{ color: muted ? 'var(--ink3)' : 'var(--amber-dark)' }}
               title={muted ? 'Activeaza sunetul' : 'Dezactiveaza sunetul'}
             >
               {muted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
@@ -302,7 +306,11 @@ export default function KanbanPage() {
 
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white">
+              <Button
+                size="sm"
+                style={{ background: 'var(--ink)', color: 'var(--white)' }}
+                className="hover:opacity-90"
+              >
                 <Plus className="w-4 h-4 mr-1" />
                 Card nou
               </Button>
@@ -314,7 +322,7 @@ export default function KanbanPage() {
               </DialogHeader>
               <div className="space-y-4">
                 <div>
-                  <label className="text-sm font-medium text-gray-700 block mb-1.5">
+                  <label className="text-sm font-medium block mb-1.5" style={{ color: 'var(--ink2)' }}>
                     Titlu *
                   </label>
                   <Input
@@ -324,7 +332,7 @@ export default function KanbanPage() {
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-700 block mb-1.5">
+                  <label className="text-sm font-medium block mb-1.5" style={{ color: 'var(--ink2)' }}>
                     Descriere
                   </label>
                   <Textarea
@@ -335,11 +343,12 @@ export default function KanbanPage() {
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-700 block mb-1.5">
+                  <label className="text-sm font-medium block mb-1.5" style={{ color: 'var(--ink2)' }}>
                     Coloana
                   </label>
                   <select
-                    className="w-full p-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-300"
+                    className="w-full p-2 text-sm rounded-md outline-none"
+                    style={{ border: '1px solid var(--border)', background: 'var(--white)', color: 'var(--ink)' }}
                     value={newCard.status}
                     onChange={(e) => setNewCard(prev => ({ ...prev, status: e.target.value as Status }))}
                   >
@@ -349,7 +358,11 @@ export default function KanbanPage() {
                   </select>
                 </div>
                 <div className="flex gap-2 pt-2">
-                  <Button onClick={createCard} className="flex-1 bg-blue-600 hover:bg-blue-700">
+                  <Button
+                    onClick={createCard}
+                    className="flex-1"
+                    style={{ background: 'var(--ink)', color: 'var(--white)' }}
+                  >
                     Creeaza
                   </Button>
                   <Button variant="outline" onClick={() => setIsDialogOpen(false)} className="flex-1">
@@ -401,7 +414,7 @@ export default function KanbanPage() {
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <label className="text-sm font-medium text-gray-700 block mb-1.5">
+              <label className="text-sm font-medium block mb-1.5" style={{ color: 'var(--ink2)' }}>
                 Titlu *
               </label>
               <Input
@@ -411,7 +424,7 @@ export default function KanbanPage() {
               />
             </div>
             <div>
-              <label className="text-sm font-medium text-gray-700 block mb-1.5">
+              <label className="text-sm font-medium block mb-1.5" style={{ color: 'var(--ink2)' }}>
                 Descriere
               </label>
               <Textarea
@@ -422,7 +435,12 @@ export default function KanbanPage() {
               />
             </div>
             <div className="flex gap-2 pt-2">
-              <Button onClick={saveEdit} disabled={!editFields.title.trim()} className="flex-1 bg-blue-600 hover:bg-blue-700">
+              <Button
+                onClick={saveEdit}
+                disabled={!editFields.title.trim()}
+                className="flex-1"
+                style={{ background: 'var(--ink)', color: 'var(--white)' }}
+              >
                 Salveaza
               </Button>
               <Button variant="outline" onClick={() => setEditCard(null)} className="flex-1">

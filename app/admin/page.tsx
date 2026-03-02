@@ -79,34 +79,34 @@ export default function AdminPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--cream2)' }}>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2" style={{ borderColor: 'var(--ink)' }} />
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen" style={{ background: 'var(--cream2)' }}>
       <div className="max-w-sm mx-auto px-6 py-6 pb-24">
         <div className="flex items-center gap-3 mb-6">
           <Logo />
           <div className="flex items-center gap-2">
             <Shield className="w-5 h-5 text-red-600" />
-            <h1 className="text-xl font-bold">Admin</h1>
+            <h1 className="font-display text-xl" style={{ color: 'var(--ink)' }}>Admin</h1>
           </div>
         </div>
 
-        <p className="text-sm text-gray-500 mb-4">
+        <p className="text-sm mb-4" style={{ color: 'var(--ink3)' }}>
           {users.length} utilizatori înregistrați
         </p>
 
         <div className="space-y-3">
           {users.map(user => (
-            <div key={user.id} className="border rounded-lg p-3">
+            <div key={user.id} className="rounded-lg p-3" style={{ background: 'var(--white)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-s)' }}>
               <div className="flex items-center justify-between">
                 <div className="min-w-0 flex-1">
-                  <p className="font-medium truncate">{user.name || 'Fără nume'}</p>
-                  <p className="text-sm text-gray-500 truncate">@{user.username}</p>
+                  <p className="font-medium truncate" style={{ color: 'var(--ink)' }}>{user.name || 'Fără nume'}</p>
+                  <p className="text-sm truncate" style={{ color: 'var(--ink3)' }}>@{user.username}</p>
                 </div>
 
                 {user.id === currentUserId ? (

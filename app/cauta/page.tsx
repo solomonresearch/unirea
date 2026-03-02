@@ -149,31 +149,33 @@ export default function CautaPage() {
 
   if (loading) {
     return (
-      <main className="flex min-h-screen items-center justify-center">
-        <Loader2 size={24} className="animate-spin text-primary-700" />
+      <main className="flex min-h-screen items-center justify-center" style={{ background: 'var(--cream2)' }}>
+        <Loader2 size={24} className="animate-spin" style={{ color: 'var(--ink3)' }} />
       </main>
     )
   }
 
+  const inputFieldStyle = { border: '1px solid var(--border)', background: 'var(--white)', color: 'var(--ink)' }
+
   return (
-    <main className="flex min-h-screen flex-col items-center px-6 py-6 pb-24">
+    <main className="flex min-h-screen flex-col items-center px-6 py-6 pb-24" style={{ background: 'var(--cream2)' }}>
       <div className="w-full max-w-sm space-y-4">
         {/* Header */}
         <div className="flex items-center gap-2">
           <Logo size={28} />
-          <span className="text-lg font-bold text-gray-900">Cauta</span>
+          <span className="font-display text-xl" style={{ color: 'var(--ink)' }}>Cauta</span>
         </div>
 
         {/* View toggle */}
-        <div className="flex rounded-lg border border-gray-200 bg-white p-0.5">
+        <div className="flex rounded-lg p-0.5" style={{ border: '1px solid var(--border)', background: 'var(--white)' }}>
           <button
             type="button"
             onClick={() => setViewMode('list')}
-            className={`flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
-              viewMode === 'list'
-                ? 'bg-primary-700 text-white'
-                : 'text-gray-500 hover:text-gray-700'
-            }`}
+            className="flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors"
+            style={viewMode === 'list'
+              ? { background: 'var(--ink)', color: 'var(--white)' }
+              : { color: 'var(--ink3)' }
+            }
           >
             <List size={15} />
             Lista
@@ -181,11 +183,11 @@ export default function CautaPage() {
           <button
             type="button"
             onClick={() => setViewMode('map')}
-            className={`flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
-              viewMode === 'map'
-                ? 'bg-primary-700 text-white'
-                : 'text-gray-500 hover:text-gray-700'
-            }`}
+            className="flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors"
+            style={viewMode === 'map'
+              ? { background: 'var(--ink)', color: 'var(--white)' }
+              : { color: 'var(--ink3)' }
+            }
           >
             <MapPin size={15} />
             Harta
@@ -193,19 +195,21 @@ export default function CautaPage() {
         </div>
 
         {/* Filters */}
-        <div className="rounded-xl border border-gray-200 bg-white">
+        <div className="rounded-xl" style={{ border: '1px solid var(--border)', background: 'var(--white)', boxShadow: 'var(--shadow-s)' }}>
           <button
             type="button"
             onClick={() => setFiltersOpen(!filtersOpen)}
-            className="flex w-full items-center justify-between px-3 py-2 text-sm font-medium text-gray-700"
+            className="flex w-full items-center justify-between px-3 py-2 text-sm font-medium"
+            style={{ color: 'var(--ink2)' }}
           >
             <span className="flex items-center gap-2">
-              <SlidersHorizontal size={14} className="text-gray-400" />
+              <SlidersHorizontal size={14} style={{ color: 'var(--ink3)' }} />
               Filtre
             </span>
             <SlidersHorizontal
               size={12}
-              className={`text-gray-400 transition-transform ${filtersOpen ? 'rotate-90' : ''}`}
+              className={`transition-transform ${filtersOpen ? 'rotate-90' : ''}`}
+              style={{ color: 'var(--ink3)' }}
             />
           </button>
 
@@ -213,23 +217,25 @@ export default function CautaPage() {
             <div className="space-y-2 px-3 pb-3">
               <div className="grid grid-cols-2 gap-2">
                 <div className="relative">
-                  <User size={14} className="absolute left-2.5 top-2 text-gray-400 pointer-events-none" />
+                  <User size={14} className="absolute left-2.5 top-2 pointer-events-none" style={{ color: 'var(--ink3)' }} />
                   <input
                     type="text"
                     value={name}
                     onChange={e => setName(e.target.value)}
                     placeholder="Nume"
-                    className="w-full rounded-lg border border-gray-300 pl-8 pr-2 py-1.5 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none"
+                    className="w-full rounded-lg pl-8 pr-2 py-1.5 text-sm outline-none"
+                    style={inputFieldStyle}
                   />
                 </div>
                 <div className="relative">
-                  <Building2 size={14} className="absolute left-2.5 top-2 text-gray-400 pointer-events-none" />
+                  <Building2 size={14} className="absolute left-2.5 top-2 pointer-events-none" style={{ color: 'var(--ink3)' }} />
                   <input
                     type="text"
                     value={company}
                     onChange={e => setCompany(e.target.value)}
                     placeholder="Companie"
-                    className="w-full rounded-lg border border-gray-300 pl-8 pr-2 py-1.5 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none"
+                    className="w-full rounded-lg pl-8 pr-2 py-1.5 text-sm outline-none"
+                    style={inputFieldStyle}
                   />
                 </div>
               </div>
@@ -251,7 +257,7 @@ export default function CautaPage() {
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div className="relative">
-                  <GraduationCap size={14} className="absolute left-2.5 top-2 text-gray-400 pointer-events-none" />
+                  <GraduationCap size={14} className="absolute left-2.5 top-2 pointer-events-none" style={{ color: 'var(--ink3)' }} />
                   <input
                     type="number"
                     value={year}
@@ -259,7 +265,8 @@ export default function CautaPage() {
                     placeholder="Anul"
                     min={1950}
                     max={2030}
-                    className="w-full rounded-lg border border-gray-300 pl-8 pr-2 py-1.5 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    className="w-full rounded-lg pl-8 pr-2 py-1.5 text-sm outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    style={inputFieldStyle}
                   />
                 </div>
                 <SearchSelect
@@ -273,7 +280,8 @@ export default function CautaPage() {
               <button
                 type="button"
                 onClick={search}
-                className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-primary-700 px-3 py-1.5 text-sm font-semibold text-white hover:bg-primary-800 transition-colors"
+                className="flex w-full items-center justify-center gap-1.5 rounded-sm px-3 py-1.5 text-sm font-semibold transition-colors"
+                style={{ background: 'var(--ink)', color: 'var(--white)' }}
               >
                 <Search size={14} />
                 Cauta
@@ -285,44 +293,45 @@ export default function CautaPage() {
         {/* Results */}
         {searching ? (
           <div className="flex items-center justify-center py-12">
-            <Loader2 size={20} className="animate-spin text-primary-700" />
+            <Loader2 size={20} className="animate-spin" style={{ color: 'var(--ink3)' }} />
           </div>
         ) : viewMode === 'list' ? (
           results.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-gray-400">
+            <div className="flex flex-col items-center justify-center py-12" style={{ color: 'var(--ink3)' }}>
               <Users size={32} className="mb-2" />
               <p className="text-sm">Niciun rezultat</p>
             </div>
           ) : (
             <div className="space-y-2">
-              <p className="text-xs text-gray-400">{results.length} {results.length === 1 ? 'rezultat' : 'rezultate'}</p>
+              <p className="text-xs" style={{ color: 'var(--ink3)' }}>{results.length} {results.length === 1 ? 'rezultat' : 'rezultate'}</p>
               {results.map(profile => (
                 <div
                   key={profile.id}
-                  className="rounded-xl border border-gray-200 bg-white px-4 py-3"
+                  className="rounded-xl px-4 py-3"
+                  style={{ background: 'var(--white)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-s)' }}
                 >
                   <div className="flex items-start justify-between">
-                    <p className="text-sm font-semibold text-gray-900">{profile.name}</p>
-                    <span className="text-xs font-bold text-gray-500">
+                    <p className="text-sm font-semibold" style={{ color: 'var(--ink)' }}>{profile.name}</p>
+                    <span className="text-xs font-bold" style={{ color: 'var(--ink3)' }}>
                       {profile.graduation_year}{profile.class || ''}
                     </span>
                   </div>
                   {(profile.profession?.length > 0 || profile.domain?.length > 0) && (
                     <div className="mt-1.5 flex flex-wrap gap-1">
                       {profile.profession?.map(p => (
-                        <span key={p} className="inline-flex items-center rounded-md bg-primary-50 border border-primary-200 px-2 py-0.5 text-[11px] font-medium text-primary-700">
+                        <span key={p} className="inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-medium" style={{ background: 'var(--amber-soft)', border: '1px solid var(--border)', color: 'var(--amber-dark)' }}>
                           {p}
                         </span>
                       ))}
                       {profile.domain?.map(d => (
-                        <span key={d} className="inline-flex items-center rounded-md bg-blue-50 border border-blue-200 px-2 py-0.5 text-[11px] font-medium text-blue-700">
+                        <span key={d} className="inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-medium" style={{ background: 'var(--teal-soft)', border: '1px solid var(--teal)', color: 'var(--teal)' }}>
                           {d}
                         </span>
                       ))}
                     </div>
                   )}
                   {profile.company && (
-                    <p className="mt-1 text-[11px] text-gray-400 flex items-center gap-1">
+                    <p className="mt-1 text-[11px] flex items-center gap-1" style={{ color: 'var(--ink3)' }}>
                       <Building2 size={11} />
                       {profile.company}
                     </p>
@@ -332,9 +341,9 @@ export default function CautaPage() {
             </div>
           )
         ) : (
-          <div className="h-[400px] rounded-xl overflow-hidden border border-gray-200">
+          <div className="h-[400px] rounded-xl overflow-hidden" style={{ border: '1px solid var(--border)' }}>
             {markers.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-full text-gray-400 bg-white">
+              <div className="flex flex-col items-center justify-center h-full" style={{ background: 'var(--white)', color: 'var(--ink3)' }}>
                 <MapPin size={32} className="mb-2" />
                 <p className="text-sm">Niciun coleg cu locatie cunoscuta</p>
               </div>

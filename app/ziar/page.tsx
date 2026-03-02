@@ -180,25 +180,28 @@ export default function ZiarPage() {
 
   if (loading) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-white">
-        <Loader2 size={24} className="animate-spin text-gray-400" />
+      <main className="flex min-h-screen items-center justify-center" style={{ background: 'var(--cream2)' }}>
+        <Loader2 size={24} className="animate-spin" style={{ color: 'var(--ink3)' }} />
       </main>
     )
   }
 
+  const inputStyle = { border: '1px solid var(--border)', background: 'var(--white)', color: 'var(--ink)' }
+
   return (
     <>
       <AvizierTabBar />
-      <main className="flex min-h-screen flex-col items-center bg-white px-6 pt-14 pb-24">
+      <main className="flex min-h-screen flex-col items-center px-6 pt-14 pb-24" style={{ background: 'var(--cream2)' }}>
         <div className="w-full max-w-sm space-y-4">
           {/* Header with post button */}
           <div className="flex items-center justify-between">
-            <h1 className="text-lg font-semibold text-gray-900">Ziar</h1>
+            <h1 className="font-display text-xl" style={{ color: 'var(--ink)' }}>Ziar</h1>
             {canPost && (
               <button
                 type="button"
                 onClick={() => setDialogOpen(true)}
-                className="flex items-center gap-1.5 rounded-lg bg-gray-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-gray-700 transition-colors"
+                className="flex items-center gap-1.5 rounded-sm px-3 py-1.5 text-sm font-medium transition-colors"
+                style={{ background: 'var(--ink)', color: 'var(--white)' }}
               >
                 <Plus size={16} />
                 Posteaza
@@ -211,11 +214,11 @@ export default function ZiarPage() {
             <button
               type="button"
               onClick={() => handleCategoryFilter(null)}
-              className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-                activeCategory === null
-                  ? 'bg-gray-900 text-white'
-                  : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
-              }`}
+              className="shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-colors"
+              style={activeCategory === null
+                ? { background: 'var(--ink)', color: 'var(--white)' }
+                : { background: 'var(--cream)', color: 'var(--ink2)', border: '1px solid var(--border)' }
+              }
             >
               Toate
             </button>
@@ -224,11 +227,11 @@ export default function ZiarPage() {
                 key={cat.value}
                 type="button"
                 onClick={() => handleCategoryFilter(cat.value)}
-                className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-                  activeCategory === cat.value
-                    ? 'bg-gray-900 text-white'
-                    : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
-                }`}
+                className="shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-colors"
+                style={activeCategory === cat.value
+                  ? { background: 'var(--ink)', color: 'var(--white)' }
+                  : { background: 'var(--cream)', color: 'var(--ink2)', border: '1px solid var(--border)' }
+                }
               >
                 {cat.label}
               </button>
@@ -238,7 +241,7 @@ export default function ZiarPage() {
           {/* Posts feed */}
           <div className="space-y-3">
             {posts.length === 0 && (
-              <p className="text-center text-sm text-gray-400 py-8">
+              <p className="text-center text-sm py-8" style={{ color: 'var(--ink3)' }}>
                 Nicio postare inca. Fii primul care scrie in ziar!
               </p>
             )}
@@ -246,14 +249,14 @@ export default function ZiarPage() {
               const catMeta = getCategoryMeta(post.category)
               const location = [post.city, post.county].filter(Boolean).join(', ')
               return (
-                <div key={post.id} className="rounded-lg border border-gray-200 bg-white px-4 py-3">
+                <div key={post.id} className="rounded-lg px-4 py-3" style={{ background: 'var(--white)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-s)' }}>
                   {/* Category badge + location */}
                   <div className="flex items-center gap-2 mb-1.5">
                     <span className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold ${catMeta.color}`}>
                       {catMeta.label}
                     </span>
                     {location && (
-                      <span className="flex items-center gap-0.5 text-[10px] text-gray-400">
+                      <span className="flex items-center gap-0.5 text-[10px]" style={{ color: 'var(--ink3)' }}>
                         <MapPin size={10} />
                         {location}
                       </span>
@@ -261,10 +264,10 @@ export default function ZiarPage() {
                   </div>
 
                   {/* Title */}
-                  <h3 className="text-sm font-semibold text-gray-900 mb-1">{post.title}</h3>
+                  <h3 className="text-sm font-semibold mb-1" style={{ color: 'var(--ink)' }}>{post.title}</h3>
 
                   {/* Body */}
-                  <p className="text-sm text-gray-600 whitespace-pre-wrap">{post.body}</p>
+                  <p className="text-sm whitespace-pre-wrap" style={{ color: 'var(--ink2)' }}>{post.body}</p>
 
                   {/* Links */}
                   {post.links && post.links.length > 0 && (
@@ -275,7 +278,8 @@ export default function ZiarPage() {
                           href={link}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2.5 py-0.5 text-[11px] text-gray-600 hover:bg-gray-200 transition-colors"
+                          className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] transition-colors"
+                          style={{ background: 'var(--cream2)', color: 'var(--ink2)', border: '1px solid var(--border)' }}
                         >
                           <ExternalLink size={10} />
                           {domainFromUrl(link)}
@@ -285,15 +289,16 @@ export default function ZiarPage() {
                   )}
 
                   {/* Author + time + delete */}
-                  <div className="flex items-center justify-between mt-2.5 pt-2 border-t border-gray-100">
-                    <span className="text-xs text-gray-400">
+                  <div className="flex items-center justify-between mt-2.5 pt-2" style={{ borderTop: '1px solid var(--border)' }}>
+                    <span className="text-xs" style={{ color: 'var(--ink3)' }}>
                       {post.author_name || 'Anonim'} &middot; {relativeTime(post.created_at)}
                     </span>
                     {userId && post.created_by === userId && (
                       <button
                         type="button"
                         onClick={() => handleDelete(post.id)}
-                        className="text-gray-300 hover:text-red-500 transition-colors"
+                        className="hover:text-red-500 transition-colors"
+                        style={{ color: 'var(--border)' }}
                       >
                         <Trash2 size={14} />
                       </button>
@@ -320,39 +325,42 @@ export default function ZiarPage() {
           <form onSubmit={handleSubmit} className="space-y-3">
             {/* Title */}
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Titlu</label>
+              <label className="block text-xs font-medium mb-1" style={{ color: 'var(--ink2)' }}>Titlu</label>
               <input
                 type="text"
                 value={title}
                 onChange={e => setTitle(e.target.value)}
                 maxLength={200}
                 placeholder="Titlul postarii"
-                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:ring-1 focus:ring-gray-500 outline-none"
+                className="w-full rounded-lg px-3 py-2 text-sm outline-none"
+                style={inputStyle}
               />
-              <span className="text-[10px] text-gray-400">{title.length}/200</span>
+              <span className="text-[10px]" style={{ color: 'var(--ink3)' }}>{title.length}/200</span>
             </div>
 
             {/* Body */}
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Continut</label>
+              <label className="block text-xs font-medium mb-1" style={{ color: 'var(--ink2)' }}>Continut</label>
               <textarea
                 value={body}
                 onChange={e => setBody(e.target.value)}
                 maxLength={2000}
                 rows={4}
                 placeholder="Scrie continutul..."
-                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:ring-1 focus:ring-gray-500 outline-none resize-none"
+                className="w-full rounded-lg px-3 py-2 text-sm outline-none resize-none"
+                style={inputStyle}
               />
-              <span className="text-[10px] text-gray-400">{body.length}/2000</span>
+              <span className="text-[10px]" style={{ color: 'var(--ink3)' }}>{body.length}/2000</span>
             </div>
 
             {/* Category */}
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Categorie</label>
+              <label className="block text-xs font-medium mb-1" style={{ color: 'var(--ink2)' }}>Categorie</label>
               <select
                 value={category}
                 onChange={e => setCategory(e.target.value)}
-                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 focus:border-gray-500 outline-none"
+                className="w-full rounded-lg px-3 py-2 text-sm outline-none"
+                style={inputStyle}
               >
                 {ZIAR_CATEGORIES.map(cat => (
                   <option key={cat.value} value={cat.value}>{cat.label}</option>
@@ -363,28 +371,30 @@ export default function ZiarPage() {
             {/* Location */}
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Oras</label>
+                <label className="block text-xs font-medium mb-1" style={{ color: 'var(--ink2)' }}>Oras</label>
                 <input
                   type="text"
                   list="cities-list"
                   value={city}
                   onChange={e => setCity(e.target.value)}
                   placeholder="Oras"
-                  className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 placeholder-gray-400 focus:border-gray-500 outline-none"
+                  className="w-full rounded-lg px-3 py-2 text-sm outline-none"
+                  style={inputStyle}
                 />
                 <datalist id="cities-list">
                   {ROMANIAN_CITIES.map(c => <option key={c} value={c} />)}
                 </datalist>
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Judet</label>
+                <label className="block text-xs font-medium mb-1" style={{ color: 'var(--ink2)' }}>Judet</label>
                 <input
                   type="text"
                   list="counties-list"
                   value={county}
                   onChange={e => setCounty(e.target.value)}
                   placeholder="Judet"
-                  className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 placeholder-gray-400 focus:border-gray-500 outline-none"
+                  className="w-full rounded-lg px-3 py-2 text-sm outline-none"
+                  style={inputStyle}
                 />
                 <datalist id="counties-list">
                   {ROMANIAN_COUNTIES.map(c => <option key={c} value={c} />)}
@@ -394,7 +404,7 @@ export default function ZiarPage() {
 
             {/* Links */}
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Linkuri (optional)</label>
+              <label className="block text-xs font-medium mb-1" style={{ color: 'var(--ink2)' }}>Linkuri (optional)</label>
               {links.map((link, i) => (
                 <div key={i} className="flex gap-1.5 mb-1.5">
                   <input
@@ -402,13 +412,15 @@ export default function ZiarPage() {
                     value={link}
                     onChange={e => updateLink(i, e.target.value)}
                     placeholder="https://..."
-                    className="flex-1 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 placeholder-gray-400 focus:border-gray-500 outline-none"
+                    className="flex-1 rounded-lg px-3 py-1.5 text-sm outline-none"
+                    style={inputStyle}
                   />
                   {links.length > 1 && (
                     <button
                       type="button"
                       onClick={() => removeLink(i)}
-                      className="text-gray-400 hover:text-red-500 px-1"
+                      className="px-1"
+                      style={{ color: 'var(--ink3)' }}
                     >
                       &times;
                     </button>
@@ -419,7 +431,8 @@ export default function ZiarPage() {
                 <button
                   type="button"
                   onClick={addLinkField}
-                  className="text-xs text-gray-500 hover:text-gray-700"
+                  className="text-xs"
+                  style={{ color: 'var(--ink2)' }}
                 >
                   + Adauga link
                 </button>
@@ -430,7 +443,8 @@ export default function ZiarPage() {
             <button
               type="submit"
               disabled={submitting || !title.trim() || !body.trim()}
-              className="w-full rounded-lg bg-gray-900 py-2.5 text-sm font-semibold text-white hover:bg-gray-700 disabled:opacity-50 transition-colors"
+              className="w-full rounded-sm py-2.5 text-sm font-semibold disabled:opacity-50 transition-colors"
+              style={{ background: 'var(--ink)', color: 'var(--white)' }}
             >
               {submitting ? <Loader2 size={16} className="animate-spin mx-auto" /> : 'Publica'}
             </button>
