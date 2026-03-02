@@ -53,6 +53,7 @@ export default function SetariPage() {
   const { skin, setSkin } = useSkin()
   const [loading, setLoading] = useState(true)
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const [pendingSkin, setPendingSkin] = useState<SkinId | null>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
 
   const [editBio, setEditBio] = useState('')
@@ -579,44 +580,57 @@ export default function SetariPage() {
                   Aspect
                 </p>
                 <div className="flex gap-3">
-                  {SKINS.map(s => (
-                    <button
-                      key={s.id}
-                      type="button"
-                      onClick={() => setSkin(s.id as SkinId)}
-                      className="flex-1 flex flex-col items-center gap-2 rounded-md p-3 transition-all border-2"
-                      style={skin === s.id ? {
-                        border: '2px solid var(--amber)',
-                        background: 'var(--amber-soft)',
-                      } : {
-                        border: '2px solid var(--border)',
-                        background: 'transparent',
-                      }}
-                    >
-                      <div
-                        className="w-10 h-10 rounded-sm border"
-                        style={{
-                          background: s.swatchBg,
-                          borderColor: skin === s.id ? 'var(--amber)' : 'var(--border)',
-                          boxShadow: 'var(--shadow-s)',
-                          position: 'relative',
-                          overflow: 'hidden',
+                  {SKINS.map(s => {
+                    const selected = (pendingSkin ?? skin) === s.id
+                    return (
+                      <button
+                        key={s.id}
+                        type="button"
+                        onClick={() => setPendingSkin(s.id as SkinId)}
+                        className="flex-1 flex flex-col items-center gap-2 rounded-md p-3 transition-all border-2"
+                        style={selected ? {
+                          border: '2px solid var(--amber)',
+                          background: 'var(--amber-soft)',
+                        } : {
+                          border: '2px solid var(--border)',
+                          background: 'transparent',
                         }}
                       >
                         <div
-                          className="absolute bottom-1 right-1 w-3 h-3 rounded-full"
-                          style={{ background: s.swatchAccent }}
-                        />
-                      </div>
-                      <span
-                        className="text-[0.72rem] font-semibold"
-                        style={{ color: skin === s.id ? 'var(--amber-dark)' : 'var(--ink2)' }}
-                      >
-                        {s.name}
-                      </span>
-                    </button>
-                  ))}
+                          className="w-10 h-10 rounded-sm border"
+                          style={{
+                            background: s.swatchBg,
+                            borderColor: selected ? 'var(--amber)' : 'var(--border)',
+                            boxShadow: 'var(--shadow-s)',
+                            position: 'relative',
+                            overflow: 'hidden',
+                          }}
+                        >
+                          <div
+                            className="absolute bottom-1 right-1 w-3 h-3 rounded-full"
+                            style={{ background: s.swatchAccent }}
+                          />
+                        </div>
+                        <span
+                          className="text-[0.72rem] font-semibold"
+                          style={{ color: selected ? 'var(--amber-dark)' : 'var(--ink2)' }}
+                        >
+                          {s.name}
+                        </span>
+                      </button>
+                    )
+                  })}
                 </div>
+                {pendingSkin && pendingSkin !== skin && (
+                  <button
+                    type="button"
+                    onClick={async () => { await setSkin(pendingSkin); setPendingSkin(null) }}
+                    className="mt-3 w-full rounded-sm py-2 text-[0.82rem] font-semibold transition-colors"
+                    style={{ background: 'var(--ink)', color: 'var(--white)' }}
+                  >
+                    Aplică
+                  </button>
+                )}
               </div>
 
               {/* Admin panel */}
@@ -653,6 +667,7 @@ export default function SetariPage() {
                       { scope: 'class', label: 'Umple clasa (30)' },
                       { scope: 'highschool', label: 'Umple liceul (480)' },
                       { scope: 'city', label: 'Umple orașul (1440)' },
+                      { scope: 'country', label: 'Umple România (~450)' },
                     ].map(({ scope, label }) => (
                       <button
                         key={scope}
@@ -668,19 +683,9 @@ export default function SetariPage() {
                     ))}
                     <button
                       type="button"
-                      onClick={() => handleMock('country')}
-                      disabled={!!mockLoading}
-                      className="flex items-center justify-center gap-1.5 rounded-sm px-3 py-2 text-[0.75rem] font-medium disabled:opacity-50 col-span-2 transition-opacity"
-                      style={{ background: 'var(--cream2)', border: '1.5px solid var(--border)', color: 'var(--ink2)' }}
-                    >
-                      {mockLoading === 'country' ? <Loader2 size={14} className="animate-spin" /> : null}
-                      Umple România (~450)
-                    </button>
-                    <button
-                      type="button"
                       onClick={handleDeleteMock}
                       disabled={!!mockLoading}
-                      className="flex items-center justify-center gap-1.5 rounded-sm px-3 py-2 text-[0.75rem] font-medium disabled:opacity-50 transition-opacity"
+                      className="flex items-center justify-center gap-1.5 rounded-sm px-3 py-2 text-[0.75rem] font-medium disabled:opacity-50 col-span-2 transition-opacity"
                       style={{ background: '#FEF2F2', border: '1.5px solid #FECACA', color: 'var(--rose)' }}
                     >
                       {mockLoading === 'delete' ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}

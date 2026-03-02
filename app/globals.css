@@ -79,6 +79,25 @@
     --chart-5:             340 75% 55%;
   }
 
+  [data-skin="clasic"] {
+    --cream:      #F8F9FA;
+    --cream2:     #F1F3F5;
+    --white:      #FFFFFF;
+    --ink:        #0F172A;
+    --ink2:       #334155;
+    --ink3:       #94A3B8;
+    --amber:      #7E191B;
+    --amber-soft: #FEF2F2;
+    --amber-dark: #5B0E0F;
+    --teal:       #0F766E;
+    --teal-soft:  #CCFBF1;
+    --rose:       #DC2626;
+    --border:     #E2E8F0;
+    --shadow-s:   0 1px 4px rgba(0,0,0,0.06);
+    --shadow-m:   0 4px 20px rgba(0,0,0,0.09);
+    --shadow-l:   0 12px 40px rgba(0,0,0,0.14);
+  }
+
   body {
     background-color: var(--cream2);
     font-family: 'Plus Jakarta Sans', sans-serif;

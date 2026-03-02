@@ -74,7 +74,7 @@ export function VennCanvas({ circles, positions, dots, activeFilters, counts }: 
 
       const cfg = CIRCLE_CONFIG[key]
       const labelY = cy - radius + 18
-      ctx.font = isActive ? 'bold 11px sans-serif' : '11px sans-serif'
+      ctx.font = isActive ? 'bold 13px sans-serif' : '13px sans-serif'
       ctx.fillStyle = hexToRgba(color, isActive ? 0.8 : 0.4)
       ctx.textAlign = 'center'
       ctx.fillText(`${cfg.emoji} ${cfg.label}`, cx, labelY)
