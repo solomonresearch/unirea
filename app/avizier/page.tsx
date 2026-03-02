@@ -743,6 +743,7 @@ export default function AvizierPage() {
           open={!!editingQuiz}
           onOpenChange={(v) => { if (!v) setEditingQuiz(null) }}
           onSaved={() => { setEditingQuiz(null); loadQuizzes(scope) }}
+          onDeleted={() => { setQuizzes(prev => prev.filter(q => q.id !== editingQuiz.id)); setEditingQuiz(null) }}
         />
       )}
     </main>
