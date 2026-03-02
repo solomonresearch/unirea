@@ -200,7 +200,7 @@ export default function CercuriPage() {
             >
               Cercuri
             </h1>
-            <p className="text-[0.7rem] mt-0.5" style={{ color: 'var(--ink3)' }}>
+            <p className="text-[0.7rem] mt-0.5" style={{ color: 'var(--ink2)' }}>
               Descoperă conexiunile tale
             </p>
           </div>
@@ -340,7 +340,7 @@ export default function CercuriPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-[0.82rem] font-bold" style={{ color: 'var(--ink)' }}>{cfg.label}</p>
-                    <p className="text-[0.68rem] truncate" style={{ color: 'var(--ink3)' }}>
+                    <p className="text-[0.68rem] truncate" style={{ color: 'var(--ink2)' }}>
                       {cfg.getDescription(data.user_info)}
                     </p>
                   </div>
@@ -385,7 +385,7 @@ export default function CercuriPage() {
                       <div className="flex-1 min-w-0">
                         <p className="text-[0.82rem] font-bold" style={{ color: 'var(--ink)' }}>{dot.label}</p>
                         <div className="flex items-center gap-1 mt-0.5">
-                          <span className="text-[0.68rem]" style={{ color: 'var(--ink3)' }}>
+                          <span className="text-[0.68rem]" style={{ color: 'var(--ink2)' }}>
                             {count} persoane
                           </span>
                           <span className="text-[0.68rem]" style={{ color: 'var(--border)' }}>·</span>
@@ -485,7 +485,7 @@ function PersonTags({ person, activeFilters }: { person: Person; activeFilters: 
   if (tags.length === 0 && !showDefault && person.company) {
     return (
       <div className="mt-1">
-        <span className="text-[0.68rem]" style={{ color: 'var(--ink3)' }}>{person.company}</span>
+        <span className="text-[0.68rem]" style={{ color: 'var(--ink2)' }}>{person.company}</span>
       </div>
     )
   }
@@ -495,7 +495,7 @@ function PersonTags({ person, activeFilters }: { person: Person; activeFilters: 
   return (
     <div className="mt-1 flex flex-wrap gap-1">
       {person.company && showDefault && (
-        <span className="text-[0.68rem]" style={{ color: 'var(--ink3)' }}>{person.company}</span>
+        <span className="text-[0.68rem]" style={{ color: 'var(--ink2)' }}>{person.company}</span>
       )}
       {tags.map(t => (
         <span
@@ -572,7 +572,7 @@ function PersonCard({ person, currentUserId, activeFilters }: { person: Person; 
           </div>
           <div className="min-w-0">
             <p className="text-[0.82rem] font-bold" style={{ color: 'var(--ink)' }}>{person.name}</p>
-            <p className="text-[0.66rem]" style={{ color: 'var(--ink3)' }}>@{person.username}</p>
+            <p className="text-[0.66rem]" style={{ color: 'var(--ink2)' }}>@{person.username}</p>
             <PersonTags person={person} activeFilters={activeFilters} />
           </div>
         </div>
@@ -641,9 +641,9 @@ function ClassmateRow({ person, currentUserId }: { person: Classmate; currentUse
         <div className="flex items-center justify-between">
           <div>
             <p className="text-[0.82rem] font-bold" style={{ color: 'var(--ink)' }}>{person.name}</p>
-            <p className="text-[0.68rem]" style={{ color: 'var(--ink3)' }}>@{person.username}</p>
+            <p className="text-[0.68rem]" style={{ color: 'var(--ink2)' }}>@{person.username}</p>
           </div>
-          <span className="text-[0.72rem] font-bold" style={{ color: 'var(--ink3)' }}>
+          <span className="text-[0.72rem] font-bold" style={{ color: 'var(--ink2)' }}>
             {person.graduation_year}{person.class || ''}
           </span>
         </div>

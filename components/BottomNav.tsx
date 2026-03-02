@@ -8,10 +8,10 @@ import { getSupabase } from '@/lib/supabase'
 
 const NAV_ITEMS = [
   { href: '/avizier',  label: 'Avizier',  icon: Newspaper },
+  { href: '/carusel',  label: 'Carusel',  icon: Bell },
   { href: '/cercuri',  label: 'Cercuri',  icon: CircleDot },
   { href: '/mesaje',   label: 'Mesaje',   icon: MessageCircle },
   { href: '/cauta',    label: 'Cauta',    icon: Search },
-  { href: '/carusel',  label: 'Carusel',  icon: Bell },
   { href: '/setari',   label: 'Setari',   icon: SlidersHorizontal },
 ]
 

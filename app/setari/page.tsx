@@ -212,7 +212,7 @@ export default function SetariPage() {
             <Settings size={16} />
           </button>
 
-          <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, transparent 60%, rgba(239,233,222,0.6))' }} />
+          <div className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(to bottom, transparent 60%, rgba(239,233,222,0.6))' }} />
         </div>
 
         {/* Avatar overlap */}
