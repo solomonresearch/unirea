@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Search, PlayCircle, Camera, Briefcase, BookOpen, Award, Users, CalendarHeart, Clock } from 'lucide-react'
+import { Search, PlayCircle, Camera, Briefcase, BookOpen, MapPin, Users, CalendarHeart, Clock } from 'lucide-react'
 
 export default function Home() {
   return (
@@ -81,17 +81,39 @@ export default function Home() {
             <Camera size={42} style={{ color: 'rgba(255,255,255,0.7)' }} />
           </div>
 
-          {/* Card D — Award */}
+          {/* Card C — Nearby Hangout map */}
           <div
-            className="hero-float rounded-[18px] flex items-center justify-center"
+            className="hero-float rounded-[18px] p-3 flex flex-col"
             style={{
               height: 130,
-              background: 'linear-gradient(135deg, #f5d590, #ff9b82)',
+              background: 'var(--white)',
               boxShadow: '0 8px 32px rgba(26,31,58,0.08)',
               animationDelay: '0.5s',
             }}
           >
-            <Award size={38} style={{ color: 'rgba(255,255,255,0.7)' }} />
+            <p className="text-[0.58rem] font-bold uppercase mb-2 flex items-center gap-1" style={{ color: '#ef6b4a', letterSpacing: '1.5px' }}>
+              <MapPin size={9} />
+              Aproape
+            </p>
+            {/* Mini map */}
+            <div
+              className="relative flex-1 rounded-lg overflow-hidden"
+              style={{ background: 'var(--cream2)' }}
+            >
+              {/* Grid lines */}
+              <svg className="absolute inset-0 w-full h-full" style={{ opacity: 0.06 }}>
+                {[20, 40, 60, 80].map(x => (
+                  <line key={`v${x}`} x1={`${x}%`} y1="0" x2={`${x}%`} y2="100%" stroke="var(--ink)" strokeWidth="1" />
+                ))}
+                {[25, 50, 75].map(y => (
+                  <line key={`h${y}`} x1="0" y1={`${y}%`} x2="100%" y2={`${y}%`} stroke="var(--ink)" strokeWidth="1" />
+                ))}
+              </svg>
+              {/* Pulsing dots */}
+              <span className="hero-ping absolute" style={{ top: '25%', left: '30%', background: '#ef6b4a', animationDelay: '0s' }} />
+              <span className="hero-ping absolute" style={{ top: '55%', left: '60%', background: '#7ba68d', animationDelay: '0.5s' }} />
+              <span className="hero-ping absolute" style={{ top: '70%', left: '20%', background: '#f5d590', animationDelay: '1s' }} />
+            </div>
           </div>
 
           {/* Card E — Stats (full width) */}
@@ -109,10 +131,7 @@ export default function Home() {
             >
               <Users size={20} style={{ color: '#f5d590' }} />
             </div>
-            <div>
-              <p className="leading-none font-bold text-[1.5rem]" style={{ color: '#f5d590' }}>847</p>
-              <p className="text-[0.68rem] mt-0.5" style={{ color: 'rgba(255,255,255,0.75)' }}>colegi reconectați</p>
-            </div>
+            <p className="text-[0.88rem] font-semibold" style={{ color: 'rgba(255,255,255,0.9)' }}>Colegi Reconectați</p>
           </div>
 
           {/* Card B — Mentor */}
@@ -139,7 +158,7 @@ export default function Home() {
                 <BookOpen size={15} color="white" />
               </div>
             </div>
-            <p className="text-[0.63rem] leading-[1.4]" style={{ color: 'var(--ink2)' }}>Maria ('08) îndrumă Alex în carieră UX</p>
+            <p className="text-[0.63rem] leading-[1.4]" style={{ color: 'var(--ink2)' }}>Maria ('08) îndrumă Alex în carieră</p>
           </div>
 
           {/* Card F — Event */}
@@ -194,6 +213,23 @@ export default function Home() {
         @keyframes badge-pulse {
           0%, 100% { transform: scale(1); opacity: 1; }
           50%      { transform: scale(1.3); opacity: 0.5; }
+        }
+        @keyframes map-ping {
+          0%   { transform: translate(-50%, -50%) scale(1); opacity: 0.8; }
+          100% { transform: translate(-50%, -50%) scale(2.5); opacity: 0; }
+        }
+        .hero-ping {
+          width: 8px; height: 8px;
+          border-radius: 50%;
+          transform: translate(-50%, -50%);
+        }
+        .hero-ping::after {
+          content: '';
+          position: absolute;
+          inset: 0;
+          border-radius: 50%;
+          background: inherit;
+          animation: map-ping 2s ease-out infinite;
         }
 
         .hero-orb-lavender {
