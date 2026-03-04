@@ -93,26 +93,25 @@ export default function Home() {
           >
             <p className="text-[0.58rem] font-bold uppercase mb-2 flex items-center gap-1" style={{ color: '#ef6b4a', letterSpacing: '1.5px' }}>
               <MapPin size={9} />
-              Aproape
+              Ne vedem in oras?
             </p>
             {/* Mini map */}
-            <div
-              className="relative flex-1 rounded-lg overflow-hidden"
-              style={{ background: 'var(--cream2)' }}
-            >
-              {/* Grid lines */}
-              <svg className="absolute inset-0 w-full h-full" style={{ opacity: 0.06 }}>
-                {[20, 40, 60, 80].map(x => (
-                  <line key={`v${x}`} x1={`${x}%`} y1="0" x2={`${x}%`} y2="100%" stroke="var(--ink)" strokeWidth="1" />
-                ))}
-                {[25, 50, 75].map(y => (
-                  <line key={`h${y}`} x1="0" y1={`${y}%`} x2="100%" y2={`${y}%`} stroke="var(--ink)" strokeWidth="1" />
-                ))}
-              </svg>
+            <div className="relative flex-1 rounded-lg overflow-hidden">
+              {/* Brașov OSM tile */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="https://tile.openstreetmap.org/14/9350/5852.png"
+                alt=""
+                aria-hidden="true"
+                className="absolute inset-0 w-full h-full object-cover"
+                style={{ opacity: 0.75 }}
+              />
+              {/* Subtle warm overlay so dots pop */}
+              <div className="absolute inset-0" style={{ background: 'rgba(247,243,236,0.25)' }} />
               {/* Pulsing dots */}
-              <span className="hero-ping absolute" style={{ top: '25%', left: '30%', background: '#ef6b4a', animationDelay: '0s' }} />
-              <span className="hero-ping absolute" style={{ top: '55%', left: '60%', background: '#7ba68d', animationDelay: '0.5s' }} />
-              <span className="hero-ping absolute" style={{ top: '70%', left: '20%', background: '#f5d590', animationDelay: '1s' }} />
+              <span className="hero-ping absolute" style={{ top: '28%', left: '35%', background: '#ef6b4a', animationDelay: '0s' }} />
+              <span className="hero-ping absolute" style={{ top: '58%', left: '62%', background: '#7ba68d', animationDelay: '0.5s' }} />
+              <span className="hero-ping absolute" style={{ top: '72%', left: '22%', background: '#f5d590', animationDelay: '1s' }} />
             </div>
           </div>
 
@@ -215,8 +214,8 @@ export default function Home() {
           50%      { transform: scale(1.3); opacity: 0.5; }
         }
         @keyframes map-ping {
-          0%   { transform: translate(-50%, -50%) scale(1); opacity: 0.8; }
-          100% { transform: translate(-50%, -50%) scale(2.5); opacity: 0; }
+          0%   { transform: scale(1); opacity: 0.75; }
+          100% { transform: scale(3); opacity: 0; }
         }
         .hero-ping {
           width: 8px; height: 8px;
@@ -230,6 +229,7 @@ export default function Home() {
           border-radius: 50%;
           background: inherit;
           animation: map-ping 2s ease-out infinite;
+          animation-delay: inherit;
         }
 
         .hero-orb-lavender {
