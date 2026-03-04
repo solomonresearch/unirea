@@ -225,11 +225,11 @@ export default function CercuriPage() {
         </div>
       </header>
 
-      <div className="max-w-sm mx-auto px-4 py-4 space-y-4">
+      <div className="max-w-sm mx-auto px-4 py-4 space-y-3">
         {/* Classmates section */}
         {showClassmates && (
           <div
-            className="rounded-lg p-4 border space-y-3"
+            className="rounded-lg p-3 border space-y-2"
             style={{ background: 'var(--white)', borderColor: 'var(--border)', boxShadow: 'var(--shadow-s)' }}
           >
             {userClass && (

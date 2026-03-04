@@ -100,9 +100,9 @@ export default function AdminPage() {
           {users.length} utilizatori înregistrați
         </p>
 
-        <div className="space-y-3">
+        <div className="space-y-2">
           {users.map(user => (
-            <div key={user.id} className="rounded-lg p-3" style={{ background: 'var(--white)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-s)' }}>
+            <div key={user.id} className="rounded-lg p-2.5" style={{ background: 'var(--white)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-s)' }}>
               <div className="flex items-center justify-between">
                 <div className="min-w-0 flex-1">
                   <p className="font-medium truncate" style={{ color: 'var(--ink)' }}>{user.name || 'Fără nume'}</p>

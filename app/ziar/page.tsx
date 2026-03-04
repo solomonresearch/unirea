@@ -192,7 +192,7 @@ export default function ZiarPage() {
     <>
       <AvizierTabBar />
       <main className="flex min-h-screen flex-col items-center px-6 pt-14 pb-24" style={{ background: 'var(--cream2)' }}>
-        <div className="w-full max-w-sm space-y-4">
+        <div className="w-full max-w-sm space-y-3">
           {/* Header with post button */}
           <div className="flex items-center justify-between">
             <h1 className="font-display text-xl" style={{ color: 'var(--ink)' }}>Ziar</h1>
@@ -239,7 +239,7 @@ export default function ZiarPage() {
           </div>
 
           {/* Posts feed */}
-          <div className="space-y-3">
+          <div className="space-y-2">
             {posts.length === 0 && (
               <p className="text-center text-sm py-8" style={{ color: 'var(--ink3)' }}>
                 Nicio postare inca. Fii primul care scrie in ziar!

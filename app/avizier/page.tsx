@@ -466,7 +466,7 @@ export default function AvizierPage() {
           </div>
         </header>
 
-        <div className="max-w-sm mx-auto w-full px-4 pt-4 space-y-3">
+        <div className="max-w-sm mx-auto w-full px-4 pt-4 space-y-2">
           {(missingClassData || missingPromotieData) && (
             <p className="text-[0.82rem] text-center py-8" style={{ color: 'var(--ink3)' }}>
               Completează profilul pentru a accesa această secțiune.
@@ -501,7 +501,7 @@ export default function AvizierPage() {
                 return (
                   <div
                     key={quiz.id}
-                    className="rounded-lg p-4 border"
+                    className="rounded-lg p-3 border"
                     style={{ background: 'var(--white)', borderColor: 'var(--border)', boxShadow: 'var(--shadow-s)' }}
                   >
                     <div className="flex items-start justify-between gap-2">

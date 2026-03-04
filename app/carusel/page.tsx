@@ -191,7 +191,7 @@ export default function CaruselPage() {
 
   return (
     <div className="flex min-h-screen flex-col items-center px-6 py-6 pb-24" style={{ background: 'var(--cream2)' }}>
-      <div className="w-full max-w-sm space-y-4">
+      <div className="w-full max-w-sm space-y-3">
         {/* Hidden file input */}
         <input
           ref={fileInputRef}
@@ -272,11 +272,11 @@ export default function CaruselPage() {
             <h2 className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: 'var(--ink3)' }}>
               Activitate
             </h2>
-            <div className="space-y-3">
+            <div className="space-y-2">
               {posts.map(photo => (
                 <div
                   key={photo.id}
-                  className="flex gap-3 rounded-lg p-3"
+                  className="flex gap-3 rounded-lg p-2.5"
                   style={{ background: 'var(--white)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-s)' }}
                 >
                   <button
