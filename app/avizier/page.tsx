@@ -422,7 +422,7 @@ export default function AvizierPage() {
       <main className="flex flex-col min-h-screen pb-24" style={{ background: 'var(--cream2)' }}>
         {/* Sticky topbar */}
         <header
-          className="sticky top-0 z-50 px-5 border-b"
+          className="sticky top-0 z-50 border-b"
           style={{
             background: 'var(--cream)',
             borderColor: 'var(--border)',
@@ -430,7 +430,7 @@ export default function AvizierPage() {
             paddingBottom: '12px',
           }}
         >
-          <div className="max-w-sm mx-auto flex items-center justify-between">
+          <div className="max-w-sm mx-auto px-4 flex items-center justify-between">
             <span className="font-display text-xl" style={{ color: 'var(--ink)' }}>
               uni<span style={{ color: 'var(--amber)' }}>.</span>rea
             </span>
@@ -440,7 +440,7 @@ export default function AvizierPage() {
           </div>
 
           {/* Ring selector */}
-          <div className="max-w-sm mx-auto mt-3">
+          <div className="max-w-sm mx-auto px-4 mt-3">
             <div
               className="flex rounded-md p-[3px]"
               style={{ background: 'var(--cream2)' }}

@@ -199,23 +199,24 @@ export default function SetariPage() {
         {/* Profile Cover */}
         <div
           className="h-[90px] relative"
-          style={{
-            background: 'linear-gradient(130deg, #C8D8A8 0%, #E8D098 50%, #D8C0A8 100%)',
-          }}
+          style={{ background: 'var(--cover-gradient)' }}
         >
           {/* Gear settings button */}
-          <button
-            type="button"
-            onClick={() => setSettingsOpen(true)}
-            className="absolute top-3 right-4 w-9 h-9 flex items-center justify-center rounded-sm transition-opacity hover:opacity-80"
-            style={{ background: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(8px)', color: 'var(--ink2)' }}
-          >
-            <Settings size={16} />
-          </button>
+          <div className="max-w-sm mx-auto h-full relative">
+            <button
+              type="button"
+              onClick={() => setSettingsOpen(true)}
+              className="absolute top-3 right-4 w-9 h-9 flex items-center justify-center rounded-sm transition-opacity hover:opacity-80"
+              style={{ background: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(8px)', color: 'var(--ink2)' }}
+            >
+              <Settings size={16} />
+            </button>
+          </div>
 
-          <div className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(to bottom, transparent 60%, rgba(239,233,222,0.6))' }} />
+          <div className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(to bottom, transparent 60%, color-mix(in srgb, var(--cream2) 60%, transparent))' }} />
         </div>
 
+        <div className="max-w-sm mx-auto">
         {/* Avatar overlap */}
         <div className="relative mx-4" style={{ marginTop: '-28px', zIndex: 10, width: 'fit-content' }}>
           <div className="relative">
@@ -397,6 +398,7 @@ export default function SetariPage() {
             ))}
           </div>
         </div>
+        </div>{/* end max-w-sm wrapper */}
 
         {/* Profile sections */}
         <div className="max-w-sm mx-auto px-4 pt-3 space-y-3">
@@ -549,7 +551,7 @@ export default function SetariPage() {
         >
           {/* Settings header */}
           <div
-            className="flex items-center justify-between px-5 border-b"
+            className="border-b"
             style={{
               paddingTop: '52px',
               paddingBottom: '14px',
@@ -557,6 +559,7 @@ export default function SetariPage() {
               borderColor: 'var(--border)',
             }}
           >
+          <div className="max-w-sm mx-auto px-4 flex items-center justify-between">
             <h2 className="font-display text-[1.4rem]" style={{ color: 'var(--ink)' }}>Setări</h2>
             <button
               type="button"
@@ -566,6 +569,7 @@ export default function SetariPage() {
             >
               <X size={16} />
             </button>
+          </div>
           </div>
 
           <div className="flex-1 overflow-y-auto">
@@ -579,7 +583,7 @@ export default function SetariPage() {
                 <p className="text-[0.64rem] font-bold uppercase tracking-widest mb-3" style={{ color: 'var(--ink3)' }}>
                   Aspect
                 </p>
-                <div className="flex gap-3">
+                <div className="grid grid-cols-3 gap-3">
                   {SKINS.map(s => {
                     const selected = (pendingSkin ?? skin) === s.id
                     return (
