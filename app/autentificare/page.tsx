@@ -1,14 +1,11 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Logo } from '@/components/Logo'
 import { getSupabase } from '@/lib/supabase'
 import { Mail, Lock, Loader2, ArrowLeft } from 'lucide-react'
 
 export default function LoginPage() {
-  const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [email, setEmail] = useState('')
@@ -36,39 +33,90 @@ export default function LoginPage() {
     }
   }
 
-  const inputClass = "w-full rounded-lg border border-gray-300 pl-9 pr-3 py-2.5 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none"
-  const iconClass = "absolute left-3 top-2.5 text-gray-400"
-
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center px-5">
-      <div className="w-full max-w-sm space-y-6">
-        <div className="flex items-center gap-2">
-          <Link href="/" className="text-gray-400 hover:text-gray-600">
-            <ArrowLeft size={18} />
+    <main
+      className="flex min-h-screen flex-col px-7 pt-14 pb-10"
+      style={{ background: 'var(--cream)' }}
+    >
+      <div className="w-full max-w-sm mx-auto space-y-6">
+        {/* Back + wordmark */}
+        <div className="flex items-center gap-3">
+          <Link
+            href="/"
+            className="w-9 h-9 flex items-center justify-center rounded-sm"
+            style={{ background: 'var(--white)', boxShadow: 'var(--shadow-s)', color: 'var(--ink2)' }}
+          >
+            <ArrowLeft size={16} />
           </Link>
-          <Logo size={28} />
-          <h1 className="text-lg font-bold text-gray-900">Autentificare</h1>
+          <span className="font-display text-xl" style={{ color: 'var(--ink)' }}>
+            uni<span style={{ color: 'var(--amber)' }}>.</span>rea
+          </span>
+        </div>
+
+        <div>
+          <h1
+            className="font-display text-[1.8rem] leading-[1.2] mb-1"
+            style={{ color: 'var(--ink)' }}
+          >
+            Bun venit <em className="italic" style={{ color: 'var(--amber)' }}>înapoi</em>
+          </h1>
+          <p className="text-[0.77rem]" style={{ color: 'var(--ink3)' }}>
+            Autentifică-te pentru a continua
+          </p>
         </div>
 
         {error && (
-          <div className="rounded-lg bg-red-50 border border-red-200 px-3 py-2 text-xs text-red-700">
+          <div
+            className="rounded-sm px-3 py-2 text-xs"
+            style={{ background: '#FEF2F2', border: '1px solid #FECACA', color: 'var(--rose)' }}
+          >
             {error}
           </div>
         )}
 
-        <form onSubmit={handleLogin} className="space-y-2.5">
+        <form onSubmit={handleLogin} className="space-y-3">
           <div className="relative">
-            <Mail size={15} className={iconClass} />
-            <input type="email" required value={email} onChange={e => setEmail(e.target.value)} placeholder="Email" className={inputClass} />
+            <Mail size={15} className="absolute left-3 top-[13px] pointer-events-none" style={{ color: 'var(--ink3)' }} />
+            <input
+              type="email"
+              required
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              placeholder="Email"
+              className="w-full pl-9 pr-3 py-[11px] text-[0.88rem] rounded-sm outline-none transition-colors"
+              style={{
+                background: 'var(--cream2)',
+                border: '1.5px solid var(--border)',
+                color: 'var(--ink)',
+                fontFamily: 'inherit',
+              }}
+            />
           </div>
 
           <div className="relative">
-            <Lock size={15} className={iconClass} />
-            <input type="password" required value={password} onChange={e => setPassword(e.target.value)} placeholder="Parola" className={inputClass} />
+            <Lock size={15} className="absolute left-3 top-[13px] pointer-events-none" style={{ color: 'var(--ink3)' }} />
+            <input
+              type="password"
+              required
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              placeholder="Parola"
+              className="w-full pl-9 pr-3 py-[11px] text-[0.88rem] rounded-sm outline-none transition-colors"
+              style={{
+                background: 'var(--cream2)',
+                border: '1.5px solid var(--border)',
+                color: 'var(--ink)',
+                fontFamily: 'inherit',
+              }}
+            />
           </div>
 
           <div className="text-right">
-            <Link href="/resetare-parola" className="text-xs text-primary-700 hover:underline">
+            <Link
+              href="/resetare-parola"
+              className="text-[0.75rem] hover:underline"
+              style={{ color: 'var(--amber-dark)' }}
+            >
               Ai uitat parola?
             </Link>
           </div>
@@ -76,17 +124,22 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="flex items-center justify-center gap-2 w-full rounded-lg bg-primary-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-primary-800 disabled:opacity-50 transition-colors"
+            className="flex items-center justify-center gap-2 w-full py-[15px] rounded-md text-[0.88rem] font-bold text-white disabled:opacity-50 transition-opacity hover:opacity-90"
+            style={{ background: 'var(--ink)', fontFamily: 'inherit' }}
           >
-            {loading ? <Loader2 size={16} className="animate-spin" /> : null}
-            {loading ? 'Se autentifica...' : 'Intra in cont'}
+            {loading && <Loader2 size={16} className="animate-spin" />}
+            {loading ? 'Se autentifica...' : 'Intră în cont'}
           </button>
         </form>
 
-        <p className="text-center text-sm text-gray-500">
+        <p className="text-center text-[0.82rem]" style={{ color: 'var(--ink3)' }}>
           Nu ai cont?{' '}
-          <Link href="/inregistrare" className="text-primary-700 font-medium hover:underline">
-            Inregistreaza-te
+          <Link
+            href="/inregistrare"
+            className="font-semibold hover:underline"
+            style={{ color: 'var(--amber-dark)' }}
+          >
+            Înregistrează-te
           </Link>
         </p>
       </div>

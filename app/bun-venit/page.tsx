@@ -70,36 +70,37 @@ export default function WelcomePage() {
 
   if (loading) {
     return (
-      <main className="flex min-h-screen items-center justify-center">
-        <Loader2 size={32} className="animate-spin text-primary-700" />
+      <main className="flex min-h-screen items-center justify-center" style={{ background: 'var(--cream2)' }}>
+        <Loader2 size={32} className="animate-spin" style={{ color: 'var(--ink3)' }} />
       </main>
     )
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center px-6 py-8">
+    <main className="flex min-h-screen flex-col items-center px-6 py-8" style={{ background: 'var(--cream2)' }}>
       {showFireworks && <Fireworks duration={4000} />}
       <div className="w-full max-w-sm space-y-8">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Logo size={32} />
-            <span className="text-lg font-bold text-gray-900">Unirea</span>
+            <span className="font-display text-xl" style={{ color: 'var(--ink)' }}>uni<span style={{ color: 'var(--amber)' }}>.</span>rea</span>
           </div>
           <button
             onClick={handleLogout}
-            className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm text-gray-500 hover:bg-gray-100 transition-colors"
+            className="flex items-center gap-1.5 rounded-sm px-3 py-2 text-sm transition-colors"
+            style={{ color: 'var(--ink2)', border: '1px solid var(--border)', background: 'var(--white)' }}
           >
             <LogOut size={16} />
             Iesire
           </button>
         </div>
 
-        <div className="rounded-2xl bg-white border border-gray-200 p-6 space-y-4 shadow-sm">
+        <div className="rounded-2xl p-6 space-y-4" style={{ background: 'var(--white)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-m)' }}>
           <div className="text-center space-y-2">
-            <h1 className="text-2xl font-bold text-gray-900">
+            <h1 className="font-display text-2xl" style={{ color: 'var(--ink)' }}>
               Bun venit{profile ? `, ${profile.name}` : ''}!
             </h1>
-            <p className="text-gray-500 text-sm">
+            <p className="text-sm" style={{ color: 'var(--ink3)' }}>
               {redirecting
                 ? 'Te redirectionam sa iti completezi profilul...'
                 : 'Te-ai conectat cu succes la Unirea'}
@@ -107,35 +108,35 @@ export default function WelcomePage() {
           </div>
 
           {profile && (
-            <div className="pt-4 border-t border-gray-100 space-y-3">
+            <div className="pt-4 space-y-3" style={{ borderTop: '1px solid var(--border)' }}>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-500">Utilizator</span>
-                <span className="font-medium text-gray-900">@{profile.username}</span>
+                <span style={{ color: 'var(--ink3)' }}>Utilizator</span>
+                <span className="font-medium" style={{ color: 'var(--ink)' }}>@{profile.username}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-500">Liceu</span>
-                <span className="font-medium text-gray-900">{profile.highschool}</span>
+                <span style={{ color: 'var(--ink3)' }}>Liceu</span>
+                <span className="font-medium" style={{ color: 'var(--ink)' }}>{profile.highschool}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-500">Promotia</span>
-                <span className="font-medium text-gray-900">{profile.graduation_year}</span>
+                <span style={{ color: 'var(--ink3)' }}>Promotia</span>
+                <span className="font-medium" style={{ color: 'var(--ink)' }}>{profile.graduation_year}</span>
               </div>
               {profile.profession && profile.profession.length > 0 && (
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-500 flex items-center gap-1"><Briefcase size={12} /> Profesie</span>
-                  <span className="font-medium text-gray-900 text-right">{profile.profession.join(', ')}</span>
+                  <span className="flex items-center gap-1" style={{ color: 'var(--ink3)' }}><Briefcase size={12} /> Profesie</span>
+                  <span className="font-medium text-right" style={{ color: 'var(--ink)' }}>{profile.profession.join(', ')}</span>
                 </div>
               )}
               {(profile.city || profile.country) && (
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-500 flex items-center gap-1"><MapPin size={12} /> Locatie</span>
-                  <span className="font-medium text-gray-900">{[profile.city, profile.country].filter(Boolean).join(', ')}</span>
+                  <span className="flex items-center gap-1" style={{ color: 'var(--ink3)' }}><MapPin size={12} /> Locatie</span>
+                  <span className="font-medium" style={{ color: 'var(--ink)' }}>{[profile.city, profile.country].filter(Boolean).join(', ')}</span>
                 </div>
               )}
               {profile.hobbies && profile.hobbies.length > 0 && (
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-500 flex items-center gap-1"><Heart size={12} /> Hobby-uri</span>
-                  <span className="font-medium text-gray-900 text-right">{profile.hobbies.join(', ')}</span>
+                  <span className="flex items-center gap-1" style={{ color: 'var(--ink3)' }}><Heart size={12} /> Hobby-uri</span>
+                  <span className="font-medium text-right" style={{ color: 'var(--ink)' }}>{profile.hobbies.join(', ')}</span>
                 </div>
               )}
             </div>

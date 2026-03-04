@@ -7,6 +7,7 @@ import { Loader2, Send, Trash2, ChevronUp, ChevronDown, MessageCircle, Clock, Pl
 import { QuizOverlay } from '@/components/sondaje/QuizOverlay'
 import { QuizCreateDialog } from '@/components/sondaje/QuizCreateDialog'
 import { QuizEditDialog } from '@/components/sondaje/QuizEditDialog'
+import { BottomNav } from '@/components/BottomNav'
 
 type Scope = 'clasa' | 'promotie' | 'liceu'
 
@@ -82,7 +83,6 @@ const DB_SCOPE: Record<Scope, string> = {
   liceu: 'school',
 }
 
-// Mapping from avizier scope to quiz target_scope
 const QUIZ_SCOPE: Record<Scope, string> = {
   clasa: 'class',
   promotie: 'year',
@@ -97,19 +97,19 @@ function relativeTime(dateStr: string): string {
   if (diff < 60) return 'acum'
   if (diff < 3600) {
     const m = Math.floor(diff / 60)
-    return `acum ${m} ${m === 1 ? 'minut' : 'minute'}`
+    return `${m}m`
   }
   if (diff < 86400) {
     const h = Math.floor(diff / 3600)
-    return `acum ${h} ${h === 1 ? 'ora' : 'ore'}`
+    return `${h}h`
   }
   if (diff < 172800) return 'ieri'
   if (diff < 2592000) {
     const d = Math.floor(diff / 86400)
-    return `acum ${d} zile`
+    return `${d}z`
   }
   const mo = Math.floor(diff / 2592000)
-  return `acum ${mo} ${mo === 1 ? 'luna' : 'luni'}`
+  return `${mo}l`
 }
 
 function expiryLabel(expiresAt: string): string {
@@ -118,10 +118,10 @@ function expiryLabel(expiresAt: string): string {
   const diffMs = expires - now
   if (diffMs <= 0) return 'Expirat'
   const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
-  if (diffHours < 1) return 'Expira in <1 ora'
-  if (diffHours < 24) return `Expira in ${diffHours} ${diffHours === 1 ? 'ora' : 'ore'}`
+  if (diffHours < 1) return 'Expiră în <1 oră'
+  if (diffHours < 24) return `Expiră în ${diffHours}h`
   const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24))
-  return `Expira in ${diffDays} ${diffDays === 1 ? 'zi' : 'zile'}`
+  return `Expiră în ${diffDays}z`
 }
 
 function quizExpiryLabel(expiresAt: string): string {
@@ -146,6 +146,17 @@ function initialScope(): Scope {
   return 'liceu'
 }
 
+function avatarColor(name: string): string {
+  const colors = ['#5B8E6D', '#7B6D9E', '#4A7B9A', '#C4634A', '#8E6B4A', '#4A8E6B', '#9E5A8A']
+  let hash = 0
+  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash)
+  return colors[Math.abs(hash) % colors.length]
+}
+
+function initials(name: string): string {
+  return name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
+}
+
 export default function AvizierPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
@@ -160,7 +171,6 @@ export default function AvizierPage() {
   const [expandedComments, setExpandedComments] = useState<Set<string>>(new Set())
   const [commentTexts, setCommentTexts] = useState<Record<string, string>>({})
 
-  // Quiz state
   const [quizzes, setQuizzes] = useState<Quiz[]>([])
   const [quizzesLoading, setQuizzesLoading] = useState(false)
   const [activeQuiz, setActiveQuiz] = useState<Quiz | null>(null)
@@ -360,7 +370,6 @@ export default function AvizierPage() {
     })
   }
 
-  // Quiz handlers
   function openQuizTake(quiz: Quiz) { setActiveQuiz(quiz); setOverlayMode('take') }
   function openQuizResults(quiz: Quiz) { setActiveQuiz(quiz); setOverlayMode('results') }
   function openQuizPeek(quiz: Quiz) { setActiveQuiz(quiz); setOverlayMode('peek') }
@@ -385,8 +394,8 @@ export default function AvizierPage() {
 
   if (loading) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-white">
-        <Loader2 size={24} className="animate-spin text-gray-400" />
+      <main className="flex min-h-screen items-center justify-center" style={{ background: 'var(--cream2)' }}>
+        <Loader2 size={24} className="animate-spin" style={{ color: 'var(--ink3)' }} />
       </main>
     )
   }
@@ -399,255 +408,349 @@ export default function AvizierPage() {
   const isAdminOrMod = profile.role === 'admin' || profile.role === 'moderator'
 
   const placeholder =
-    scope === 'clasa' ? 'Scrie ceva pe tabla...' :
-    scope === 'promotie' ? 'Scrie ceva promotiei...' :
-    'Scrie un anunt...'
+    scope === 'clasa' ? 'Scrie ceva pe tablă...' :
+    scope === 'promotie' ? 'Scrie ceva promoției...' :
+    'Scrie un anunț...'
 
   const emptyText =
-    scope === 'clasa' ? 'Niciun mesaj inca. Fii primul care scrie pe tabla!' :
-    scope === 'promotie' ? 'Nicio postare inca pentru promotia ta.' :
-    'Niciun anunt inca. Fii primul care posteaza pe avizier!'
+    scope === 'clasa' ? 'Niciun mesaj încă. Fii primul care scrie pe tablă!' :
+    scope === 'promotie' ? 'Nicio postare încă pentru promoția ta.' :
+    'Niciun anunț încă. Fii primul care postează!'
 
   return (
-    <main className="flex min-h-screen flex-col items-center bg-white px-6 py-6 pb-24">
-      <div className="w-full max-w-sm space-y-4">
-        {/* Scope switcher + label row */}
-        <div className="flex items-center justify-between">
-          <p className="text-[10px] leading-tight text-gray-500 truncate flex-1 mr-2">
-            {scopeLabel(profile, scope)}
-          </p>
-          <div className="flex items-center gap-0.5 shrink-0">
-            {(['clasa', 'promotie', 'liceu'] as const).map(s => (
-              <button
-                key={s}
-                type="button"
-                onClick={() => handleScopeChange(s)}
-                className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
-                  scope === s ? 'bg-gray-900 text-white' : 'text-gray-400 hover:text-gray-700'
-                }`}
-              >
-                {s === 'clasa' ? 'Clasă' : s === 'promotie' ? 'Promoție' : 'Liceu'}
-              </button>
-            ))}
+    <>
+      <main className="flex flex-col min-h-screen pb-24" style={{ background: 'var(--cream2)' }}>
+        {/* Sticky topbar */}
+        <header
+          className="sticky top-0 z-50 px-5 border-b"
+          style={{
+            background: 'var(--cream)',
+            borderColor: 'var(--border)',
+            paddingTop: '44px',
+            paddingBottom: '12px',
+          }}
+        >
+          <div className="max-w-sm mx-auto flex items-center justify-between">
+            <span className="font-display text-xl" style={{ color: 'var(--ink)' }}>
+              uni<span style={{ color: 'var(--amber)' }}>.</span>rea
+            </span>
+            <p className="text-[0.62rem] truncate ml-3 flex-1 text-right" style={{ color: 'var(--ink3)' }}>
+              {scopeLabel(profile, scope)}
+            </p>
           </div>
-        </div>
 
-        {/* Missing profile data warning (clasa/promotie only) */}
-        {(missingClassData || missingPromotieData) && (
-          <p className="text-sm text-amber-600 text-center py-4">
-            Completeaza profilul pentru a accesa aceasta sectiune.
-          </p>
-        )}
+          {/* Ring selector */}
+          <div className="max-w-sm mx-auto mt-3">
+            <div
+              className="flex rounded-md p-[3px]"
+              style={{ background: 'var(--cream2)' }}
+            >
+              {(['clasa', 'promotie', 'liceu'] as const).map(s => (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() => handleScopeChange(s)}
+                  className="flex-1 py-[7px] rounded-sm text-[0.68rem] font-semibold transition-all"
+                  style={scope === s ? {
+                    background: 'var(--white)',
+                    color: 'var(--ink)',
+                    boxShadow: 'var(--shadow-s)',
+                  } : {
+                    color: 'var(--ink3)',
+                  }}
+                >
+                  {s === 'clasa' ? 'Clasă' : s === 'promotie' ? 'Promoție' : 'Liceu'}
+                </button>
+              ))}
+            </div>
+          </div>
+        </header>
 
-        {!missingClassData && !missingPromotieData && (
-          <>
-            {/* Admin: create quiz button */}
-            {isAdmin && (
-              <button
-                onClick={() => setCreateQuizOpen(true)}
-                className="flex items-center gap-2 w-full px-4 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors justify-center"
-              >
-                <Plus className="w-4 h-4" />
-                Creează sondaj
-              </button>
-            )}
+        <div className="max-w-sm mx-auto w-full px-4 pt-4 space-y-3">
+          {(missingClassData || missingPromotieData) && (
+            <p className="text-[0.82rem] text-center py-8" style={{ color: 'var(--ink3)' }}>
+              Completează profilul pentru a accesa această secțiune.
+            </p>
+          )}
 
-            {/* Quiz cards */}
-            {quizzesLoading && (
-              <div className="flex justify-center py-4">
-                <Loader2 size={18} className="animate-spin text-gray-300" />
-              </div>
-            )}
-            {!quizzesLoading && quizzes.map(quiz => {
-              const resultsUnlocked = quiz.results_unlocked_at != null
-              const resultsLocked = quiz.completed && !resultsUnlocked
-              const progressPct = Math.min(100, Math.round((quiz.response_count / quiz.reveal_threshold) * 100))
+          {!missingClassData && !missingPromotieData && (
+            <>
+              {/* Admin: create quiz button */}
+              {isAdmin && (
+                <button
+                  onClick={() => setCreateQuizOpen(true)}
+                  className="flex items-center gap-2 w-full px-4 py-2.5 rounded-sm text-[0.82rem] font-semibold justify-center transition-opacity hover:opacity-80"
+                  style={{ background: 'var(--teal)', color: 'var(--white)' }}
+                >
+                  <Plus size={16} />
+                  Creează sondaj
+                </button>
+              )}
 
-              return (
-                <div key={quiz.id} className="rounded-xl border border-blue-100 bg-blue-50/40 p-4">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-1.5 mb-1">
-                        <span className="text-[10px] font-semibold text-blue-600 uppercase tracking-wide">Sondaj</span>
-                        {quiz.completed && resultsUnlocked && (
-                          <CheckCircle2 className="w-3.5 h-3.5 text-green-500" />
-                        )}
-                        {resultsLocked && (
-                          <Lock className="w-3.5 h-3.5 text-gray-400" />
+              {/* Quiz cards */}
+              {quizzesLoading && (
+                <div className="flex justify-center py-4">
+                  <Loader2 size={18} className="animate-spin" style={{ color: 'var(--ink3)' }} />
+                </div>
+              )}
+              {!quizzesLoading && quizzes.map(quiz => {
+                const resultsUnlocked = quiz.results_unlocked_at != null
+                const resultsLocked = quiz.completed && !resultsUnlocked
+                const progressPct = Math.min(100, Math.round((quiz.response_count / quiz.reveal_threshold) * 100))
+
+                return (
+                  <div
+                    key={quiz.id}
+                    className="rounded-lg p-4 border"
+                    style={{ background: 'var(--white)', borderColor: 'var(--border)', boxShadow: 'var(--shadow-s)' }}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5 mb-1">
+                          <span
+                            className="text-[0.6rem] font-bold uppercase tracking-wider"
+                            style={{ color: 'var(--teal)' }}
+                          >
+                            Sondaj
+                          </span>
+                          {quiz.completed && resultsUnlocked && (
+                            <CheckCircle2 size={12} style={{ color: 'var(--teal)' }} />
+                          )}
+                          {resultsLocked && (
+                            <Lock size={12} style={{ color: 'var(--ink3)' }} />
+                          )}
+                        </div>
+                        <h3 className="font-bold text-[0.82rem]" style={{ color: 'var(--ink)' }}>{quiz.title}</h3>
+                        {quiz.description && (
+                          <p className="text-[0.72rem] mt-0.5 line-clamp-2" style={{ color: 'var(--ink3)' }}>{quiz.description}</p>
                         )}
                       </div>
-                      <h3 className="font-semibold text-gray-900 text-sm">{quiz.title}</h3>
-                      {quiz.description && (
-                        <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{quiz.description}</p>
+                      {isAdminOrMod && (
+                        <button
+                          onClick={() => setEditingQuiz(quiz)}
+                          className="p-1 transition-colors"
+                          style={{ color: 'var(--ink3)' }}
+                        >
+                          <Pencil size={13} />
+                        </button>
                       )}
                     </div>
-                    {isAdminOrMod && (
-                      <button
-                        onClick={() => setEditingQuiz(quiz)}
-                        className="p-1 text-gray-400 hover:text-gray-600 transition-colors shrink-0"
-                      >
-                        <Pencil className="w-3.5 h-3.5" />
-                      </button>
-                    )}
-                  </div>
 
-                  <div className="flex items-center gap-3 mt-2">
-                    <span className="flex items-center gap-1 text-xs text-gray-400">
-                      <Users className="w-3 h-3" />
-                      {quiz.response_count} {quiz.response_count === 1 ? 'răspuns' : 'răspunsuri'}
-                    </span>
-                    {quiz.expires_at && (
-                      <span className="flex items-center gap-1 text-xs text-gray-400">
-                        <Clock className="w-3 h-3" />
-                        {quizExpiryLabel(quiz.expires_at)}
+                    <div className="flex items-center gap-3 mt-2">
+                      <span className="flex items-center gap-1 text-[0.68rem]" style={{ color: 'var(--ink3)' }}>
+                        <Users size={12} />
+                        {quiz.response_count} {quiz.response_count === 1 ? 'răspuns' : 'răspunsuri'}
                       </span>
-                    )}
-                  </div>
-
-                  {/* Progress bar (completed + locked) */}
-                  {resultsLocked && (
-                    <div className="mt-3">
-                      <div className="flex justify-between items-center mb-1">
-                        <p className="text-xs text-gray-500">
-                          {quiz.response_count}/{quiz.reveal_threshold} colegi
-                        </p>
-                        <p className="text-xs text-gray-400">{progressPct}%</p>
-                      </div>
-                      <div className="h-1.5 rounded-full bg-gray-200 overflow-hidden">
-                        <div
-                          className="h-full rounded-full bg-blue-500 transition-all"
-                          style={{ width: `${progressPct}%` }}
-                        />
-                      </div>
+                      {quiz.expires_at && (
+                        <span className="flex items-center gap-1 text-[0.68rem]" style={{ color: 'var(--ink3)' }}>
+                          <Clock size={12} />
+                          {quizExpiryLabel(quiz.expires_at)}
+                        </span>
+                      )}
                     </div>
-                  )}
 
-                  <div className="mt-3 space-y-2">
-                    {!quiz.completed && (
-                      <button
-                        onClick={() => openQuizTake(quiz)}
-                        className="w-full py-2 bg-blue-600 text-white rounded-lg text-xs font-semibold hover:bg-blue-700 transition-colors"
-                      >
-                        Participă
-                      </button>
-                    )}
-                    {quiz.completed && resultsUnlocked && (
-                      <button
-                        onClick={() => openQuizResults(quiz)}
-                        className="w-full py-2 border border-blue-600 text-blue-600 rounded-lg text-xs font-semibold hover:bg-blue-50 transition-colors"
-                      >
-                        Vezi rezultate
-                      </button>
-                    )}
                     {resultsLocked && (
-                      <button
-                        onClick={() => !quiz.has_peeked && openQuizPeek(quiz)}
-                        disabled={quiz.has_peeked}
-                        className={`w-full flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                          quiz.has_peeked
-                            ? 'text-gray-300 cursor-not-allowed'
-                            : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
-                        }`}
-                      >
-                        <Eye className="w-3.5 h-3.5" />
-                        {quiz.has_peeked ? 'Ai folosit privirea rapidă' : 'Privire rapidă'}
-                      </button>
+                      <div className="mt-3">
+                        <div className="flex justify-between items-center mb-1">
+                          <p className="text-[0.68rem]" style={{ color: 'var(--ink3)' }}>
+                            {quiz.response_count}/{quiz.reveal_threshold} colegi
+                          </p>
+                          <p className="text-[0.68rem]" style={{ color: 'var(--ink3)' }}>{progressPct}%</p>
+                        </div>
+                        <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--cream2)' }}>
+                          <div
+                            className="h-full rounded-full transition-all"
+                            style={{ width: `${progressPct}%`, background: 'var(--teal)' }}
+                          />
+                        </div>
+                      </div>
                     )}
+
+                    <div className="mt-3 space-y-2">
+                      {!quiz.completed && (
+                        <button
+                          onClick={() => openQuizTake(quiz)}
+                          className="w-full py-2 rounded-sm text-[0.75rem] font-bold transition-opacity hover:opacity-80"
+                          style={{ background: 'var(--ink)', color: 'var(--white)' }}
+                        >
+                          Participă
+                        </button>
+                      )}
+                      {quiz.completed && resultsUnlocked && (
+                        <button
+                          onClick={() => openQuizResults(quiz)}
+                          className="w-full py-2 rounded-sm text-[0.75rem] font-semibold transition-colors"
+                          style={{ border: '1.5px solid var(--teal)', color: 'var(--teal)', background: 'transparent' }}
+                        >
+                          Vezi rezultate
+                        </button>
+                      )}
+                      {resultsLocked && (
+                        <button
+                          onClick={() => !quiz.has_peeked && openQuizPeek(quiz)}
+                          disabled={quiz.has_peeked}
+                          className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded-sm text-[0.72rem] font-medium transition-colors"
+                          style={{ color: quiz.has_peeked ? 'var(--ink3)' : 'var(--ink2)', cursor: quiz.has_peeked ? 'default' : 'pointer' }}
+                        >
+                          <Eye size={13} />
+                          {quiz.has_peeked ? 'Ai folosit privirea rapidă' : 'Privire rapidă'}
+                        </button>
+                      )}
+                    </div>
                   </div>
-                </div>
-              )
-            })}
+                )
+              })}
 
-            {/* Create post form */}
-            <form onSubmit={handleSubmit} className="space-y-2">
-              <textarea
-                value={newContent}
-                onChange={e => setNewContent(e.target.value)}
-                placeholder={placeholder}
-                rows={2}
-                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-gray-500 focus:ring-1 focus:ring-gray-500 outline-none resize-none"
-              />
-              <div className="flex items-center gap-2">
-                {scope === 'liceu' && (
-                  <select
-                    value={expiryDays}
-                    onChange={e => setExpiryDays(Number(e.target.value))}
-                    className="rounded-lg border border-gray-300 bg-white px-2 py-1.5 text-sm text-gray-700 focus:border-gray-500 outline-none"
-                  >
-                    {EXPIRY_OPTIONS.map(opt => (
-                      <option key={opt.value} value={opt.value}>{opt.label}</option>
-                    ))}
-                  </select>
-                )}
-                <button
-                  type="submit"
-                  disabled={submitting || !newContent.trim()}
-                  className="ml-auto rounded-lg bg-gray-900 px-3 py-1.5 text-sm font-semibold text-white hover:bg-gray-700 disabled:opacity-50 transition-colors"
-                >
-                  {submitting ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
-                </button>
+              {/* Create post card */}
+              <div
+                className="rounded-lg border"
+                style={{ background: 'var(--white)', borderColor: 'var(--border)', boxShadow: 'var(--shadow-s)' }}
+              >
+                <form onSubmit={handleSubmit} className="p-3 space-y-2">
+                  <textarea
+                    value={newContent}
+                    onChange={e => setNewContent(e.target.value)}
+                    placeholder={placeholder}
+                    rows={2}
+                    className="w-full rounded-sm px-3 py-2 text-[0.82rem] outline-none resize-none"
+                    style={{
+                      background: 'var(--cream2)',
+                      border: '1.5px solid var(--border)',
+                      color: 'var(--ink)',
+                      fontFamily: 'inherit',
+                    }}
+                  />
+                  <div className="flex items-center gap-2">
+                    {scope === 'liceu' && (
+                      <select
+                        value={expiryDays}
+                        onChange={e => setExpiryDays(Number(e.target.value))}
+                        className="rounded-sm px-2 py-1.5 text-[0.78rem] outline-none"
+                        style={{
+                          background: 'var(--cream2)',
+                          border: '1.5px solid var(--border)',
+                          color: 'var(--ink2)',
+                          fontFamily: 'inherit',
+                        }}
+                      >
+                        {EXPIRY_OPTIONS.map(opt => (
+                          <option key={opt.value} value={opt.value}>{opt.label}</option>
+                        ))}
+                      </select>
+                    )}
+                    <button
+                      type="submit"
+                      disabled={submitting || !newContent.trim()}
+                      className="ml-auto rounded-sm px-3 py-1.5 text-[0.78rem] font-bold text-white disabled:opacity-40 transition-opacity hover:opacity-80"
+                      style={{ background: 'var(--ink)' }}
+                    >
+                      {submitting ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
+                    </button>
+                  </div>
+                  {submitError && (
+                    <p className="text-[0.72rem]" style={{ color: 'var(--rose)' }}>{submitError}</p>
+                  )}
+                </form>
               </div>
-              {submitError && (
-                <p className="text-xs text-red-500">{submitError}</p>
-              )}
-            </form>
 
-            {/* Posts */}
-            <div className="space-y-3">
+              {/* Posts feed */}
               {postsLoading && (
                 <div className="flex justify-center py-8">
-                  <Loader2 size={20} className="animate-spin text-gray-300" />
+                  <Loader2 size={20} className="animate-spin" style={{ color: 'var(--ink3)' }} />
                 </div>
               )}
               {!postsLoading && posts.length === 0 && (
-                <p className="text-center text-sm text-gray-400 py-8">
+                <p className="text-center text-[0.82rem] py-8" style={{ color: 'var(--ink3)' }}>
                   {emptyText}
                 </p>
               )}
-              {!postsLoading && posts.map(post => (
-                <div key={post.id} className="rounded-lg border border-gray-200 bg-white">
-                  <div className="px-4 py-3">
-                    <div className="flex items-center justify-between mb-1.5">
-                      <span className="text-sm font-medium text-gray-900">@{post.profiles?.username}</span>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs text-gray-400">{relativeTime(post.created_at)}</span>
-                        {post.user_id === profile.id && (
-                          <button type="button" onClick={() => handleDelete(post.id)} className="text-gray-300 hover:text-red-500 transition-colors">
-                            <Trash2 size={13} />
-                          </button>
-                        )}
+              {!postsLoading && posts.map(post => {
+                const name = post.profiles?.name || post.profiles?.username || '?'
+                const bg = avatarColor(name)
+                const ini = initials(name)
+                const score = post.upvotes - post.downvotes
+
+                return (
+                  <div
+                    key={post.id}
+                    className="rounded-lg border overflow-hidden"
+                    style={{ background: 'var(--white)', borderColor: 'var(--border)', boxShadow: 'var(--shadow-s)' }}
+                  >
+                    <div className="px-4 pt-3 pb-2">
+                      {/* Post header */}
+                      <div className="flex items-center gap-2.5 mb-2">
+                        <div
+                          className="w-9 h-9 rounded-sm flex items-center justify-center text-white text-[0.72rem] font-bold flex-shrink-0"
+                          style={{ background: bg }}
+                        >
+                          {ini}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[0.8rem] font-bold leading-none" style={{ color: 'var(--ink)' }}>
+                            {name}
+                          </p>
+                          <p className="text-[0.65rem] mt-0.5" style={{ color: 'var(--ink3)' }}>
+                            @{post.profiles?.username}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <span className="text-[0.6rem]" style={{ color: 'var(--ink3)' }}>
+                            {relativeTime(post.created_at)}
+                          </span>
+                          {post.user_id === profile.id && (
+                            <button
+                              type="button"
+                              onClick={() => handleDelete(post.id)}
+                              className="transition-colors"
+                              style={{ color: 'var(--ink3)' }}
+                            >
+                              <Trash2 size={13} />
+                            </button>
+                          )}
+                        </div>
                       </div>
+
+                      {/* Post body */}
+                      <p className="text-[0.77rem] leading-[1.65] whitespace-pre-wrap" style={{ color: 'var(--ink2)' }}>
+                        {post.content}
+                      </p>
+
+                      {/* Expiry badge */}
+                      {post.expires_at && (
+                        <div className="flex items-center gap-1 mt-2">
+                          <Clock size={11} style={{ color: 'var(--ink3)' }} />
+                          <span className="text-[0.62rem]" style={{ color: 'var(--ink3)' }}>{expiryLabel(post.expires_at)}</span>
+                        </div>
+                      )}
                     </div>
-                    <p className="text-sm text-gray-700 whitespace-pre-wrap">{post.content}</p>
 
-                    {/* Expiry badge (liceu scope only) */}
-                    {post.expires_at && (
-                      <div className="flex items-center gap-1 mt-2">
-                        <Clock size={12} className="text-gray-400" />
-                        <span className="text-[11px] text-gray-400">{expiryLabel(post.expires_at)}</span>
-                      </div>
-                    )}
-
-                    {/* Vote + comment toggle bar */}
-                    <div className="flex items-center gap-3 mt-2.5 pt-2 border-t border-gray-100">
-                      <div className="flex items-center gap-1">
+                    {/* Reactions bar */}
+                    <div
+                      className="flex items-center gap-3 px-4 py-2 border-t"
+                      style={{ borderColor: 'var(--border)' }}
+                    >
+                      <div className="flex items-center gap-0.5">
                         <button
                           type="button"
                           onClick={() => handleVote(post.id, 1)}
-                          className={`p-0.5 rounded transition-colors ${post.user_vote === 1 ? 'text-green-500' : 'text-gray-400 hover:text-green-500'}`}
+                          className="p-0.5 rounded transition-colors"
+                          style={{ color: post.user_vote === 1 ? 'var(--teal)' : 'var(--ink3)' }}
                         >
                           <ChevronUp size={18} strokeWidth={post.user_vote === 1 ? 3 : 2} />
                         </button>
-                        <span className={`text-xs font-medium min-w-[20px] text-center ${
-                          (post.upvotes - post.downvotes) > 0 ? 'text-green-500' :
-                          (post.upvotes - post.downvotes) < 0 ? 'text-red-500' : 'text-gray-400'
-                        }`}>
-                          {post.upvotes - post.downvotes}
+                        <span
+                          className="text-[0.72rem] font-semibold min-w-[20px] text-center"
+                          style={{
+                            color: score > 0 ? 'var(--teal)' : score < 0 ? 'var(--rose)' : 'var(--ink3)',
+                          }}
+                        >
+                          {score}
                         </span>
                         <button
                           type="button"
                           onClick={() => handleVote(post.id, -1)}
-                          className={`p-0.5 rounded transition-colors ${post.user_vote === -1 ? 'text-red-500' : 'text-gray-400 hover:text-red-500'}`}
+                          className="p-0.5 rounded transition-colors"
+                          style={{ color: post.user_vote === -1 ? 'var(--rose)' : 'var(--ink3)' }}
                         >
                           <ChevronDown size={18} strokeWidth={post.user_vote === -1 ? 3 : 2} />
                         </button>
@@ -656,62 +759,83 @@ export default function AvizierPage() {
                       <button
                         type="button"
                         onClick={() => toggleComments(post.id)}
-                        className="flex items-center gap-1 text-gray-400 hover:text-gray-600 transition-colors"
+                        className="flex items-center gap-1.5 transition-colors"
+                        style={{ color: 'var(--ink3)' }}
                       >
-                        <MessageCircle size={14} />
-                        <span className="text-xs">{post.comments.length || ''}</span>
+                        <MessageCircle size={15} />
+                        <span className="text-[0.68rem]">{post.comments.length || ''}</span>
                       </button>
                     </div>
-                  </div>
 
-                  {/* Comments section */}
-                  {expandedComments.has(post.id) && (
-                    <div className="border-t border-gray-100 px-4 py-2.5 space-y-2">
-                      {post.comments.map(comment => (
-                        <div key={comment.id} className="flex items-start gap-2">
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs font-medium text-gray-500">@{comment.profiles?.username}</span>
-                              <span className="text-[10px] text-gray-300">{relativeTime(comment.created_at)}</span>
-                              {comment.user_id === profile.id && (
-                                <button type="button" onClick={() => handleDeleteComment(comment.id)} className="text-gray-300 hover:text-red-500 transition-colors">
-                                  <Trash2 size={11} />
-                                </button>
-                              )}
+                    {/* Comments section */}
+                    {expandedComments.has(post.id) && (
+                      <div
+                        className="border-t px-4 py-3 space-y-2.5"
+                        style={{ borderColor: 'var(--border)', background: 'var(--cream2)' }}
+                      >
+                        {post.comments.map(comment => (
+                          <div key={comment.id} className="flex items-start gap-2">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2">
+                                <span className="text-[0.72rem] font-semibold" style={{ color: 'var(--ink2)' }}>
+                                  @{comment.profiles?.username}
+                                </span>
+                                <span className="text-[0.6rem]" style={{ color: 'var(--ink3)' }}>
+                                  {relativeTime(comment.created_at)}
+                                </span>
+                                {comment.user_id === profile.id && (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDeleteComment(comment.id)}
+                                    className="transition-colors"
+                                    style={{ color: 'var(--ink3)' }}
+                                  >
+                                    <Trash2 size={11} />
+                                  </button>
+                                )}
+                              </div>
+                              <p className="text-[0.75rem] mt-0.5" style={{ color: 'var(--ink2)' }}>{comment.content}</p>
                             </div>
-                            <p className="text-xs text-gray-600 mt-0.5">{comment.content}</p>
                           </div>
+                        ))}
+
+                        <div className="flex gap-1.5 mt-1">
+                          <input
+                            type="text"
+                            value={commentTexts[post.id] || ''}
+                            onChange={e => setCommentTexts(prev => ({ ...prev, [post.id]: e.target.value }))}
+                            onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleComment(post.id) } }}
+                            placeholder="Comentează..."
+                            className="flex-1 rounded-sm px-2.5 py-1.5 text-[0.75rem] outline-none"
+                            style={{
+                              background: 'var(--white)',
+                              border: '1.5px solid var(--border)',
+                              color: 'var(--ink)',
+                              fontFamily: 'inherit',
+                            }}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleComment(post.id)}
+                            disabled={!commentTexts[post.id]?.trim()}
+                            className="rounded-sm px-2 py-1.5 disabled:opacity-40 transition-opacity"
+                            style={{ background: 'var(--ink)', color: 'var(--white)' }}
+                          >
+                            <Send size={12} />
+                          </button>
                         </div>
-                      ))}
-
-                      <div className="flex gap-1.5 mt-1">
-                        <input
-                          type="text"
-                          value={commentTexts[post.id] || ''}
-                          onChange={e => setCommentTexts(prev => ({ ...prev, [post.id]: e.target.value }))}
-                          onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleComment(post.id) } }}
-                          placeholder="Comenteaza..."
-                          className="flex-1 rounded-md border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs text-gray-900 placeholder-gray-400 focus:border-gray-400 outline-none"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => handleComment(post.id)}
-                          disabled={!commentTexts[post.id]?.trim()}
-                          className="rounded-md bg-gray-200 px-2 py-1.5 text-xs text-gray-700 hover:bg-gray-300 disabled:opacity-50 transition-colors"
-                        >
-                          <Send size={12} />
-                        </button>
                       </div>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </>
-        )}
-      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </>
+          )}
+        </div>
+      </main>
 
-      {/* Quiz overlay */}
+      <BottomNav />
+
       {activeQuiz && (
         <QuizOverlay
           quiz={activeQuiz}
@@ -722,7 +846,6 @@ export default function AvizierPage() {
         />
       )}
 
-      {/* Create quiz dialog (admin only) */}
       {isAdmin && profile && (
         <QuizCreateDialog
           open={createQuizOpen}
@@ -736,7 +859,6 @@ export default function AvizierPage() {
         />
       )}
 
-      {/* Edit quiz dialog (admin + moderator) */}
       {editingQuiz && (
         <QuizEditDialog
           quiz={editingQuiz}
@@ -746,6 +868,6 @@ export default function AvizierPage() {
           onDeleted={() => { setQuizzes(prev => prev.filter(q => q.id !== editingQuiz.id)); setEditingQuiz(null) }}
         />
       )}
-    </main>
+    </>
   )
 }
