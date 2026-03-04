@@ -9,6 +9,7 @@
     /* ── Campus design tokens ── */
     --cream:      #F7F3EC;
     --cream2:     #EFE9DE;
+    --cover-gradient: linear-gradient(130deg, #C8D8A8 0%, #E8D098 50%, #D8C0A8 100%);
     --white:      #FFFFFF;
     --ink:        #1A1714;
     --ink2:       #4A4540;
@@ -82,6 +83,7 @@
   [data-skin="clasic"] {
     --cream:      #F8F9FA;
     --cream2:     #F1F3F5;
+    --cover-gradient: linear-gradient(130deg, #CBD5E1 0%, #E2E8F0 50%, #DDD6FE 100%);
     --white:      #FFFFFF;
     --ink:        #0F172A;
     --ink2:       #334155;
@@ -96,6 +98,78 @@
     --shadow-s:   0 1px 4px rgba(0,0,0,0.06);
     --shadow-m:   0 4px 20px rgba(0,0,0,0.09);
     --shadow-l:   0 12px 40px rgba(0,0,0,0.14);
+  }
+
+  [data-skin="indigo"] {
+    --cream:      #F0F2F5;
+    --cream2:     #E3E6EB;
+    --cover-gradient: linear-gradient(130deg, #B0B8E8 0%, #C8D0F4 50%, #A8CED8 100%);
+    --white:      #FFFFFF;
+    --ink:        #14171A;
+    --ink2:       #40454A;
+    --ink3:       #90949A;
+    --amber:      #5B6ABF;
+    --amber-soft: #E8EAF6;
+    --amber-dark: #3D4A9E;
+    --teal:       #2E9E8E;
+    --teal-soft:  #D6F0EB;
+    --rose:       #C45A6A;
+    --border:     #D4D8DE;
+    --shadow-s:   0 1px 4px rgba(20,23,26,0.06);
+    --shadow-m:   0 4px 20px rgba(20,23,26,0.09);
+    --shadow-l:   0 12px 40px rgba(20,23,26,0.14);
+  }
+
+  [data-skin="indigo"] body {
+    background-color: #D4D8E0;
+  }
+
+  [data-skin="terracotta"] {
+    --cream:      #F5F0EA;
+    --cream2:     #EAE2D6;
+    --white:      #FFFFFF;
+    --ink:        #1C1816;
+    --ink2:       #4D4440;
+    --ink3:       #9A8E86;
+    --amber:      #C8694A;
+    --amber-soft: #FCEAE4;
+    --amber-dark: #A04E30;
+    --teal:       #5A8A6E;
+    --teal-soft:  #DDEEE4;
+    --rose:       #B8864A;
+    --border:     #DED6CC;
+    --cover-gradient: linear-gradient(130deg, #D4B8A0 0%, #C8967A 50%, #B8A090 100%);
+    --shadow-s:   0 1px 4px rgba(28,24,22,0.06);
+    --shadow-m:   0 4px 20px rgba(28,24,22,0.09);
+    --shadow-l:   0 12px 40px rgba(28,24,22,0.14);
+  }
+
+  [data-skin="terracotta"] body {
+    background-color: #DED4C6;
+  }
+
+  [data-skin="forest"] {
+    --cream:      #F2F5F0;
+    --cream2:     #E4E9DE;
+    --white:      #FFFFFF;
+    --ink:        #161A14;
+    --ink2:       #424840;
+    --ink3:       #8E9A8A;
+    --amber:      #4A8E5A;
+    --amber-soft: #E2F2E6;
+    --amber-dark: #2E6E3E;
+    --teal:       #6A8EB4;
+    --teal-soft:  #E0ECF6;
+    --rose:       #B8784A;
+    --border:     #D4DED0;
+    --cover-gradient: linear-gradient(130deg, #A8C4A0 0%, #8EB49A 50%, #B4C8A8 100%);
+    --shadow-s:   0 1px 4px rgba(22,26,20,0.06);
+    --shadow-m:   0 4px 20px rgba(22,26,20,0.09);
+    --shadow-l:   0 12px 40px rgba(22,26,20,0.14);
+  }
+
+  [data-skin="forest"] body {
+    background-color: #D4DCC8;
   }
 
   body {
