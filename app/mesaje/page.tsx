@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Logo } from '@/components/Logo'
 import { BottomNav } from '@/components/BottomNav'
+import { AvatarSettingsButton } from '@/components/AvatarSettingsButton'
 import { getSupabase } from '@/lib/supabase'
 import { Loader2, MessageCircle, Plus, Search, X, Users } from 'lucide-react'
 
@@ -354,11 +355,11 @@ export default function MesajePage() {
       <div className="w-full max-w-sm space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Logo size={28} />
-            <span className="font-display text-xl" style={{ color: 'var(--ink)' }}>uni<span style={{ color: 'var(--amber)' }}>.</span>rea</span>
-            <span className="text-sm font-bold" style={{ color: 'var(--ink)' }}>· Mesaje</span>
+            <Logo size={32} />
+            <span className="font-display text-xl" style={{ color: 'var(--ink)' }}>Mesajele tale</span>
           </div>
-          <div className="relative">
+          <div className="flex items-center gap-1">
+            <div className="relative">
             <button
               type="button"
               onClick={() => {
@@ -398,6 +399,8 @@ export default function MesajePage() {
                 </div>
               </>
             )}
+            </div>
+            <AvatarSettingsButton />
           </div>
         </div>
 

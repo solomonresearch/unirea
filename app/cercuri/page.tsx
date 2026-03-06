@@ -3,8 +3,10 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { BottomNav } from '@/components/BottomNav'
+import { AvatarSettingsButton } from '@/components/AvatarSettingsButton'
 import { getSupabase } from '@/lib/supabase'
-import { Loader2, MessageCircle, ChevronRight, Users, X, GraduationCap } from 'lucide-react'
+import { Loader2, MessageCircle, ChevronRight, Users, X, GraduationCap, Search } from 'lucide-react'
+import { Logo } from '@/components/Logo'
 import Link from 'next/link'
 import { VennCanvas } from '@/components/circles/VennCanvas'
 import { CircleSummary } from '@/components/circles/ModeToggle'
@@ -193,39 +195,40 @@ export default function CercuriPage() {
         }}
       >
         <div className="max-w-sm mx-auto flex items-center justify-between">
-          <div>
-            <h1
-              className="font-display text-[1.6rem] leading-none"
-              style={{ color: 'var(--ink)' }}
-            >
-              Cercuri
-            </h1>
-            <p className="text-[0.7rem] mt-0.5" style={{ color: 'var(--ink2)' }}>
-              Descoperă conexiunile tale
-            </p>
+          <div className="flex items-center gap-2">
+            <Logo size={32} />
+            <span className="font-display text-xl" style={{ color: 'var(--ink)' }}>Descoperă conexiunile tale</span>
           </div>
-          <button
-            type="button"
-            onClick={() => setShowClassmates(prev => !prev)}
-            className="flex items-center gap-1.5 rounded-sm px-3 py-1.5 text-[0.72rem] font-semibold transition-all"
-            style={showClassmates ? {
-              background: 'var(--amber-soft)',
-              border: '1.5px solid var(--amber)',
-              color: 'var(--amber-dark)',
-            } : {
-              background: 'var(--white)',
-              border: '1.5px solid var(--border)',
-              color: 'var(--ink2)',
-              boxShadow: 'var(--shadow-s)',
-            }}
-          >
-            <GraduationCap size={14} />
-            Clasa
-          </button>
+          <div className="flex items-center gap-2">
+            <Link href="/cauta" className="p-1">
+              <Search size={18} strokeWidth={1.75} style={{ color: 'var(--ink3)' }} />
+            </Link>
+            <AvatarSettingsButton />
+          </div>
         </div>
       </header>
 
       <div className="max-w-sm mx-auto px-4 py-4 space-y-3">
+        {/* Clasa toggle */}
+        <button
+          type="button"
+          onClick={() => setShowClassmates(prev => !prev)}
+          className="flex items-center gap-1.5 rounded-sm px-3 py-1.5 text-[0.72rem] font-semibold transition-all"
+          style={showClassmates ? {
+            background: 'var(--amber-soft)',
+            border: '1.5px solid var(--amber)',
+            color: 'var(--amber-dark)',
+          } : {
+            background: 'var(--white)',
+            border: '1.5px solid var(--border)',
+            color: 'var(--ink2)',
+            boxShadow: 'var(--shadow-s)',
+          }}
+        >
+          <GraduationCap size={14} />
+          Clasa
+        </button>
+
         {/* Classmates section */}
         {showClassmates && (
           <div

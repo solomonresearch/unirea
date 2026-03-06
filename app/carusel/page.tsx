@@ -3,9 +3,10 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { getSupabase } from '@/lib/supabase'
-import { Camera, Heart, MessageCircle, Share2, X, Plus, Image as ImageIcon, Loader2, Trash2 } from 'lucide-react'
+import { Camera, Heart, MessageCircle, Share2, X, Image as ImageIcon, Loader2, Trash2 } from 'lucide-react'
 import { Logo } from '@/components/Logo'
 import { BottomNav } from '@/components/BottomNav'
+import { AvatarSettingsButton } from '@/components/AvatarSettingsButton'
 
 type Scope = 'liceu' | 'promotie' | 'clasa'
 
@@ -102,9 +103,24 @@ export default function CaruselPage() {
       setUserId(user.id)
       await fetchPosts('promotie')
       setLoading(false)
+      if (typeof window !== 'undefined') {
+        const params = new URLSearchParams(window.location.search)
+        if (params.get('open') === 'upload') {
+          setShowUpload(true)
+          window.history.replaceState({}, '', '/carusel')
+        }
+      }
     }
     init()
   }, [router, fetchPosts])
+
+  useEffect(() => {
+    function handler(e: Event) {
+      if ((e as CustomEvent).detail?.action === 'upload') setShowUpload(true)
+    }
+    window.addEventListener('unirea:fab-action', handler)
+    return () => window.removeEventListener('unirea:fab-action', handler)
+  }, [])
 
   async function handleScopeChange(newScope: Scope) {
     setScope(newScope)
@@ -204,18 +220,10 @@ export default function CaruselPage() {
         {/* Header */}
         <div className="flex items-center gap-2">
           <Logo size={32} />
-          <div>
-            <h1 className="font-display text-xl" style={{ color: 'var(--ink)' }}>Carusel</h1>
-            <p className="text-xs" style={{ color: 'var(--ink3)' }}>Amintiri din liceu</p>
+          <span className="font-display text-xl" style={{ color: 'var(--ink)' }}>Amintiri din liceu</span>
+          <div className="ml-auto flex items-center gap-2">
+            <AvatarSettingsButton />
           </div>
-          <button
-            onClick={() => setShowUpload(true)}
-            className="ml-auto flex items-center gap-1.5 rounded-sm px-3 py-2 text-xs font-semibold transition-colors"
-            style={{ background: 'var(--ink)', color: 'var(--white)' }}
-          >
-            <Plus size={14} />
-            Adauga
-          </button>
         </div>
 
         {/* Scope filter toggles */}
@@ -348,22 +356,6 @@ export default function CaruselPage() {
           </div>
         )}
 
-        {/* Add memory prompt */}
-        <button
-          onClick={() => setShowUpload(true)}
-          className="w-full rounded-xl p-6 flex flex-col items-center gap-3 transition-colors"
-          style={{ border: '2px dashed var(--border)', background: 'var(--cream)' }}
-        >
-          <div className="flex h-12 w-12 items-center justify-center rounded-full" style={{ background: 'var(--amber-soft)' }}>
-            <Camera size={24} style={{ color: 'var(--amber-dark)' }} />
-          </div>
-          <div className="text-center">
-            <p className="text-sm font-medium" style={{ color: 'var(--ink)' }}>Distribuie o amintire</p>
-            <p className="text-xs mt-1" style={{ color: 'var(--ink3)' }}>
-              Incarca o fotografie din anii de liceu
-            </p>
-          </div>
-        </button>
       </div>
 
       {/* Upload Modal */}
