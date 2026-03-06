@@ -10,6 +10,9 @@ import { QuizCreateDialog } from '@/components/sondaje/QuizCreateDialog'
 import { QuizEditDialog } from '@/components/sondaje/QuizEditDialog'
 import { BottomNav } from '@/components/BottomNav'
 import { Logo } from '@/components/Logo'
+import { NotificationBell } from '@/components/NotificationBell'
+import { MentionInput } from '@/components/MentionInput'
+import { MentionText } from '@/components/MentionText'
 
 type Scope = 'clasa' | 'promotie' | 'liceu'
 
@@ -480,6 +483,7 @@ export default function AvizierPage() {
                 <Search size={14} strokeWidth={1.75} />
                 Cauta
               </Link>
+              <NotificationBell />
               <Link href="/setari" className="flex-shrink-0 w-9 h-9 rounded-full overflow-hidden" style={{ border: '2px solid var(--border)' }}>
                 {profile.avatar_url ? (
                   <img src={profile.avatar_url} alt={profile.name} className="w-full h-full object-cover" />
@@ -660,11 +664,12 @@ export default function AvizierPage() {
                 style={{ background: 'var(--white)', borderColor: 'var(--border)', boxShadow: 'var(--shadow-s)' }}
               >
                 <form onSubmit={handleSubmit} className="p-3 space-y-2">
-                  <textarea
+                  <MentionInput
                     value={newContent}
-                    onChange={e => setNewContent(e.target.value)}
+                    onChange={setNewContent}
                     placeholder={placeholder}
                     rows={2}
+                    multiline
                     className="w-full rounded-sm px-3 py-2 text-[0.82rem] outline-none resize-none"
                     style={{
                       background: 'var(--cream2)',
@@ -765,7 +770,7 @@ export default function AvizierPage() {
 
                       {/* Post body */}
                       <p className="text-[0.77rem] leading-[1.65] whitespace-pre-wrap" style={{ color: 'var(--ink2)' }}>
-                        {post.content}
+                        <MentionText text={post.content} />
                       </p>
 
                       {/* Expiry badge */}
@@ -847,16 +852,15 @@ export default function AvizierPage() {
                                   </button>
                                 )}
                               </div>
-                              <p className="text-[0.75rem] mt-0.5" style={{ color: 'var(--ink2)' }}>{comment.content}</p>
+                              <p className="text-[0.75rem] mt-0.5" style={{ color: 'var(--ink2)' }}><MentionText text={comment.content} /></p>
                             </div>
                           </div>
                         ))}
 
                         <div className="flex gap-1.5 mt-1">
-                          <input
-                            type="text"
+                          <MentionInput
                             value={commentTexts[post.id] || ''}
-                            onChange={e => setCommentTexts(prev => ({ ...prev, [post.id]: e.target.value }))}
+                            onChange={v => setCommentTexts(prev => ({ ...prev, [post.id]: v }))}
                             onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleComment(post.id) } }}
                             placeholder="Comentează..."
                             className="flex-1 rounded-sm px-2.5 py-1.5 text-[0.75rem] outline-none"

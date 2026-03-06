@@ -5,6 +5,8 @@ import { useParams, useRouter } from 'next/navigation'
 import { getSupabase } from '@/lib/supabase'
 import { Heart, MessageCircle, Send, Share2, ChevronLeft, Loader2, Trash2 } from 'lucide-react'
 import { BottomNav } from '@/components/BottomNav'
+import { MentionInput } from '@/components/MentionInput'
+import { MentionText } from '@/components/MentionText'
 
 interface CaruselComment {
   id: string
@@ -235,7 +237,7 @@ export default function CaruselPostPage() {
                 </div>
                 <div className="flex-1">
                   <span className="text-xs font-medium text-gray-900">{c.profiles.name}</span>
-                  <p className="text-xs text-gray-600 mt-0.5">{c.content}</p>
+                  <p className="text-xs text-gray-600 mt-0.5"><MentionText text={c.content} /></p>
                 </div>
                 {c.user_id === userId && (
                   <button
@@ -254,10 +256,9 @@ export default function CaruselPostPage() {
       {/* Sticky comment input */}
       <div className="fixed bottom-16 left-0 right-0 border-t border-gray-200 bg-white px-4 py-3">
         <div className="mx-auto max-w-sm flex gap-2">
-          <input
-            type="text"
+          <MentionInput
             value={commentText}
-            onChange={e => setCommentText(e.target.value)}
+            onChange={setCommentText}
             onKeyDown={e => { if (e.key === 'Enter') addComment() }}
             placeholder="Scrie un comentariu..."
             className="flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none"

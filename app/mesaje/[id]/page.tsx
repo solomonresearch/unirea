@@ -4,6 +4,8 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { getSupabase } from '@/lib/supabase'
 import { BottomNav } from '@/components/BottomNav'
+import { MentionInput } from '@/components/MentionInput'
+import { MentionText } from '@/components/MentionText'
 import { GroupInfoPanel } from '@/components/mesaje/GroupInfoPanel'
 import { Loader2, ArrowLeft, Send, Users } from 'lucide-react'
 
@@ -217,14 +219,16 @@ export default function ChatPage() {
     if (!newMessage.trim() || sending) return
     setSending(true)
 
-    const supabase = getSupabase()
-    const { error } = await supabase.from('messages').insert({
-      conversation_id: conversationId,
-      user_id: currentUserId,
-      content: newMessage.trim(),
+    const res = await fetch('/api/mesaje/send', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        conversation_id: conversationId,
+        content: newMessage.trim(),
+      }),
     })
 
-    if (!error) {
+    if (res.ok) {
       setNewMessage('')
     }
     setSending(false)
@@ -360,7 +364,7 @@ export default function ChatPage() {
                       }
                     }}
                   >
-                    {msg.content}
+                    <MentionText text={msg.content} />
                   </div>
                   {confirmDeleteId === msg.id && (
                     <div className={`flex gap-2 mt-1 ${isOwn ? 'justify-end' : 'justify-start'}`}>
@@ -398,10 +402,9 @@ export default function ChatPage() {
         {/* Input bar */}
         <div className="sticky bottom-16 bg-white pt-2 pb-2 border-t border-gray-100">
           <form onSubmit={handleSend} className="flex gap-2">
-            <input
-              type="text"
+            <MentionInput
               value={newMessage}
-              onChange={e => setNewMessage(e.target.value)}
+              onChange={setNewMessage}
               placeholder="Scrie un mesaj..."
               className="flex-1 rounded-full border border-gray-200 bg-gray-50 px-4 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-primary-300 focus:ring-1 focus:ring-primary-300 outline-none"
             />

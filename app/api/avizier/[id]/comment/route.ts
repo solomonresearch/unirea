@@ -1,5 +1,6 @@
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { NextResponse } from 'next/server'
+import { processMentions } from '@/lib/mentions'
 
 export async function POST(
   request: Request,
@@ -33,6 +34,8 @@ export async function POST(
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
+
+    await processMentions(supabase, user.id, content.trim(), 'avizier', params.id)
 
     return NextResponse.json(data, { status: 201 })
   } catch (err: any) {

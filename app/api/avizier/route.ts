@@ -1,5 +1,6 @@
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { NextResponse } from 'next/server'
+import { processMentions } from '@/lib/mentions'
 
 const SCOPE_MAP: Record<string, string> = {
   clasa: 'class',
@@ -170,6 +171,8 @@ export async function POST(request: Request) {
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
+
+    await processMentions(supabase, user.id, content.trim(), 'avizier', data.id)
 
     return NextResponse.json(data, { status: 201 })
   } catch (err: any) {

@@ -6,6 +6,7 @@ import { BottomNav } from '@/components/BottomNav'
 import { getSupabase } from '@/lib/supabase'
 import { Loader2, MessageCircle, ChevronRight, Users, X, Calendar, Search, Check, UsersRound } from 'lucide-react'
 import { Logo } from '@/components/Logo'
+import { NotificationBell } from '@/components/NotificationBell'
 import Link from 'next/link'
 import { VennCanvas } from '@/components/circles/VennCanvas'
 import { CircleChips } from '@/components/circles/CircleChips'
@@ -238,6 +239,7 @@ export default function CercuriPage() {
             <Search size={14} strokeWidth={1.75} />
             Cauta
           </Link>
+          <NotificationBell />
           <Link href="/setari" className="flex-shrink-0 w-9 h-9 rounded-full overflow-hidden" style={{ border: '2px solid var(--border)' }}>
             {userAvatar ? (
               <img src={userAvatar} alt={userName} className="w-full h-full object-cover" />

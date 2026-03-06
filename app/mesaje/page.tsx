@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { Logo } from '@/components/Logo'
 import { BottomNav } from '@/components/BottomNav'
 import { AvatarSettingsButton } from '@/components/AvatarSettingsButton'
+import { NotificationBell } from '@/components/NotificationBell'
 import { getSupabase } from '@/lib/supabase'
 import { Loader2, MessageCircle, Plus, Search, X, Users } from 'lucide-react'
 import { SwipeableRow } from '@/components/mesaje/SwipeableRow'
@@ -421,6 +422,7 @@ export default function MesajePage() {
               </>
             )}
             </div>
+            <NotificationBell />
             <AvatarSettingsButton />
           </div>
         </div>

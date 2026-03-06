@@ -6,6 +6,8 @@ import { getSupabase } from '@/lib/supabase'
 import { Camera, Heart, MessageCircle, Share2, X, Image as ImageIcon, Loader2, Trash2, Search } from 'lucide-react'
 import { Logo } from '@/components/Logo'
 import { BottomNav } from '@/components/BottomNav'
+import { NotificationBell } from '@/components/NotificationBell'
+import { MentionInput } from '@/components/MentionInput'
 import Link from 'next/link'
 
 type Scope = 'liceu' | 'promotie' | 'clasa'
@@ -262,6 +264,7 @@ export default function CaruselPage() {
               <Search size={14} strokeWidth={1.75} />
               Cauta
             </Link>
+            <NotificationBell />
             <Link href="/setari" className="flex-shrink-0 w-9 h-9 rounded-full overflow-hidden" style={{ border: '2px solid var(--border)' }}>
               {userAvatar ? (
                 <img src={userAvatar} alt={userName} className="w-full h-full object-cover" />
@@ -460,12 +463,13 @@ export default function CaruselPage() {
             )}
 
             <div className="mt-4">
-              <textarea
+              <MentionInput
                 value={uploadCaption}
-                onChange={e => setUploadCaption(e.target.value)}
+                onChange={setUploadCaption}
                 placeholder="Povesteste despre aceasta amintire..."
                 rows={3}
                 maxLength={500}
+                multiline
                 className="w-full rounded-lg px-3 py-2.5 text-sm resize-none outline-none"
                 style={{ border: '1px solid var(--border)', background: 'var(--white)', color: 'var(--ink)' }}
               />
