@@ -284,8 +284,8 @@ export default function KanbanPage() {
   return (
     <div className="min-h-screen pb-24" style={{ background: 'var(--cream2)' }}>
       <div
-        className="sticky top-0 z-40"
-        style={{ background: 'var(--cream)', borderBottom: '1px solid var(--border)', paddingTop: '44px' }}
+        className="sticky top-[16px] z-40"
+        style={{ background: 'var(--cream)', borderBottom: '1px solid var(--border)', paddingTop: '8px' }}
       >
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">

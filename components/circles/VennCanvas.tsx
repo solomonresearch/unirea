@@ -87,7 +87,7 @@ export function VennCanvas({ circles, positions, dots, activeFilters, counts }: 
 
       const px = W * dot.x
       const py = H * dot.y
-      const baseDotR = dot.circles.length >= 3 ? 7 : 4
+      const baseDotR = dot.circles.length >= 3 ? 14 : 9
       const glowAlpha = allActive ? 1.0 : 0.3
 
       const r = baseDotR + Math.sin(phase * 2) * 1.5
@@ -97,7 +97,7 @@ export function VennCanvas({ circles, positions, dots, activeFilters, counts }: 
       ctx.fill()
 
       if (allActive) {
-        const ringR = baseDotR + 12 + Math.sin(phase) * 4
+        const ringR = baseDotR + 16 + Math.sin(phase) * 5
         ctx.beginPath()
         ctx.arc(px, py, ringR, 0, Math.PI * 2)
         ctx.strokeStyle = hexToRgba(dot.color, 0.2)
@@ -123,7 +123,7 @@ export function VennCanvas({ circles, positions, dots, activeFilters, counts }: 
   }, [draw])
 
   return (
-    <div className="relative rounded-2xl overflow-hidden" style={{ background: '#0D0F14' }}>
+    <div className="relative rounded-2xl overflow-hidden" style={{ background: '#FFFFFF' }}>
       <canvas
         ref={canvasRef}
         width={CANVAS_W}
@@ -134,7 +134,7 @@ export function VennCanvas({ circles, positions, dots, activeFilters, counts }: 
       />
       {activeFilters.length >= 2 && (
         <div className="absolute top-3 right-3 rounded-full px-3 py-1 text-[11px] font-semibold"
-          style={{ background: 'rgba(255,215,0,0.15)', border: '1px solid rgba(255,215,0,0.25)', color: '#FFD700' }}
+          style={{ background: 'rgba(123,97,255,0.1)', border: '1px solid rgba(123,97,255,0.3)', color: '#7B61FF' }}
         >
           {counts[getIntersectionKey(activeFilters)] || 0} suprapuneri
         </div>

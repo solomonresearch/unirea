@@ -9,7 +9,6 @@ import { QuizOverlay } from '@/components/sondaje/QuizOverlay'
 import { QuizCreateDialog } from '@/components/sondaje/QuizCreateDialog'
 import { QuizEditDialog } from '@/components/sondaje/QuizEditDialog'
 import { BottomNav } from '@/components/BottomNav'
-import { AvatarSettingsButton } from '@/components/AvatarSettingsButton'
 import { Logo } from '@/components/Logo'
 
 type Scope = 'clasa' | 'promotie' | 'liceu'
@@ -37,10 +36,12 @@ interface Post {
 
 interface UserProfile {
   id: string
+  name: string
   highschool: string
   graduation_year: number | null
   class: string | null
   role: string
+  avatar_url: string | null
 }
 
 interface QuizOption {
@@ -193,7 +194,7 @@ export default function AvizierPage() {
 
       const { data: profileData } = await supabase
         .from('profiles')
-        .select('id, highschool, graduation_year, class, role')
+        .select('id, name, highschool, graduation_year, class, role, avatar_url')
         .eq('id', user.id)
         .single()
 
@@ -452,29 +453,42 @@ export default function AvizierPage() {
       <main className="flex flex-col min-h-screen pb-24" style={{ background: 'var(--cream2)' }}>
         {/* Sticky topbar */}
         <header
-          className="sticky top-0 z-50 border-b"
+          className="sticky top-[16px] z-50 border-b"
           style={{
             background: 'var(--cream)',
             borderColor: 'var(--border)',
-            paddingTop: '44px',
+            paddingTop: '8px',
             paddingBottom: '12px',
           }}
         >
-          <div className="max-w-sm mx-auto px-4">
-            <p className="text-center text-[0.7rem] font-semibold mb-1.5 truncate" style={{ color: 'var(--ink2)' }}>
-              {profile.highschool}
-            </p>
-            <div className="flex items-center justify-between">
+          <div className="max-w-sm mx-auto px-4 flex items-center justify-between">
+            <div>
               <div className="flex items-center gap-2">
                 <Logo size={32} />
                 <span className="font-display text-xl" style={{ color: 'var(--ink)' }}>Informatii din liceu</span>
               </div>
-              <div className="flex items-center gap-2">
-                <Link href="/cauta" className="p-1">
-                  <Search size={18} strokeWidth={1.75} style={{ color: 'var(--ink3)' }} />
-                </Link>
-                <AvatarSettingsButton />
-              </div>
+              <p className="text-[0.72rem] mt-1 ml-10" style={{ color: 'var(--ink3)' }}>
+                {profile.highschool}
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Link
+                href="/cauta"
+                className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[0.72rem] font-semibold"
+                style={{ background: 'var(--white)', border: '1.5px solid var(--border)', color: 'var(--ink3)', boxShadow: 'var(--shadow-s)' }}
+              >
+                <Search size={14} strokeWidth={1.75} />
+                Cauta
+              </Link>
+              <Link href="/setari" className="flex-shrink-0 w-9 h-9 rounded-full overflow-hidden" style={{ border: '2px solid var(--border)' }}>
+                {profile.avatar_url ? (
+                  <img src={profile.avatar_url} alt={profile.name} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-[0.7rem] font-bold" style={{ background: 'var(--cream2)', color: 'var(--ink2)' }}>
+                    {initials(profile.name || '')}
+                  </div>
+                )}
+              </Link>
             </div>
           </div>
 
@@ -484,7 +498,7 @@ export default function AvizierPage() {
               className="flex rounded-md p-[3px]"
               style={{ background: 'var(--cream2)' }}
             >
-              {(['clasa', 'promotie', 'liceu'] as const).map(s => (
+              {(['liceu', 'promotie', 'clasa'] as const).map(s => (
                 <button
                   key={s}
                   type="button"

@@ -1,5 +1,6 @@
 'use client'
 
+import { Calendar } from 'lucide-react'
 import { type CircleKey, CIRCLE_CONFIG } from './circleConfig'
 
 interface CircleChipsProps {
@@ -7,9 +8,11 @@ interface CircleChipsProps {
   activeFilters: CircleKey[]
   counts: Record<string, number>
   onToggle: (key: CircleKey) => void
+  generationFilter?: boolean
+  onGenerationToggle?: () => void
 }
 
-export function CircleChips({ circles, activeFilters, counts, onToggle }: CircleChipsProps) {
+export function CircleChips({ circles, activeFilters, counts, onToggle, generationFilter, onGenerationToggle }: CircleChipsProps) {
   return (
     <div className="grid grid-cols-2 gap-2">
       {circles.map(key => {
@@ -43,6 +46,31 @@ export function CircleChips({ circles, activeFilters, counts, onToggle }: Circle
           </button>
         )
       })}
+      {onGenerationToggle && (
+        <button
+          type="button"
+          role="switch"
+          aria-checked={generationFilter}
+          onClick={onGenerationToggle}
+          className="flex items-center gap-1.5 px-1 py-2 text-xs font-semibold"
+          style={{ color: 'var(--ink2)' }}
+        >
+          <div
+            className="relative w-8 h-[18px] rounded-full transition-colors duration-200 flex-shrink-0"
+            style={{ background: generationFilter ? 'var(--amber)' : 'var(--border)' }}
+          >
+            <div
+              className="absolute top-[2px] w-[14px] h-[14px] rounded-full transition-transform duration-200"
+              style={{
+                background: 'var(--white)',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+                transform: generationFilter ? 'translateX(16px)' : 'translateX(2px)',
+              }}
+            />
+          </div>
+          <span className="text-[0.68rem]" style={{ color: generationFilter ? 'var(--amber-dark)' : 'var(--ink3)' }}>±2 ani</span>
+        </button>
+      )}
     </div>
   )
 }

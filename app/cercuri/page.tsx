@@ -3,13 +3,11 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { BottomNav } from '@/components/BottomNav'
-import { AvatarSettingsButton } from '@/components/AvatarSettingsButton'
 import { getSupabase } from '@/lib/supabase'
-import { Loader2, MessageCircle, ChevronRight, Users, X, GraduationCap, Search } from 'lucide-react'
+import { Loader2, MessageCircle, ChevronRight, Users, X, Calendar, Search, Check, UsersRound } from 'lucide-react'
 import { Logo } from '@/components/Logo'
 import Link from 'next/link'
 import { VennCanvas } from '@/components/circles/VennCanvas'
-import { CircleSummary } from '@/components/circles/ModeToggle'
 import { CircleChips } from '@/components/circles/CircleChips'
 import {
   type CircleKey, type UserInfo,
@@ -41,17 +39,6 @@ interface Person {
   overlap_score: number
 }
 
-interface Classmate {
-  id: string
-  name: string
-  username: string
-  graduation_year: number
-  class: string | null
-  profession: string[]
-  domain: string[]
-  company: string | null
-}
-
 function getInitials(name: string) {
   return name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()
 }
@@ -71,10 +58,13 @@ export default function CercuriPage() {
   const [people, setPeople] = useState<Person[]>([])
   const [loadingPeople, setLoadingPeople] = useState(false)
   const [currentUserId, setCurrentUserId] = useState('')
-  const [showClassmates, setShowClassmates] = useState(false)
-  const [classmates, setClassmates] = useState<Classmate[]>([])
-  const [yearmates, setYearmates] = useState<Classmate[]>([])
-  const [userClass, setUserClass] = useState<string | null>(null)
+  const [generationFilter, setGenerationFilter] = useState(false)
+  const [userGradYear, setUserGradYear] = useState<number>(0)
+  const [userAvatar, setUserAvatar] = useState<string | null>(null)
+  const [userName, setUserName] = useState('')
+  const [selectedPeople, setSelectedPeople] = useState<Set<string>>(new Set())
+  const [showGroupConfirm, setShowGroupConfirm] = useState(false)
+  const [creatingGroup, setCreatingGroup] = useState(false)
 
   useEffect(() => {
     async function init() {
@@ -85,29 +75,14 @@ export default function CercuriPage() {
 
       const { data: profile } = await supabase
         .from('profiles')
-        .select('highschool, graduation_year, class')
+        .select('highschool, graduation_year, class, avatar_url, name')
         .eq('id', user.id)
         .single()
 
       if (profile) {
-        setUserClass(profile.class)
-
-        const { data: yearData } = await supabase
-          .from('profiles')
-          .select('id, name, username, graduation_year, class, profession, domain, company')
-          .eq('highschool', profile.highschool)
-          .eq('graduation_year', profile.graduation_year)
-          .eq('onboarding_completed', true)
-          .neq('id', user.id)
-          .order('name')
-
-        const all = (yearData || []) as Classmate[]
-        if (profile.class) {
-          setClassmates(all.filter(p => p.class === profile.class))
-          setYearmates(all.filter(p => p.class !== profile.class))
-        } else {
-          setYearmates(all)
-        }
+        setUserGradYear(profile.graduation_year)
+        setUserAvatar(profile.avatar_url)
+        setUserName(profile.name || '')
       }
 
       const { data: result, error } = await supabase.rpc('get_circles_data', { p_user_id: user.id })
@@ -152,6 +127,10 @@ export default function CercuriPage() {
 
   useEffect(() => { fetchPeople() }, [fetchPeople])
 
+  useEffect(() => {
+    setSelectedPeople(new Set())
+  }, [activeFilters, generationFilter])
+
   const getIntersectionLabel = (): string | null => {
     if (activeFilters.length < 2) return null
     const sorted = [...activeFilters].sort()
@@ -180,108 +159,99 @@ export default function CercuriPage() {
     )
   }
 
+  const filteredPeople = generationFilter && userGradYear
+    ? people.filter(p => Math.abs(p.graduation_year - userGradYear) <= 2)
+    : people
+
+  const allSelected = filteredPeople.length > 0 && filteredPeople.every(p => selectedPeople.has(p.id))
+
+  function toggleSelectAll() {
+    if (allSelected) {
+      setSelectedPeople(new Set())
+    } else {
+      setSelectedPeople(new Set(filteredPeople.map(p => p.id)))
+    }
+  }
+
+  function toggleSelect(id: string) {
+    setSelectedPeople(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  async function handleCreateGroup() {
+    setCreatingGroup(true)
+    const members = filteredPeople.filter(p => selectedPeople.has(p.id))
+    const nameParts = members.slice(0, 3).map(m => m.name.split(' ')[0])
+    const suffix = members.length > 3 ? `, +${members.length - 3}` : ''
+    const name = nameParts.join(', ') + suffix
+
+    const res = await fetch('/api/mesaje/grupuri', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, member_ids: [...selectedPeople] }),
+    })
+
+    if (res.ok) {
+      const data = await res.json()
+      router.push(`/mesaje/${data.id}`)
+    }
+    setCreatingGroup(false)
+    setShowGroupConfirm(false)
+  }
+
   const intersectionLabel = getIntersectionLabel()
 
   return (
     <main className="min-h-screen pb-24" style={{ background: 'var(--cream)' }}>
       {/* Sticky topbar */}
       <header
-        className="sticky top-0 z-50 px-5 border-b"
+        className="sticky top-[16px] z-50 px-5 border-b"
         style={{
           background: 'var(--cream)',
           borderColor: 'var(--border)',
-          paddingTop: '44px',
+          paddingTop: '8px',
           paddingBottom: '14px',
         }}
       >
         <div className="max-w-sm mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Logo size={32} />
-            <span className="font-display text-xl" style={{ color: 'var(--ink)' }}>Descoperă conexiunile tale</span>
+          <div>
+            <div className="flex items-center gap-2">
+              <Logo size={32} />
+              <span className="font-display text-xl" style={{ color: 'var(--ink)' }}>Conecteaza-te</span>
+            </div>
+            {data?.user_info.highschool && (
+              <p className="text-[0.72rem] mt-1 ml-10" style={{ color: 'var(--ink3)' }}>
+                {data.user_info.highschool}
+              </p>
+            )}
           </div>
           <div className="flex items-center gap-2">
-            <Link href="/cauta" className="p-1">
-              <Search size={18} strokeWidth={1.75} style={{ color: 'var(--ink3)' }} />
-            </Link>
-            <AvatarSettingsButton />
+          <Link
+            href="/cauta"
+            className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[0.72rem] font-semibold"
+            style={{ background: 'var(--white)', border: '1.5px solid var(--border)', color: 'var(--ink3)', boxShadow: 'var(--shadow-s)' }}
+          >
+            <Search size={14} strokeWidth={1.75} />
+            Cauta
+          </Link>
+          <Link href="/setari" className="flex-shrink-0 w-9 h-9 rounded-full overflow-hidden" style={{ border: '2px solid var(--border)' }}>
+            {userAvatar ? (
+              <img src={userAvatar} alt={userName} className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-[0.7rem] font-bold" style={{ background: 'var(--cream2)', color: 'var(--ink2)' }}>
+                {getInitials(userName)}
+              </div>
+            )}
+          </Link>
           </div>
         </div>
       </header>
 
       <div className="max-w-sm mx-auto px-4 py-4 space-y-3">
-        {/* Clasa toggle */}
-        <button
-          type="button"
-          onClick={() => setShowClassmates(prev => !prev)}
-          className="flex items-center gap-1.5 rounded-sm px-3 py-1.5 text-[0.72rem] font-semibold transition-all"
-          style={showClassmates ? {
-            background: 'var(--amber-soft)',
-            border: '1.5px solid var(--amber)',
-            color: 'var(--amber-dark)',
-          } : {
-            background: 'var(--white)',
-            border: '1.5px solid var(--border)',
-            color: 'var(--ink2)',
-            boxShadow: 'var(--shadow-s)',
-          }}
-        >
-          <GraduationCap size={14} />
-          Clasa
-        </button>
-
-        {/* Classmates section */}
-        {showClassmates && (
-          <div
-            className="rounded-lg p-3 border space-y-2"
-            style={{ background: 'var(--white)', borderColor: 'var(--border)', boxShadow: 'var(--shadow-s)' }}
-          >
-            {userClass && (
-              <>
-                <p
-                  className="text-[0.62rem] font-bold uppercase tracking-widest flex items-center gap-1.5"
-                  style={{ color: 'var(--ink3)' }}
-                >
-                  <Users size={12} />
-                  Clasa {userClass} · {data?.user_info.graduation_year}
-                </p>
-                {classmates.length === 0 ? (
-                  <p className="text-[0.78rem] italic py-2 text-center" style={{ color: 'var(--ink3)' }}>
-                    Niciun coleg din clasa ta încă
-                  </p>
-                ) : (
-                  <div className="space-y-1.5">
-                    {classmates.map(p => (
-                      <ClassmateRow key={p.id} person={p} currentUserId={currentUserId} />
-                    ))}
-                  </div>
-                )}
-              </>
-            )}
-
-            <p
-              className="text-[0.62rem] font-bold uppercase tracking-widest flex items-center gap-1.5"
-              style={{ color: 'var(--ink3)' }}
-            >
-              <GraduationCap size={12} />
-              Promoția {data?.user_info.graduation_year}
-            </p>
-            {yearmates.length === 0 ? (
-              <p className="text-[0.78rem] italic py-2 text-center" style={{ color: 'var(--ink3)' }}>
-                Niciun coleg din promoție încă
-              </p>
-            ) : (
-              <div className="space-y-1.5">
-                {yearmates.map(p => (
-                  <ClassmateRow key={p.id} person={p} currentUserId={currentUserId} />
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Circle summary */}
-        <CircleSummary />
-
         {/* Venn Canvas */}
         <VennCanvas
           circles={ALL_CIRCLES}
@@ -297,6 +267,8 @@ export default function CercuriPage() {
           activeFilters={activeFilters}
           counts={data.circles}
           onToggle={toggleFilter}
+          generationFilter={generationFilter}
+          onGenerationToggle={() => setGenerationFilter(prev => !prev)}
         />
 
         {/* Intersection label */}
@@ -307,59 +279,17 @@ export default function CercuriPage() {
           >
             <Users size={14} style={{ color: 'var(--amber-dark)' }} />
             <span className="text-[0.75rem] font-semibold" style={{ color: 'var(--amber-dark)' }}>{intersectionLabel}</span>
-            <span className="text-[0.72rem] ml-auto" style={{ color: 'var(--amber)' }}>{people.length} persoane</span>
+            <span className="text-[0.72rem] ml-auto" style={{ color: 'var(--amber)' }}>{filteredPeople.length} persoane</span>
           </div>
         )}
 
-        {/* Content: circle cards or people list */}
+        {/* Content: intersection cards or people list */}
         {activeFilters.length === 0 ? (
           <div className="space-y-2">
-            <p
-              className="text-[0.64rem] font-bold uppercase tracking-widest"
-              style={{ color: 'var(--ink3)' }}
-            >
-              Cercurile tale
-            </p>
-            {ALL_CIRCLES.map(key => {
-              const cfg = CIRCLE_CONFIG[key]
-              const count = data.circles[key] || 0
-              return (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => toggleFilter(key)}
-                  className="w-full flex items-center gap-3 rounded-lg px-4 py-3 text-left transition-colors"
-                  style={{
-                    background: 'var(--white)',
-                    border: '1px solid var(--border)',
-                    boxShadow: 'var(--shadow-s)',
-                  }}
-                >
-                  <div
-                    className="flex items-center justify-center w-10 h-10 rounded-sm"
-                    style={{ background: 'var(--cream2)' }}
-                  >
-                    <span className="text-lg">{cfg.emoji}</span>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[0.82rem] font-bold" style={{ color: 'var(--ink)' }}>{cfg.label}</p>
-                    <p className="text-[0.68rem] truncate" style={{ color: 'var(--ink2)' }}>
-                      {cfg.getDescription(data.user_info)}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-[0.82rem] font-bold" style={{ color: 'var(--ink2)' }}>{count}</span>
-                    <ChevronRight size={16} style={{ color: 'var(--ink3)' }} />
-                  </div>
-                </button>
-              )
-            })}
-
-            {/* Intersection preview cards */}
             {ALL_DOTS.filter(d => (intersectionCounts[d.key] || 0) > 0).length > 0 && (
               <>
                 <p
-                  className="text-[0.64rem] font-bold uppercase tracking-widest pt-2"
+                  className="text-[0.64rem] font-bold uppercase tracking-widest"
                   style={{ color: 'var(--ink3)' }}
                 >
                   Suprapuneri
@@ -408,7 +338,7 @@ export default function CercuriPage() {
           <div className="flex justify-center py-12">
             <Loader2 size={20} className="animate-spin" style={{ color: 'var(--ink3)' }} />
           </div>
-        ) : people.length === 0 ? (
+        ) : filteredPeople.length === 0 ? (
           <div className="text-center py-12">
             <Users size={32} strokeWidth={1} className="mx-auto mb-2" style={{ color: 'var(--ink3)' }} />
             <p className="text-[0.82rem]" style={{ color: 'var(--ink3)' }}>Nicio persoană găsită</p>
@@ -423,21 +353,91 @@ export default function CercuriPage() {
               >
                 {activeFilters.length >= 2 ? 'Suprapunere' : CIRCLE_CONFIG[activeFilters[0]].label}
               </p>
-              <button
-                type="button"
-                onClick={() => setActiveFilters([])}
-                className="flex items-center gap-1 text-[0.72rem] transition-colors"
-                style={{ color: 'var(--ink3)' }}
-              >
-                <X size={12} /> Șterge filtrele
-              </button>
+              <div className="flex items-center gap-3">
+                {filteredPeople.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={toggleSelectAll}
+                    className="flex items-center gap-1 text-[0.72rem] transition-colors"
+                    style={{ color: 'var(--ink3)' }}
+                  >
+                    <Check size={12} /> {allSelected ? 'Deselectează' : 'Selectează tot'}
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setActiveFilters([])}
+                  className="flex items-center gap-1 text-[0.72rem] transition-colors"
+                  style={{ color: 'var(--ink3)' }}
+                >
+                  <X size={12} /> Șterge filtrele
+                </button>
+              </div>
             </div>
-            {people.map(person => (
-              <PersonCard key={person.id} person={person} currentUserId={currentUserId} activeFilters={activeFilters} />
+            {filteredPeople.map(person => (
+              <PersonCard
+                key={person.id}
+                person={person}
+                currentUserId={currentUserId}
+                activeFilters={activeFilters}
+                selected={selectedPeople.has(person.id)}
+                onSelect={toggleSelect}
+              />
             ))}
           </div>
         )}
       </div>
+
+      {/* Floating group creation button */}
+      {selectedPeople.size > 0 && (
+        <div className="fixed bottom-24 left-0 right-0 z-40 flex justify-center px-6">
+          <button
+            type="button"
+            onClick={() => setShowGroupConfirm(true)}
+            className="flex items-center gap-2 rounded-sm px-5 py-3 text-[0.82rem] font-bold shadow-lg transition-transform active:scale-95"
+            style={{ background: 'var(--ink)', color: 'var(--white)' }}
+          >
+            <UsersRound size={16} />
+            Creează grup ({selectedPeople.size})
+          </button>
+        </div>
+      )}
+
+      {/* Group creation confirmation dialog */}
+      {showGroupConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-6">
+          <div
+            className="w-full max-w-xs rounded-lg p-6 space-y-4"
+            style={{ background: 'var(--white)', boxShadow: 'var(--shadow-l)' }}
+          >
+            <p className="text-[0.92rem] font-bold text-center" style={{ color: 'var(--ink)' }}>
+              Creează grup?
+            </p>
+            <p className="text-[0.75rem] text-center" style={{ color: 'var(--ink2)' }}>
+              {selectedPeople.size} {selectedPeople.size === 1 ? 'persoană selectată' : 'persoane selectate'}
+            </p>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setShowGroupConfirm(false)}
+                className="flex-1 rounded-sm py-2.5 text-[0.82rem] font-semibold transition-colors"
+                style={{ background: 'var(--cream2)', color: 'var(--ink2)' }}
+              >
+                Nu
+              </button>
+              <button
+                type="button"
+                onClick={handleCreateGroup}
+                disabled={creatingGroup}
+                className="flex-1 rounded-sm py-2.5 text-[0.82rem] font-semibold transition-opacity disabled:opacity-60"
+                style={{ background: 'var(--ink)', color: 'var(--white)' }}
+              >
+                {creatingGroup ? <Loader2 size={16} className="animate-spin mx-auto" /> : 'Da'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <BottomNav />
     </main>
@@ -513,7 +513,13 @@ function PersonTags({ person, activeFilters }: { person: Person; activeFilters: 
   )
 }
 
-function PersonCard({ person, currentUserId, activeFilters }: { person: Person; currentUserId: string; activeFilters: CircleKey[] }) {
+function PersonCard({ person, currentUserId, activeFilters, selected, onSelect }: {
+  person: Person
+  currentUserId: string
+  activeFilters: CircleKey[]
+  selected: boolean
+  onSelect: (id: string) => void
+}) {
   const router = useRouter()
   const [startingChat, setStartingChat] = useState(false)
 
@@ -560,9 +566,28 @@ function PersonCard({ person, currentUserId, activeFilters }: { person: Person; 
   return (
     <div
       className="flex items-center gap-0 rounded-lg overflow-hidden"
-      style={{ background: 'var(--white)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-s)' }}
+      style={{
+        background: 'var(--white)',
+        border: selected ? '1.5px solid var(--ink)' : '1px solid var(--border)',
+        boxShadow: 'var(--shadow-s)',
+      }}
     >
-      <Link href={`/cercuri/${person.id}`} className="flex-1 min-w-0 px-4 py-3">
+      <button
+        type="button"
+        onClick={() => onSelect(person.id)}
+        className="flex-shrink-0 flex items-center justify-center pl-3"
+      >
+        <div
+          className="w-5 h-5 rounded flex items-center justify-center transition-colors"
+          style={{
+            background: selected ? 'var(--ink)' : 'transparent',
+            border: selected ? 'none' : '1.5px solid var(--ink3)',
+          }}
+        >
+          {selected && <Check size={13} color="var(--white)" strokeWidth={2.5} />}
+        </div>
+      </button>
+      <Link href={`/cercuri/${person.id}`} className="flex-1 min-w-0 px-3 py-3">
         <div className="flex items-start gap-3">
           <div
             className="w-[46px] h-[46px] rounded-md flex items-center justify-center text-white text-[0.82rem] font-bold flex-shrink-0"
@@ -596,95 +621,3 @@ function PersonCard({ person, currentUserId, activeFilters }: { person: Person; 
   )
 }
 
-function ClassmateRow({ person, currentUserId }: { person: Classmate; currentUserId: string }) {
-  const router = useRouter()
-  const [startingChat, setStartingChat] = useState(false)
-
-  async function handleMessage(e: React.MouseEvent) {
-    e.preventDefault()
-    e.stopPropagation()
-    if (startingChat) return
-    setStartingChat(true)
-    const supabase = getSupabase()
-
-    const { data: myConvos } = await supabase
-      .from('conversation_participants')
-      .select('conversation_id')
-      .eq('user_id', currentUserId)
-
-    if (myConvos && myConvos.length > 0) {
-      const convoIds = myConvos.map(c => c.conversation_id)
-      const { data: theirConvos } = await supabase
-        .from('conversation_participants')
-        .select('conversation_id')
-        .eq('user_id', person.id)
-        .in('conversation_id', convoIds)
-
-      if (theirConvos && theirConvos.length > 0) {
-        router.push(`/mesaje/${theirConvos[0].conversation_id}`)
-        return
-      }
-    }
-
-    const newId = crypto.randomUUID()
-    const { error } = await supabase.from('conversations').insert({ id: newId })
-    if (error) { setStartingChat(false); return }
-
-    await supabase.from('conversation_participants').insert([
-      { conversation_id: newId, user_id: currentUserId },
-      { conversation_id: newId, user_id: person.id },
-    ])
-
-    router.push(`/mesaje/${newId}`)
-  }
-
-  return (
-    <div className="flex items-center gap-3 rounded-sm px-3 py-2" style={{ background: 'var(--cream2)' }}>
-      <Link href={`/cercuri/${person.id}`} className="flex-1 min-w-0">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-[0.82rem] font-bold" style={{ color: 'var(--ink)' }}>{person.name}</p>
-            <p className="text-[0.68rem]" style={{ color: 'var(--ink2)' }}>@{person.username}</p>
-          </div>
-          <span className="text-[0.72rem] font-bold" style={{ color: 'var(--ink2)' }}>
-            {person.graduation_year}{person.class || ''}
-          </span>
-        </div>
-        {(person.profession?.length > 0 || person.domain?.length > 0) && (
-          <div className="mt-1 flex flex-wrap gap-1">
-            {person.profession?.slice(0, 2).map(p => (
-              <span
-                key={p}
-                className="inline-flex rounded px-1.5 py-0.5 text-[0.62rem] font-medium"
-                style={{ background: 'var(--teal-soft)', color: 'var(--teal)' }}
-              >
-                {p}
-              </span>
-            ))}
-            {person.domain?.slice(0, 2).map(d => (
-              <span
-                key={d}
-                className="inline-flex rounded px-1.5 py-0.5 text-[0.62rem] font-medium"
-                style={{ background: 'var(--amber-soft)', color: 'var(--amber-dark)' }}
-              >
-                {d}
-              </span>
-            ))}
-          </div>
-        )}
-      </Link>
-      <button
-        type="button"
-        onClick={handleMessage}
-        disabled={startingChat}
-        className="flex-shrink-0 rounded-full p-2 transition-colors disabled:opacity-50"
-        style={{ color: 'var(--ink3)' }}
-      >
-        {startingChat
-          ? <Loader2 size={16} className="animate-spin" />
-          : <MessageCircle size={16} />
-        }
-      </button>
-    </div>
-  )
-}

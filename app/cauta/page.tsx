@@ -14,6 +14,7 @@ import type { UserMarker } from '@/components/MapView'
 import {
   Loader2, Search, Briefcase, Layers, Building2,
   GraduationCap, Users, SlidersHorizontal, List, MapPin, User,
+  Check, UsersRound,
 } from 'lucide-react'
 
 const MapView = dynamic(() => import('@/components/MapView'), { ssr: false })
@@ -51,6 +52,9 @@ export default function CautaPage() {
 
   const [results, setResults] = useState<ProfileResult[]>([])
   const [searching, setSearching] = useState(false)
+  const [selectedPeople, setSelectedPeople] = useState<Set<string>>(new Set())
+  const [showGroupConfirm, setShowGroupConfirm] = useState(false)
+  const [creatingGroup, setCreatingGroup] = useState(false)
 
   useEffect(() => {
     async function init() {
@@ -114,6 +118,10 @@ export default function CautaPage() {
     }
   }, [loading, highschool, search])
 
+  useEffect(() => {
+    setSelectedPeople(new Set())
+  }, [results])
+
   const markers = useMemo<UserMarker[]>(() => {
     const OFFSET = 0.008
     const byCity: Record<string, ProfileResult[]> = {}
@@ -146,6 +154,46 @@ export default function CautaPage() {
 
     return out
   }, [results])
+
+  const allSelected = results.length > 0 && results.every(p => selectedPeople.has(p.id))
+
+  function toggleSelectAll() {
+    if (allSelected) {
+      setSelectedPeople(new Set())
+    } else {
+      setSelectedPeople(new Set(results.map(p => p.id)))
+    }
+  }
+
+  function toggleSelect(id: string) {
+    setSelectedPeople(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  async function handleCreateGroup() {
+    setCreatingGroup(true)
+    const members = results.filter(p => selectedPeople.has(p.id))
+    const nameParts = members.slice(0, 3).map(m => m.name.split(' ')[0])
+    const suffix = members.length > 3 ? `, +${members.length - 3}` : ''
+    const groupName = nameParts.join(', ') + suffix
+
+    const res = await fetch('/api/mesaje/grupuri', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: groupName, member_ids: [...selectedPeople] }),
+    })
+
+    if (res.ok) {
+      const data = await res.json()
+      router.push(`/mesaje/${data.id}`)
+    }
+    setCreatingGroup(false)
+    setShowGroupConfirm(false)
+  }
 
   if (loading) {
     return (
@@ -303,39 +351,70 @@ export default function CautaPage() {
             </div>
           ) : (
             <div className="space-y-2">
-              <p className="text-xs" style={{ color: 'var(--ink3)' }}>{results.length} {results.length === 1 ? 'rezultat' : 'rezultate'}</p>
+              <div className="flex items-center justify-between">
+                <p className="text-xs" style={{ color: 'var(--ink3)' }}>{results.length} {results.length === 1 ? 'rezultat' : 'rezultate'}</p>
+                <button
+                  type="button"
+                  onClick={toggleSelectAll}
+                  className="flex items-center gap-1 text-[0.72rem] transition-colors"
+                  style={{ color: 'var(--ink3)' }}
+                >
+                  <Check size={12} /> {allSelected ? 'Deselectează' : 'Selectează tot'}
+                </button>
+              </div>
               {results.map(profile => (
                 <div
                   key={profile.id}
-                  className="rounded-xl px-4 py-3"
-                  style={{ background: 'var(--white)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-s)' }}
+                  className="flex items-center gap-0 rounded-xl overflow-hidden"
+                  style={{
+                    background: 'var(--white)',
+                    border: selectedPeople.has(profile.id) ? '1.5px solid var(--ink)' : '1px solid var(--border)',
+                    boxShadow: 'var(--shadow-s)',
+                  }}
                 >
-                  <div className="flex items-start justify-between">
-                    <p className="text-sm font-semibold" style={{ color: 'var(--ink)' }}>{profile.name}</p>
-                    <span className="text-xs font-bold" style={{ color: 'var(--ink3)' }}>
-                      {profile.graduation_year}{profile.class || ''}
-                    </span>
-                  </div>
-                  {(profile.profession?.length > 0 || profile.domain?.length > 0) && (
-                    <div className="mt-1.5 flex flex-wrap gap-1">
-                      {profile.profession?.map(p => (
-                        <span key={p} className="inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-medium" style={{ background: 'var(--amber-soft)', border: '1px solid var(--border)', color: 'var(--amber-dark)' }}>
-                          {p}
-                        </span>
-                      ))}
-                      {profile.domain?.map(d => (
-                        <span key={d} className="inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-medium" style={{ background: 'var(--teal-soft)', border: '1px solid var(--teal)', color: 'var(--teal)' }}>
-                          {d}
-                        </span>
-                      ))}
+                  <button
+                    type="button"
+                    onClick={() => toggleSelect(profile.id)}
+                    className="flex-shrink-0 flex items-center justify-center pl-3"
+                  >
+                    <div
+                      className="w-5 h-5 rounded flex items-center justify-center transition-colors"
+                      style={{
+                        background: selectedPeople.has(profile.id) ? 'var(--ink)' : 'transparent',
+                        border: selectedPeople.has(profile.id) ? 'none' : '1.5px solid var(--ink3)',
+                      }}
+                    >
+                      {selectedPeople.has(profile.id) && <Check size={13} color="var(--white)" strokeWidth={2.5} />}
                     </div>
-                  )}
-                  {profile.company && (
-                    <p className="mt-1 text-[11px] flex items-center gap-1" style={{ color: 'var(--ink3)' }}>
-                      <Building2 size={11} />
-                      {profile.company}
-                    </p>
-                  )}
+                  </button>
+                  <div className="flex-1 min-w-0 px-3 py-3">
+                    <div className="flex items-start justify-between">
+                      <p className="text-sm font-semibold" style={{ color: 'var(--ink)' }}>{profile.name}</p>
+                      <span className="text-xs font-bold" style={{ color: 'var(--ink3)' }}>
+                        {profile.graduation_year}{profile.class || ''}
+                      </span>
+                    </div>
+                    {(profile.profession?.length > 0 || profile.domain?.length > 0) && (
+                      <div className="mt-1.5 flex flex-wrap gap-1">
+                        {profile.profession?.map(p => (
+                          <span key={p} className="inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-medium" style={{ background: 'var(--amber-soft)', border: '1px solid var(--border)', color: 'var(--amber-dark)' }}>
+                            {p}
+                          </span>
+                        ))}
+                        {profile.domain?.map(d => (
+                          <span key={d} className="inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-medium" style={{ background: 'var(--teal-soft)', border: '1px solid var(--teal)', color: 'var(--teal)' }}>
+                            {d}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    {profile.company && (
+                      <p className="mt-1 text-[11px] flex items-center gap-1" style={{ color: 'var(--ink3)' }}>
+                        <Building2 size={11} />
+                        {profile.company}
+                      </p>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
@@ -353,6 +432,57 @@ export default function CautaPage() {
           </div>
         )}
       </div>
+
+      {/* Floating group creation button */}
+      {selectedPeople.size > 0 && (
+        <div className="fixed bottom-24 left-0 right-0 z-40 flex justify-center px-6">
+          <button
+            type="button"
+            onClick={() => setShowGroupConfirm(true)}
+            className="flex items-center gap-2 rounded-sm px-5 py-3 text-[0.82rem] font-bold shadow-lg transition-transform active:scale-95"
+            style={{ background: 'var(--ink)', color: 'var(--white)' }}
+          >
+            <UsersRound size={16} />
+            Creează grup ({selectedPeople.size})
+          </button>
+        </div>
+      )}
+
+      {/* Group creation confirmation dialog */}
+      {showGroupConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-6">
+          <div
+            className="w-full max-w-xs rounded-lg p-6 space-y-4"
+            style={{ background: 'var(--white)', boxShadow: 'var(--shadow-l)' }}
+          >
+            <p className="text-[0.92rem] font-bold text-center" style={{ color: 'var(--ink)' }}>
+              Creează grup?
+            </p>
+            <p className="text-[0.75rem] text-center" style={{ color: 'var(--ink2)' }}>
+              {selectedPeople.size} {selectedPeople.size === 1 ? 'persoană selectată' : 'persoane selectate'}
+            </p>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setShowGroupConfirm(false)}
+                className="flex-1 rounded-sm py-2.5 text-[0.82rem] font-semibold transition-colors"
+                style={{ background: 'var(--cream2)', color: 'var(--ink2)' }}
+              >
+                Nu
+              </button>
+              <button
+                type="button"
+                onClick={handleCreateGroup}
+                disabled={creatingGroup}
+                className="flex-1 rounded-sm py-2.5 text-[0.82rem] font-semibold transition-opacity disabled:opacity-60"
+                style={{ background: 'var(--ink)', color: 'var(--white)' }}
+              >
+                {creatingGroup ? <Loader2 size={16} className="animate-spin mx-auto" /> : 'Da'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <BottomNav />
     </main>

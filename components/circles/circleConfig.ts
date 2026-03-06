@@ -50,7 +50,7 @@ export const CIRCLE_CONFIG: Record<CircleKey, CircleConfig> = {
     getDescription: (u) => `${u.highschool} '${String(u.graduation_year).slice(-2)}`,
   },
   location: {
-    label: 'Locatie',
+    label: 'Oras (unde stai)',
     emoji: '📍',
     color: '#4A9CFF',
     getDescription: (u) => [u.city, u.country].filter(Boolean).join(', '),
@@ -74,30 +74,27 @@ export const CIRCLE_CONFIG: Record<CircleKey, CircleConfig> = {
     getDescription: (u) => u.profession?.slice(0, 3).join(', ') || 'Adauga profesii',
   },
   background: {
-    label: 'Background',
+    label: 'Domeniu',
     emoji: '🏛️',
     color: '#FFB84A',
     getDescription: (u) => [u.company, ...(u.domain || [])].filter(Boolean).slice(0, 3).join(', ') || 'Adauga background',
   },
 }
 
-export const ALL_CIRCLES: CircleKey[] = ['highschool', 'location', 'hobbies', 'interests', 'profession', 'background']
+export const ALL_CIRCLES: CircleKey[] = ['highschool', 'location', 'hobbies', 'profession', 'background']
 
 export const ALL_POSITIONS: CirclePosition[] = [
   { x: 0.22, y: 0.32, r: 0.30 },
   { x: 0.46, y: 0.28, r: 0.30 },
   { x: 0.72, y: 0.34, r: 0.26 },
-  { x: 0.28, y: 0.66, r: 0.26 },
-  { x: 0.54, y: 0.70, r: 0.30 },
-  { x: 0.78, y: 0.64, r: 0.26 },
+  { x: 0.28, y: 0.66, r: 0.30 },
+  { x: 0.66, y: 0.64, r: 0.26 },
 ]
 
 export const ALL_DOTS: IntersectionDot[] = [
   { x: 0.34, y: 0.30, circles: ['highschool', 'location'], color: '#FF8F4A', label: 'Colegi din oras', key: 'hs_location' },
   { x: 0.47, y: 0.33, circles: ['highschool', 'hobbies'], color: '#FF6B4A', label: 'Colegi cu hobby-uri', key: 'hs_hobbies' },
   { x: 0.59, y: 0.31, circles: ['location', 'hobbies'], color: '#2ECDA7', label: 'Vecini cu hobby-uri', key: 'location_hobbies' },
-  { x: 0.37, y: 0.47, circles: ['location', 'interests'], color: '#E86BFF', label: 'Vecini cu interese', key: 'location_interests' },
-  { x: 0.50, y: 0.50, circles: ['hobbies', 'interests'], color: '#6BE8CC', label: 'Hobby-uri + Interese', key: 'hobbies_interests' },
   { x: 0.38, y: 0.42, circles: ['highschool', 'location', 'hobbies'], color: '#FFD700', label: 'Cercul interior', key: 'hs_location_hobbies' },
   { x: 0.38, y: 0.51, circles: ['highschool', 'profession'], color: '#7B61FF', label: 'Colegi in acelasi domeniu', key: 'hs_profession' },
   { x: 0.50, y: 0.49, circles: ['location', 'profession'], color: '#4A9CFF', label: 'Colegi locali', key: 'location_profession' },

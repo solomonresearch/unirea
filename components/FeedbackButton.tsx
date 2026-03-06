@@ -51,27 +51,22 @@ export function FeedbackButton() {
 
   return (
     <>
-      {/* Floating feedback button */}
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className="fixed z-[150] flex items-center justify-center rounded-full shadow-lg transition-transform active:scale-95 select-none"
-        style={{
-          bottom: '88px',
-          right: 'max(16px, calc((100vw - 384px) / 2 + 16px))',
-          width: '56px',
-          height: '56px',
-          background: '#DC2626',
-          color: '#fff',
-          fontSize: '1.6rem',
-          fontWeight: 900,
-          lineHeight: 1,
-          boxShadow: '0 4px 16px rgba(220,38,38,0.35)',
-        }}
-        aria-label="Feedback"
+      {/* Feedback banner — fixed pill at very top */}
+      <div
+        className="fixed top-0 left-0 right-0 z-[140] flex justify-center"
+        style={{ height: '16px' }}
       >
-        !
-      </button>
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="px-3 flex items-center justify-center text-[0.52rem] font-semibold tracking-wide animate-pulse select-none rounded-b-full leading-none"
+          style={{ background: 'var(--ink)', color: 'var(--white)', height: '16px' }}
+        >
+          da-ne feedback, te rog
+        </button>
+      </div>
+      {/* Spacer so page content isn't hidden behind the fixed banner */}
+      <div style={{ height: '16px' }} />
 
       {/* Modal overlay */}
       {open && (

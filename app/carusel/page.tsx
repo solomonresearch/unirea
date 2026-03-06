@@ -3,10 +3,10 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { getSupabase } from '@/lib/supabase'
-import { Camera, Heart, MessageCircle, Share2, X, Image as ImageIcon, Loader2, Trash2 } from 'lucide-react'
+import { Camera, Heart, MessageCircle, Share2, X, Image as ImageIcon, Loader2, Trash2, Search } from 'lucide-react'
 import { Logo } from '@/components/Logo'
 import { BottomNav } from '@/components/BottomNav'
-import { AvatarSettingsButton } from '@/components/AvatarSettingsButton'
+import Link from 'next/link'
 
 type Scope = 'liceu' | 'promotie' | 'clasa'
 
@@ -77,6 +77,9 @@ export default function CaruselPage() {
   const [loading, setLoading] = useState(true)
   const [showUpload, setShowUpload] = useState(false)
   const [scope, setScope] = useState<Scope>('promotie')
+  const [userAvatar, setUserAvatar] = useState<string | null>(null)
+  const [userName, setUserName] = useState('')
+  const [userHighschool, setUserHighschool] = useState('')
 
   // Upload state
   const [uploadFile, setUploadFile] = useState<File | null>(null)
@@ -101,6 +104,18 @@ export default function CaruselPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/autentificare'); return }
       setUserId(user.id)
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('name, avatar_url, highschool')
+        .eq('id', user.id)
+        .single()
+      if (profile) {
+        setUserName(profile.name || '')
+        setUserAvatar(profile.avatar_url)
+        setUserHighschool(profile.highschool || '')
+      }
+
       await fetchPosts('promotie')
       setLoading(false)
       if (typeof window !== 'undefined') {
@@ -206,42 +221,87 @@ export default function CaruselPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center px-6 py-6 pb-24" style={{ background: 'var(--cream2)' }}>
-      <div className="w-full max-w-sm space-y-3">
-        {/* Hidden file input */}
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/jpeg,image/png,image/webp"
-          onChange={handleFileSelect}
-          className="hidden"
-        />
+    <div className="min-h-screen pb-24" style={{ background: 'var(--cream2)' }}>
+      {/* Hidden file input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        onChange={handleFileSelect}
+        className="hidden"
+      />
 
-        {/* Header */}
-        <div className="flex items-center gap-2">
-          <Logo size={32} />
-          <span className="font-display text-xl" style={{ color: 'var(--ink)' }}>Amintiri din liceu</span>
-          <div className="ml-auto flex items-center gap-2">
-            <AvatarSettingsButton />
+      {/* Sticky topbar */}
+      <header
+        className="sticky top-[16px] z-50 px-5 border-b"
+        style={{
+          background: 'var(--cream)',
+          borderColor: 'var(--border)',
+          paddingTop: '8px',
+          paddingBottom: '12px',
+        }}
+      >
+        <div className="max-w-sm mx-auto flex items-center justify-between">
+          <div>
+            <div className="flex items-center gap-2">
+              <Logo size={32} />
+              <span className="font-display text-xl" style={{ color: 'var(--ink)' }}>Amintiri din liceu</span>
+            </div>
+            {userHighschool && (
+              <p className="text-[0.72rem] mt-1 ml-10" style={{ color: 'var(--ink3)' }}>
+                {userHighschool}
+              </p>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <Link
+              href="/cauta"
+              className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[0.72rem] font-semibold"
+              style={{ background: 'var(--white)', border: '1.5px solid var(--border)', color: 'var(--ink3)', boxShadow: 'var(--shadow-s)' }}
+            >
+              <Search size={14} strokeWidth={1.75} />
+              Cauta
+            </Link>
+            <Link href="/setari" className="flex-shrink-0 w-9 h-9 rounded-full overflow-hidden" style={{ border: '2px solid var(--border)' }}>
+              {userAvatar ? (
+                <img src={userAvatar} alt={userName} className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-[0.7rem] font-bold" style={{ background: 'var(--cream2)', color: 'var(--ink2)' }}>
+                  {getInitials(userName)}
+                </div>
+              )}
+            </Link>
           </div>
         </div>
 
-        {/* Scope filter toggles */}
-        <div className="flex gap-2">
-          {(['liceu', 'promotie', 'clasa'] as Scope[]).map(s => (
-            <button
-              key={s}
-              onClick={() => handleScopeChange(s)}
-              className="flex-1 rounded-sm py-2 text-xs font-semibold transition-colors"
-              style={scope === s
-                ? { background: 'var(--ink)', color: 'var(--white)' }
-                : { background: 'var(--cream)', color: 'var(--ink2)', border: '1px solid var(--border)' }
-              }
-            >
-              {SCOPE_LABELS[s]}
-            </button>
-          ))}
+        {/* Scope selector */}
+        <div className="max-w-sm mx-auto mt-3">
+          <div
+            className="flex rounded-md p-[3px]"
+            style={{ background: 'var(--cream2)' }}
+          >
+            {(['liceu', 'promotie', 'clasa'] as Scope[]).map(s => (
+              <button
+                key={s}
+                type="button"
+                onClick={() => handleScopeChange(s)}
+                className="flex-1 py-[7px] rounded-sm text-[0.68rem] font-semibold transition-all"
+                style={scope === s ? {
+                  background: 'var(--white)',
+                  color: 'var(--ink)',
+                  boxShadow: 'var(--shadow-s)',
+                } : {
+                  color: 'var(--ink3)',
+                }}
+              >
+                {SCOPE_LABELS[s]}
+              </button>
+            ))}
+          </div>
         </div>
+      </header>
+
+      <div className="max-w-sm mx-auto px-6 py-4 space-y-3">
 
         {/* Polaroid Carousel */}
         {posts.length > 0 && (
@@ -355,7 +415,6 @@ export default function CaruselPage() {
             Inca nu exista amintiri. Fii primul care distribuie o fotografie!
           </div>
         )}
-
       </div>
 
       {/* Upload Modal */}
@@ -416,16 +475,23 @@ export default function CaruselPage() {
             {/* Scope selector */}
             <div className="mt-3">
               <p className="text-xs font-medium mb-2" style={{ color: 'var(--ink2)' }}>Cine poate vedea?</p>
-              <div className="flex gap-2">
+              <div
+                className="flex rounded-md p-[3px]"
+                style={{ background: 'var(--cream2)' }}
+              >
                 {(['liceu', 'promotie', 'clasa'] as Scope[]).map(s => (
                   <button
                     key={s}
+                    type="button"
                     onClick={() => setUploadScope(s)}
-                    className="flex-1 rounded-sm py-2 text-xs font-semibold transition-colors"
-                    style={uploadScope === s
-                      ? { background: 'var(--ink)', color: 'var(--white)' }
-                      : { background: 'var(--cream2)', color: 'var(--ink2)', border: '1px solid var(--border)' }
-                    }
+                    className="flex-1 py-[7px] rounded-sm text-[0.68rem] font-semibold transition-all"
+                    style={uploadScope === s ? {
+                      background: 'var(--white)',
+                      color: 'var(--ink)',
+                      boxShadow: 'var(--shadow-s)',
+                    } : {
+                      color: 'var(--ink3)',
+                    }}
                   >
                     {SCOPE_LABELS[s]}
                   </button>
