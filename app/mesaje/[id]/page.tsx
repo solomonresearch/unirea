@@ -10,6 +10,23 @@ import { GroupInfoPanel } from '@/components/mesaje/GroupInfoPanel'
 import { Loader2, ArrowLeft, Send, Users } from 'lucide-react'
 import { relativeTime, getInitials } from '@/lib/utils'
 
+const DAYS_RO = ['Duminica', 'Luni', 'Marti', 'Miercuri', 'Joi', 'Vineri', 'Sambata']
+const MONTHS_RO = ['ian', 'feb', 'mar', 'apr', 'mai', 'iun', 'iul', 'aug', 'sep', 'oct', 'nov', 'dec']
+
+function getDateLabel(dateStr: string): string {
+  const date = new Date(dateStr)
+  const now = new Date()
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const msgDay = new Date(date.getFullYear(), date.getMonth(), date.getDate())
+  const diff = today.getTime() - msgDay.getTime()
+  const daysDiff = Math.floor(diff / 86400000)
+
+  if (daysDiff === 0) return 'Azi'
+  if (daysDiff === 1) return 'Ieri'
+  if (daysDiff < 7) return DAYS_RO[date.getDay()]
+  return `${date.getDate()} ${MONTHS_RO[date.getMonth()]} ${date.getFullYear()}`
+}
+
 interface Message {
   id: string
   conversation_id: string
@@ -309,6 +326,11 @@ export default function ChatPage() {
               messages[i + 1].user_id !== msg.user_id ||
               new Date(messages[i + 1].created_at).getTime() - new Date(msg.created_at).getTime() > 300000
 
+            // Date separator when the day changes
+            const prevMsg = i > 0 ? messages[i - 1] : null
+            const showDateSeparator = !prevMsg || new Date(msg.created_at).toDateString() !== new Date(prevMsg.created_at).toDateString()
+            const dateLabel = showDateSeparator ? getDateLabel(msg.created_at) : ''
+
             // For group chats, show sender name when it's a different sender than prev message
             const showSenderName = isGroup && !isOwn && (
               i === 0 || messages[i - 1].user_id !== msg.user_id
@@ -316,7 +338,17 @@ export default function ChatPage() {
             const senderProfile = participantMap.get(msg.user_id)
 
             return (
-              <div key={msg.id} className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}>
+              <div key={msg.id}>
+                {showDateSeparator && (
+                  <div className="flex items-center gap-3 py-2">
+                    <div className="flex-1 h-px" style={{ background: 'var(--border)' }} />
+                    <span className="text-[10px] font-medium" style={{ color: 'var(--ink3)' }}>
+                      {dateLabel}
+                    </span>
+                    <div className="flex-1 h-px" style={{ background: 'var(--border)' }} />
+                  </div>
+                )}
+                <div className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}>
                 <div className={`max-w-[75%] ${isOwn ? 'items-end' : 'items-start'} flex flex-col`}>
                   {showSenderName && senderProfile && (
                     <p className="text-[11px] font-medium mb-0.5 ml-1" style={{ color: 'var(--amber)' }}>
@@ -370,6 +402,7 @@ export default function ChatPage() {
                     </p>
                   )}
                 </div>
+              </div>
               </div>
             )
           })}
