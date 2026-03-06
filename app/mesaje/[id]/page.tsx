@@ -7,8 +7,8 @@ import { BottomNav } from '@/components/BottomNav'
 import { MentionInput } from '@/components/MentionInput'
 import { MentionText } from '@/components/MentionText'
 import { GroupInfoPanel } from '@/components/mesaje/GroupInfoPanel'
-import { Loader2, ArrowLeft, Send, Users, ChevronDown } from 'lucide-react'
-import { relativeTime, getInitials } from '@/lib/utils'
+import { Loader2, ArrowLeft, Send, Users, ChevronDown, MessageCircle } from 'lucide-react'
+import { getInitials } from '@/lib/utils'
 
 const DAYS_RO = ['Duminica', 'Luni', 'Marti', 'Miercuri', 'Joi', 'Vineri', 'Sambata']
 const MONTHS_RO = ['ian', 'feb', 'mar', 'apr', 'mai', 'iun', 'iul', 'aug', 'sep', 'oct', 'nov', 'dec']
@@ -358,9 +358,15 @@ export default function ChatPage() {
         {/* Messages */}
         <div className="flex-1 overflow-y-auto space-y-2 py-2 relative" ref={scrollContainerRef} onScroll={handleScroll}>
           {messages.length === 0 && (
-            <p className="text-center text-sm py-8" style={{ color: 'var(--ink3)' }}>
-              {isGroup ? 'Niciun mesaj in grup. Spune salut!' : 'Niciun mesaj inca. Spune salut!'}
-            </p>
+            <div className="flex flex-col items-center justify-center py-16 text-center">
+              <MessageCircle size={40} className="mb-3" style={{ color: 'var(--border)' }} />
+              <p className="text-sm font-medium" style={{ color: 'var(--ink3)' }}>
+                {isGroup ? 'Niciun mesaj in grup' : 'Niciun mesaj inca'}
+              </p>
+              <p className="text-xs mt-1" style={{ color: 'var(--border)' }}>
+                Trimite un mesaj pentru a incepe conversatia
+              </p>
+            </div>
           )}
           {messages.map((msg, i) => {
             const isOwn = msg.user_id === currentUserId
@@ -437,7 +443,7 @@ export default function ChatPage() {
                         onClick={() => handleDeleteMessage(msg.id)}
                         disabled={deletingMessageId === msg.id}
                         className="text-[11px] font-medium px-2.5 py-1 rounded-lg disabled:opacity-50"
-                        style={{ background: 'var(--red, #ef4444)', color: 'white' }}
+                        style={{ background: 'var(--rose)', color: 'white' }}
                       >
                         {deletingMessageId === msg.id ? 'Se sterge...' : 'Sterge'}
                       </button>
@@ -453,7 +459,7 @@ export default function ChatPage() {
                   )}
                   {showTime && (
                     <p className={`text-[10px] mt-0.5 ${isOwn ? 'text-right' : 'text-left'}`} style={{ color: 'var(--ink3)' }}>
-                      {relativeTime(msg.created_at)}
+                      {new Date(msg.created_at).toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit' })}
                     </p>
                   )}
                 </div>
