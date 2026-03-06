@@ -325,22 +325,22 @@ export default function ChatPage() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center px-6 pb-24">
-      <div className="w-full max-w-sm flex flex-col min-h-screen">
-        {/* Header */}
-        <div
-          className="flex items-center gap-3 py-4 sticky top-0 z-10"
-          style={{
-            background: 'var(--white)',
-            borderBottom: scrolled ? '1px solid var(--border)' : '1px solid transparent',
-            boxShadow: scrolled ? 'var(--shadow-s)' : 'none',
-            transition: 'box-shadow 0.2s ease, border-color 0.2s ease',
-          }}
-        >
+    <main className="flex flex-col min-h-screen pb-24" style={{ background: 'var(--cream2)' }}>
+      {/* Header */}
+      <header
+        className="sticky top-0 z-50 border-b"
+        style={{
+          background: 'var(--cream)',
+          borderColor: scrolled ? 'var(--border)' : 'transparent',
+          boxShadow: scrolled ? 'var(--shadow-s)' : 'none',
+          transition: 'box-shadow 0.2s ease, border-color 0.2s ease',
+        }}
+      >
+        <div className="max-w-sm mx-auto px-4 flex items-center gap-3 pt-2 pb-3">
           <button
             type="button"
             onClick={() => router.push('/mesaje')}
-            className="transition-colors"
+            className="transition-colors -ml-1"
             style={{ color: 'var(--ink3)' }}
           >
             <ArrowLeft size={20} />
@@ -350,20 +350,20 @@ export default function ChatPage() {
             <button
               type="button"
               onClick={() => setShowGroupInfo(true)}
-              className="flex items-center gap-2 min-w-0"
+              className="flex items-center gap-2.5 min-w-0"
             >
-              <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'var(--amber-soft)' }}>
+              <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'var(--amber-soft)' }}>
                 <Users size={16} style={{ color: 'var(--amber)' }} />
               </div>
               <div className="text-left min-w-0">
                 <p className="text-sm font-semibold leading-tight truncate" style={{ color: 'var(--ink)' }}>{groupMeta?.name}</p>
-                <p className="text-[11px]" style={{ color: 'var(--ink3)' }}>{members.length} membri</p>
+                <p className="text-[11px] mt-0.5" style={{ color: 'var(--ink3)' }}>{members.length} membri</p>
               </div>
             </button>
           ) : otherUser && (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2.5">
               <div className="relative flex-shrink-0">
-                <div className="w-8 h-8 rounded-full overflow-hidden">
+                <div className="w-9 h-9 rounded-full overflow-hidden">
                   {otherUser.avatar_url ? (
                     <img src={otherUser.avatar_url} alt={otherUser.name} className="w-full h-full object-cover" />
                   ) : (
@@ -374,19 +374,21 @@ export default function ChatPage() {
                 </div>
                 <span
                   className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2"
-                  style={{ background: '#34C759', borderColor: 'var(--white)' }}
+                  style={{ background: '#34C759', borderColor: 'var(--cream)' }}
                 />
               </div>
               <div>
                 <p className="text-sm font-semibold leading-tight" style={{ color: 'var(--ink)' }}>{otherUser.name}</p>
-                <p className="text-[11px]" style={{ color: 'var(--ink3)' }}>@{otherUser.username}</p>
+                <p className="text-[11px] mt-0.5" style={{ color: 'var(--ink3)' }}>@{otherUser.username}</p>
               </div>
             </div>
           )}
         </div>
+      </header>
 
+      <div className="max-w-sm mx-auto w-full flex flex-col flex-1 min-h-0">
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto py-2 relative" ref={scrollContainerRef} onScroll={handleScroll}>
+        <div className="flex-1 overflow-y-auto px-4 py-3 relative" ref={scrollContainerRef} onScroll={handleScroll}>
           {messages.length === 0 && (
             <div className="flex flex-col items-center justify-center py-16 text-center">
               <MessageCircle size={40} className="mb-3" style={{ color: 'var(--border)' }} />
@@ -537,22 +539,27 @@ export default function ChatPage() {
         </div>
 
         {/* Input bar */}
-        <div className="sticky bottom-16 pt-2 pb-2" style={{ background: 'var(--cream)', boxShadow: '0 -1px 8px rgba(0,0,0,0.04)' }}>
-          <form onSubmit={handleSend} className="flex gap-2">
-            <MentionInput
-              value={newMessage}
-              onChange={setNewMessage}
-              placeholder="Scrie un mesaj..."
-              className="flex-1 rounded-full border px-4 py-2 text-sm outline-none"
-              style={{ borderColor: 'var(--border)', background: 'var(--white)', color: 'var(--ink)' }}
-            />
+        <div className="px-4 py-2.5">
+          <form onSubmit={handleSend} className="flex items-end gap-2">
+            <div
+              className="flex-1 rounded-2xl border overflow-hidden"
+              style={{ background: 'var(--white)', borderColor: 'var(--border)', boxShadow: 'var(--shadow-s)' }}
+            >
+              <MentionInput
+                value={newMessage}
+                onChange={setNewMessage}
+                placeholder="Scrie un mesaj..."
+                className="w-full px-4 py-2.5 text-sm outline-none"
+                style={{ background: 'transparent', color: 'var(--ink)' }}
+              />
+            </div>
             <button
               type="submit"
               disabled={sending || !newMessage.trim()}
-              className="send-btn rounded-full p-2 text-white disabled:opacity-50 transition-colors"
-              style={{ background: 'var(--amber)' }}
+              className="send-btn w-10 h-10 rounded-full flex items-center justify-center text-white disabled:opacity-40 transition-all flex-shrink-0"
+              style={{ background: 'var(--ink)' }}
             >
-              {sending ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
+              {sending ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
             </button>
           </form>
         </div>
