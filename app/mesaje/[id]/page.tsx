@@ -366,7 +366,7 @@ export default function ChatPage() {
         </div>
 
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto space-y-2 py-2 relative" ref={scrollContainerRef} onScroll={handleScroll}>
+        <div className="flex-1 overflow-y-auto py-2 relative" ref={scrollContainerRef} onScroll={handleScroll}>
           {messages.length === 0 && (
             <div className="flex flex-col items-center justify-center py-16 text-center">
               <MessageCircle size={40} className="mb-3" style={{ color: 'var(--border)' }} />
@@ -380,23 +380,38 @@ export default function ChatPage() {
           )}
           {messages.map((msg, i) => {
             const isOwn = msg.user_id === currentUserId
-            const showTime = i === messages.length - 1 ||
-              messages[i + 1].user_id !== msg.user_id ||
-              new Date(messages[i + 1].created_at).getTime() - new Date(msg.created_at).getTime() > 300000
 
             // Date separator when the day changes
             const prevMsg = i > 0 ? messages[i - 1] : null
             const showDateSeparator = !prevMsg || new Date(msg.created_at).toDateString() !== new Date(prevMsg.created_at).toDateString()
             const dateLabel = showDateSeparator ? getDateLabel(msg.created_at) : ''
 
-            // For group chats, show sender name when it's a different sender than prev message
-            const showSenderName = isGroup && !isOwn && (
-              i === 0 || messages[i - 1].user_id !== msg.user_id
-            )
+            // Grouping: same sender + same day
+            const sameDay = (a: string, b: string) => new Date(a).toDateString() === new Date(b).toDateString()
+            const sameSenderAsPrev = !showDateSeparator && prevMsg && prevMsg.user_id === msg.user_id && sameDay(prevMsg.created_at, msg.created_at)
+            const nextMsg = i < messages.length - 1 ? messages[i + 1] : null
+            const sameSenderAsNext = nextMsg && nextMsg.user_id === msg.user_id && sameDay(msg.created_at, nextMsg.created_at)
+              && new Date(nextMsg.created_at).toDateString() === new Date(msg.created_at).toDateString()
+            const isFirstInGroup = !sameSenderAsPrev
+            const isLastInGroup = !sameSenderAsNext
+
+            const showTime = isLastInGroup ||
+              (nextMsg && new Date(nextMsg.created_at).getTime() - new Date(msg.created_at).getTime() > 300000)
+
+            // For group chats, show sender name on first message of a group
+            const showSenderName = isGroup && !isOwn && isFirstInGroup
             const senderProfile = participantMap.get(msg.user_id)
 
+            // Margin: larger gap between groups, tiny gap within group
+            const marginTop = showDateSeparator ? '' : (isFirstInGroup ? 'mt-3' : 'mt-0.5')
+
+            // Corner radius: flat corner only on last bubble in group
+            const bubbleRadius = isLastInGroup
+              ? (isOwn ? 'rounded-2xl rounded-br-md' : 'rounded-2xl rounded-bl-md')
+              : 'rounded-2xl'
+
             return (
-              <div key={msg.id}>
+              <div key={msg.id} className={marginTop}>
                 {showDateSeparator && (
                   <div className="flex items-center gap-3 py-2">
                     <div className="flex-1 h-px" style={{ background: 'var(--border)' }} />
@@ -409,7 +424,7 @@ export default function ChatPage() {
                 <div className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}>
                 {isGroup && !isOwn && (
                   <div className="w-6 mr-2 flex-shrink-0 flex items-end">
-                    {showSenderName && senderProfile ? (
+                    {isLastInGroup && senderProfile ? (
                       senderProfile.avatar_url ? (
                         <img src={senderProfile.avatar_url} alt={senderProfile.name} className="w-6 h-6 rounded-full object-cover" />
                       ) : (
@@ -427,9 +442,7 @@ export default function ChatPage() {
                     </p>
                   )}
                   <div
-                    className={`px-3 py-2 rounded-2xl text-sm select-none ${
-                      isOwn ? 'rounded-br-md' : 'rounded-bl-md'
-                    }`}
+                    className={`px-3 py-2 ${bubbleRadius} text-sm select-none`}
                     style={isOwn
                       ? { background: 'var(--amber)', color: 'white' }
                       : { background: 'var(--cream2)', color: 'var(--ink)' }
