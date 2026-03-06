@@ -2,12 +2,15 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { getSupabase } from '@/lib/supabase'
-import { Loader2, Send, Trash2, ChevronUp, ChevronDown, MessageCircle, Clock, Plus, Users, Lock, Eye, CheckCircle2, Pencil } from 'lucide-react'
+import { Loader2, Send, Trash2, ChevronUp, ChevronDown, MessageCircle, Clock, Plus, Users, Lock, Eye, CheckCircle2, Pencil, Search } from 'lucide-react'
 import { QuizOverlay } from '@/components/sondaje/QuizOverlay'
 import { QuizCreateDialog } from '@/components/sondaje/QuizCreateDialog'
 import { QuizEditDialog } from '@/components/sondaje/QuizEditDialog'
 import { BottomNav } from '@/components/BottomNav'
+import { AvatarSettingsButton } from '@/components/AvatarSettingsButton'
+import { Logo } from '@/components/Logo'
 
 type Scope = 'clasa' | 'promotie' | 'liceu'
 
@@ -171,6 +174,10 @@ export default function AvizierPage() {
   const [expandedComments, setExpandedComments] = useState<Set<string>>(new Set())
   const [commentTexts, setCommentTexts] = useState<Record<string, string>>({})
 
+  const [showPostModal, setShowPostModal] = useState(false)
+  const [modalScope, setModalScope] = useState<Scope>('liceu')
+  const [modalExpiryDays, setModalExpiryDays] = useState(7)
+
   const [quizzes, setQuizzes] = useState<Quiz[]>([])
   const [quizzesLoading, setQuizzesLoading] = useState(false)
   const [activeQuiz, setActiveQuiz] = useState<Quiz | null>(null)
@@ -197,6 +204,19 @@ export default function AvizierPage() {
 
       setProfile(profileData as UserProfile)
       setLoading(false)
+
+      if (typeof window !== 'undefined') {
+        const params = new URLSearchParams(window.location.search)
+        const open = params.get('open')
+        if (open === 'quiz' && profileData.role === 'admin') {
+          setCreateQuizOpen(true)
+          window.history.replaceState({}, '', '/avizier')
+        } else if (open === 'post') {
+          window.history.replaceState({}, '', '/avizier')
+          setModalScope(scope)
+          setShowPostModal(true)
+        }
+      }
     }
     load()
   }, [router])
@@ -281,6 +301,16 @@ export default function AvizierPage() {
     loadPosts(profile, scope)
     loadQuizzes(scope)
   }, [profile, scope, loadPosts, loadQuizzes])
+
+  useEffect(() => {
+    function handler(e: Event) {
+      const action = (e as CustomEvent).detail?.action
+      if (action === 'post') { setModalScope(scope); setShowPostModal(true) }
+      if (action === 'quiz' && profile?.role === 'admin') setCreateQuizOpen(true)
+    }
+    window.addEventListener('unirea:fab-action', handler)
+    return () => window.removeEventListener('unirea:fab-action', handler)
+  }, [profile])
 
   function handleScopeChange(newScope: Scope) {
     setScope(newScope)
@@ -430,13 +460,22 @@ export default function AvizierPage() {
             paddingBottom: '12px',
           }}
         >
-          <div className="max-w-sm mx-auto px-4 flex items-center justify-between">
-            <span className="font-display text-xl" style={{ color: 'var(--ink)' }}>
-              uni<span style={{ color: 'var(--amber)' }}>.</span>rea
-            </span>
-            <p className="text-[0.62rem] truncate ml-3 flex-1 text-right" style={{ color: 'var(--ink3)' }}>
-              {scopeLabel(profile, scope)}
+          <div className="max-w-sm mx-auto px-4">
+            <p className="text-center text-[0.7rem] font-semibold mb-1.5 truncate" style={{ color: 'var(--ink2)' }}>
+              {profile.highschool}
             </p>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Logo size={32} />
+                <span className="font-display text-xl" style={{ color: 'var(--ink)' }}>Informatii din liceu</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Link href="/cauta" className="p-1">
+                  <Search size={18} strokeWidth={1.75} style={{ color: 'var(--ink3)' }} />
+                </Link>
+                <AvatarSettingsButton />
+              </div>
+            </div>
           </div>
 
           {/* Ring selector */}
@@ -835,6 +874,114 @@ export default function AvizierPage() {
       </main>
 
       <BottomNav />
+
+      {/* Post modal */}
+      {showPostModal && profile && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+          <div
+            className="w-full max-w-sm rounded-xl p-4 space-y-3"
+            style={{ background: 'var(--white)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-m)' }}
+          >
+            <div className="flex items-center justify-between">
+              <span className="font-semibold text-[0.9rem]" style={{ color: 'var(--ink)' }}>Scrie un anunț</span>
+              <button onClick={() => setShowPostModal(false)} style={{ color: 'var(--ink3)' }}>
+                <Plus size={18} style={{ transform: 'rotate(45deg)' }} />
+              </button>
+            </div>
+            <form
+              onSubmit={async e => {
+                e.preventDefault()
+                if (!newContent.trim() || !profile) return
+                if (modalScope === 'clasa' && (!profile.graduation_year || !profile.class)) return
+                if (modalScope === 'promotie' && !profile.graduation_year) return
+                setSubmitting(true)
+                setSubmitError(null)
+                const body: Record<string, unknown> = { content: newContent.trim(), scope: modalScope }
+                if (modalScope === 'liceu') body.expiry_days = modalExpiryDays
+                const res = await fetch('/api/avizier', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(body),
+                })
+                if (!res.ok) {
+                  const data = await res.json().catch(() => ({}))
+                  setSubmitError(data.error ?? `Eroare ${res.status}`)
+                } else {
+                  setNewContent('')
+                  setShowPostModal(false)
+                  await loadPosts(profile, scope)
+                }
+                setSubmitting(false)
+              }}
+              className="space-y-2"
+            >
+              <textarea
+                value={newContent}
+                onChange={e => setNewContent(e.target.value)}
+                placeholder={
+                  modalScope === 'clasa' ? 'Scrie ceva pe tablă...' :
+                  modalScope === 'promotie' ? 'Scrie ceva promoției...' :
+                  'Scrie un anunț...'
+                }
+                rows={3}
+                className="w-full rounded-sm px-3 py-2 text-[0.82rem] outline-none resize-none"
+                style={{
+                  background: 'var(--cream2)',
+                  border: '1.5px solid var(--border)',
+                  color: 'var(--ink)',
+                  fontFamily: 'inherit',
+                }}
+                autoFocus
+              />
+              <div className="flex items-center gap-2">
+                <select
+                  value={modalScope}
+                  onChange={e => setModalScope(e.target.value as Scope)}
+                  className="rounded-sm px-2 py-1.5 text-[0.78rem] outline-none"
+                  style={{
+                    background: 'var(--cream2)',
+                    border: '1.5px solid var(--border)',
+                    color: 'var(--ink2)',
+                    fontFamily: 'inherit',
+                  }}
+                >
+                  <option value="liceu">Liceu</option>
+                  <option value="promotie">Promoție</option>
+                  <option value="clasa">Clasă</option>
+                </select>
+                {modalScope === 'liceu' && (
+                  <select
+                    value={modalExpiryDays}
+                    onChange={e => setModalExpiryDays(Number(e.target.value))}
+                    className="rounded-sm px-2 py-1.5 text-[0.78rem] outline-none"
+                    style={{
+                      background: 'var(--cream2)',
+                      border: '1.5px solid var(--border)',
+                      color: 'var(--ink2)',
+                      fontFamily: 'inherit',
+                    }}
+                  >
+                    {EXPIRY_OPTIONS.map(opt => (
+                      <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    ))}
+                  </select>
+                )}
+                <button
+                  type="submit"
+                  disabled={submitting || !newContent.trim()}
+                  className="ml-auto rounded-sm px-3 py-1.5 text-[0.78rem] font-bold text-white disabled:opacity-40 transition-opacity hover:opacity-80"
+                  style={{ background: 'var(--ink)' }}
+                >
+                  {submitting ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
+                </button>
+              </div>
+              {submitError && (
+                <p className="text-[0.72rem]" style={{ color: 'var(--rose)' }}>{submitError}</p>
+              )}
+            </form>
+          </div>
+        </div>
+      )}
 
       {activeQuiz && (
         <QuizOverlay

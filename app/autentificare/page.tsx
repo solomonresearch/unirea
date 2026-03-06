@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { getSupabase } from '@/lib/supabase'
 import { Mail, Lock, Loader2, ArrowLeft } from 'lucide-react'
+import { Logo } from '@/components/Logo'
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false)
@@ -48,9 +49,7 @@ export default function LoginPage() {
           >
             <ArrowLeft size={16} />
           </Link>
-          <span className="font-display text-xl" style={{ color: 'var(--ink)' }}>
-            uni<span style={{ color: 'var(--amber)' }}>.</span>rea
-          </span>
+          <Logo size={32} />
         </div>
 
         <div>
