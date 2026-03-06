@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { usePathname } from 'next/navigation'
-import { X, Loader2 } from 'lucide-react'
+import { MessageSquare, X, Loader2 } from 'lucide-react'
 import { getSupabase } from '@/lib/supabase'
 
 export function FeedbackButton() {
@@ -51,22 +51,15 @@ export function FeedbackButton() {
 
   return (
     <>
-      {/* Feedback banner — fixed pill at very top */}
-      <div
-        className="fixed top-0 left-0 right-0 z-[140] flex justify-center"
-        style={{ height: '16px' }}
+      {/* Floating feedback icon button */}
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="fixed bottom-20 right-4 z-[140] w-10 h-10 rounded-full flex items-center justify-center transition-transform hover:scale-110"
+        style={{ background: 'var(--ink)', color: 'var(--white)', boxShadow: '0 4px 12px rgba(0,0,0,0.2)' }}
       >
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-          className="px-3 flex items-center justify-center text-[0.52rem] font-semibold tracking-wide animate-pulse select-none rounded-b-full leading-none"
-          style={{ background: 'var(--ink)', color: 'var(--white)', height: '16px' }}
-        >
-          da-ne feedback, te rog
-        </button>
-      </div>
-      {/* Spacer so page content isn't hidden behind the fixed banner */}
-      <div style={{ height: '16px' }} />
+        <MessageSquare size={18} />
+      </button>
 
       {/* Modal overlay */}
       {open && (

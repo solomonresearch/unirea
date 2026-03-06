@@ -253,7 +253,7 @@ export default function ChatPage() {
     <main className="flex min-h-screen flex-col items-center px-6 pb-24">
       <div className="w-full max-w-sm flex flex-col min-h-screen">
         {/* Header */}
-        <div className="flex items-center gap-3 py-4 sticky top-[16px] z-10" style={{ background: 'var(--white)' }}>
+        <div className="flex items-center gap-3 py-4 sticky top-0 z-10" style={{ background: 'var(--white)' }}>
           <button
             type="button"
             onClick={() => router.push('/mesaje')}

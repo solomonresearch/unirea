@@ -17,7 +17,7 @@ export function AvizierTabBar() {
   }
 
   return (
-    <div className="fixed top-[16px] left-0 right-0 z-40 border-b" style={{ background: 'var(--white)', borderColor: 'var(--border)' }}>
+    <div className="fixed top-0 left-0 right-0 z-40 border-b" style={{ background: 'var(--white)', borderColor: 'var(--border)' }}>
       <div className="mx-auto max-w-sm flex items-center justify-center gap-1 py-2 px-4">
         {TABS.map(({ href, label, dotStyle }) => {
           const active = isActive(href)

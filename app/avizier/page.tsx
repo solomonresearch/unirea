@@ -430,7 +430,7 @@ export default function AvizierPage() {
       <main className="flex flex-col min-h-screen pb-24" style={{ background: 'var(--cream2)' }}>
         {/* Sticky topbar */}
         <header
-          className="sticky top-[16px] z-50 border-b"
+          className="sticky top-0 z-50 border-b"
           style={{
             background: 'var(--cream)',
             borderColor: 'var(--border)',

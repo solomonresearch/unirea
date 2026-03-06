@@ -212,7 +212,7 @@ export default function CaruselPage() {
 
       {/* Sticky topbar */}
       <header
-        className="sticky top-[16px] z-50 px-5 border-b"
+        className="sticky top-0 z-50 px-5 border-b"
         style={{
           background: 'var(--cream)',
           borderColor: 'var(--border)',
