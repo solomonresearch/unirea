@@ -270,7 +270,7 @@ export default function ChatPage() {
   if (loading) {
     return (
       <main className="flex min-h-screen items-center justify-center">
-        <Loader2 size={24} className="animate-spin text-primary-700" />
+        <Loader2 size={24} className="animate-spin" style={{ color: 'var(--amber)' }} />
       </main>
     )
   }
@@ -279,11 +279,12 @@ export default function ChatPage() {
     <main className="flex min-h-screen flex-col items-center px-6 pb-24">
       <div className="w-full max-w-sm flex flex-col min-h-screen">
         {/* Header */}
-        <div className="flex items-center gap-3 py-4 sticky top-[16px] bg-white z-10">
+        <div className="flex items-center gap-3 py-4 sticky top-[16px] z-10" style={{ background: 'var(--white)' }}>
           <button
             type="button"
             onClick={() => router.push('/mesaje')}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            className="transition-colors"
+            style={{ color: 'var(--ink3)' }}
           >
             <ArrowLeft size={20} />
           </button>
@@ -294,12 +295,12 @@ export default function ChatPage() {
               onClick={() => setShowGroupInfo(true)}
               className="flex items-center gap-2 min-w-0"
             >
-              <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
-                <Users size={16} className="text-primary-700" />
+              <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'var(--amber-soft)' }}>
+                <Users size={16} style={{ color: 'var(--amber)' }} />
               </div>
               <div className="text-left min-w-0">
-                <p className="text-sm font-semibold text-gray-900 leading-tight truncate">{groupMeta?.name}</p>
-                <p className="text-[11px] text-gray-400">{members.length} membri</p>
+                <p className="text-sm font-semibold leading-tight truncate" style={{ color: 'var(--ink)' }}>{groupMeta?.name}</p>
+                <p className="text-[11px]" style={{ color: 'var(--ink3)' }}>{members.length} membri</p>
               </div>
             </button>
           ) : otherUser && (
@@ -308,14 +309,14 @@ export default function ChatPage() {
                 {otherUser.avatar_url ? (
                   <img src={otherUser.avatar_url} alt={otherUser.name} className="w-full h-full object-cover" />
                 ) : (
-                  <div className="w-full h-full bg-primary-100 flex items-center justify-center">
-                    <span className="text-xs font-bold text-primary-700">{getInitials(otherUser.name)}</span>
+                  <div className="w-full h-full flex items-center justify-center" style={{ background: 'var(--amber-soft)' }}>
+                    <span className="text-xs font-bold" style={{ color: 'var(--amber)' }}>{getInitials(otherUser.name)}</span>
                   </div>
                 )}
               </div>
               <div>
-                <p className="text-sm font-semibold text-gray-900 leading-tight">{otherUser.name}</p>
-                <p className="text-[11px] text-gray-400">@{otherUser.username}</p>
+                <p className="text-sm font-semibold leading-tight" style={{ color: 'var(--ink)' }}>{otherUser.name}</p>
+                <p className="text-[11px]" style={{ color: 'var(--ink3)' }}>@{otherUser.username}</p>
               </div>
             </div>
           )}
@@ -324,7 +325,7 @@ export default function ChatPage() {
         {/* Messages */}
         <div className="flex-1 overflow-y-auto space-y-2 py-2">
           {messages.length === 0 && (
-            <p className="text-center text-sm text-gray-400 py-8">
+            <p className="text-center text-sm py-8" style={{ color: 'var(--ink3)' }}>
               {isGroup ? 'Niciun mesaj in grup. Spune salut!' : 'Niciun mesaj inca. Spune salut!'}
             </p>
           )}
@@ -344,16 +345,18 @@ export default function ChatPage() {
               <div key={msg.id} className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}>
                 <div className={`max-w-[75%] ${isOwn ? 'items-end' : 'items-start'} flex flex-col`}>
                   {showSenderName && senderProfile && (
-                    <p className="text-[11px] text-primary-700 font-medium mb-0.5 ml-1">
+                    <p className="text-[11px] font-medium mb-0.5 ml-1" style={{ color: 'var(--amber)' }}>
                       {senderProfile.name.split(' ')[0]}
                     </p>
                   )}
                   <div
                     className={`px-3 py-2 rounded-2xl text-sm select-none ${
-                      isOwn
-                        ? 'bg-primary-700 text-white rounded-br-md'
-                        : 'bg-gray-100 text-gray-900 rounded-bl-md'
+                      isOwn ? 'rounded-br-md' : 'rounded-bl-md'
                     }`}
+                    style={isOwn
+                      ? { background: 'var(--amber)', color: 'white' }
+                      : { background: 'var(--cream2)', color: 'var(--ink)' }
+                    }
                     onTouchStart={() => handleLongPressStart(msg.id, isOwn)}
                     onTouchEnd={handleLongPressEnd}
                     onTouchMove={handleLongPressEnd}
@@ -388,7 +391,7 @@ export default function ChatPage() {
                     </div>
                   )}
                   {showTime && (
-                    <p className={`text-[10px] text-gray-400 mt-0.5 ${isOwn ? 'text-right' : 'text-left'}`}>
+                    <p className={`text-[10px] mt-0.5 ${isOwn ? 'text-right' : 'text-left'}`} style={{ color: 'var(--ink3)' }}>
                       {relativeTime(msg.created_at)}
                     </p>
                   )}
@@ -400,18 +403,20 @@ export default function ChatPage() {
         </div>
 
         {/* Input bar */}
-        <div className="sticky bottom-16 bg-white pt-2 pb-2 border-t border-gray-100">
+        <div className="sticky bottom-16 pt-2 pb-2 border-t" style={{ background: 'var(--white)', borderColor: 'var(--border)' }}>
           <form onSubmit={handleSend} className="flex gap-2">
             <MentionInput
               value={newMessage}
               onChange={setNewMessage}
               placeholder="Scrie un mesaj..."
-              className="flex-1 rounded-full border border-gray-200 bg-gray-50 px-4 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-primary-300 focus:ring-1 focus:ring-primary-300 outline-none"
+              className="flex-1 rounded-full border px-4 py-2 text-sm outline-none"
+              style={{ borderColor: 'var(--border)', background: 'var(--cream)', color: 'var(--ink)' }}
             />
             <button
               type="submit"
               disabled={sending || !newMessage.trim()}
-              className="rounded-full bg-primary-700 p-2 text-white hover:bg-primary-800 disabled:opacity-50 transition-colors"
+              className="rounded-full p-2 text-white disabled:opacity-50 transition-colors"
+              style={{ background: 'var(--amber)' }}
             >
               {sending ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
             </button>
