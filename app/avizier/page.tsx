@@ -692,11 +692,14 @@ export default function AvizierPage() {
                 </div>
               )}
               {!postsLoading && posts.length === 0 && (
-                <p className="text-center text-[0.82rem] py-8" style={{ color: 'var(--ink3)' }}>
-                  {emptyText}
-                </p>
+                <div className="flex flex-col items-center py-8 gap-2">
+                  <MessageCircle size={32} style={{ color: 'var(--ink3)' }} />
+                  <p className="text-center text-[0.82rem]" style={{ color: 'var(--ink3)' }}>
+                    {emptyText}
+                  </p>
+                </div>
               )}
-              {!postsLoading && posts.map(post => {
+              {!postsLoading && posts.map((post, i) => {
                 const name = post.profiles?.name || post.profiles?.username || '?'
                 const bg = avatarColor(name)
                 const ini = getInitials(name)
@@ -705,8 +708,8 @@ export default function AvizierPage() {
                 return (
                   <div
                     key={post.id}
-                    className="rounded-lg border overflow-hidden"
-                    style={{ background: 'var(--white)', borderColor: 'var(--border)', boxShadow: 'var(--shadow-s)' }}
+                    className="feed-item rounded-lg border overflow-hidden"
+                    style={{ background: 'var(--white)', borderColor: 'var(--border)', boxShadow: 'var(--shadow-s)', animationDelay: `${Math.min(i, 10) * 50}ms` }}
                   >
                     <div className="px-4 pt-3 pb-2">
                       {/* Post header */}

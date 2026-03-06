@@ -14,7 +14,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog'
-import { Loader2, Plus, Trash2, ExternalLink, MapPin } from 'lucide-react'
+import { Loader2, Plus, Trash2, ExternalLink, MapPin, Newspaper } from 'lucide-react'
 import { relativeTime } from '@/lib/utils'
 
 interface ZiarPost {
@@ -228,15 +228,18 @@ export default function ZiarPage() {
           {/* Posts feed */}
           <div className="space-y-2">
             {posts.length === 0 && (
-              <p className="text-center text-sm py-8" style={{ color: 'var(--ink3)' }}>
-                Nicio postare inca. Fii primul care scrie in ziar!
-              </p>
+              <div className="flex flex-col items-center py-8 gap-2">
+                <Newspaper size={32} style={{ color: 'var(--ink3)' }} />
+                <p className="text-center text-sm" style={{ color: 'var(--ink3)' }}>
+                  Nicio postare inca. Fii primul care scrie in ziar!
+                </p>
+              </div>
             )}
-            {posts.map(post => {
+            {posts.map((post, i) => {
               const catMeta = getCategoryMeta(post.category)
               const location = [post.city, post.county].filter(Boolean).join(', ')
               return (
-                <div key={post.id} className="rounded-lg px-4 py-3" style={{ background: 'var(--white)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-s)' }}>
+                <div key={post.id} className="feed-item rounded-lg px-4 py-3" style={{ background: 'var(--white)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-s)', animationDelay: `${Math.min(i, 10) * 50}ms` }}>
                   {/* Category badge + location */}
                   <div className="flex items-center gap-2 mb-1.5">
                     <span className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold ${catMeta.color}`}>

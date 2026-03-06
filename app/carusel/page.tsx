@@ -294,7 +294,7 @@ export default function CaruselPage() {
                 <button
                   key={photo.id}
                   onClick={() => router.push(`/carusel/${photo.id}`)}
-                  className="snap-center flex-shrink-0 w-44 rounded-sm p-2 pb-8 transition-transform hover:scale-105"
+                  className="snap-center flex-shrink-0 w-44 rounded-sm p-2 pb-8 transition-transform polaroid-card"
                   style={{ background: 'var(--white)', boxShadow: 'var(--shadow-m)', border: '1px solid var(--border)', transform: `rotate(${getRotation(photo.id)}deg)` }}
                 >
                   <div className="aspect-square w-full overflow-hidden">
@@ -321,11 +321,11 @@ export default function CaruselPage() {
               Activitate
             </h2>
             <div className="space-y-2">
-              {posts.map(photo => (
+              {posts.map((photo, i) => (
                 <div
                   key={photo.id}
-                  className="flex gap-3 rounded-lg p-2.5"
-                  style={{ background: 'var(--white)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-s)' }}
+                  className="feed-item flex gap-3 rounded-lg p-2.5"
+                  style={{ background: 'var(--white)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-s)', animationDelay: `${Math.min(i, 10) * 50}ms` }}
                 >
                   <button
                     onClick={() => router.push(`/carusel/${photo.id}`)}
@@ -391,8 +391,11 @@ export default function CaruselPage() {
             </div>
           </section>
         ) : (
-          <div className="text-center py-8 text-sm" style={{ color: 'var(--ink3)' }}>
-            Inca nu exista amintiri. Fii primul care distribuie o fotografie!
+          <div className="flex flex-col items-center py-8 gap-2">
+            <Camera size={32} style={{ color: 'var(--ink3)' }} />
+            <p className="text-center text-sm" style={{ color: 'var(--ink3)' }}>
+              Inca nu exista amintiri. Fii primul care distribuie o fotografie!
+            </p>
           </div>
         )}
       </div>
