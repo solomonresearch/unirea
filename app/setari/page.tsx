@@ -20,7 +20,7 @@ import {
   LogOut, Loader2, Sparkles, Briefcase, Layers,
   MapPin, Globe, Building, Heart, Mail, Phone,
   GraduationCap, Pencil, Settings, Shield,
-  FlaskConical, Trash2, X,
+  FlaskConical, Trash2, X, MessageSquare, ChevronDown, ChevronUp,
 } from 'lucide-react'
 
 interface Profile {
@@ -73,6 +73,19 @@ export default function SetariPage() {
   const [isAdmin, setIsAdmin] = useState(false)
   const [mockLoading, setMockLoading] = useState<string | null>(null)
   const [mockResult, setMockResult] = useState<string | null>(null)
+
+  interface FeedbackItem {
+    userId: string
+    userName: string
+    userUsername: string
+    feedbackId: number
+    message: string
+    createdAt: string
+  }
+  const [feedbackList, setFeedbackList] = useState<FeedbackItem[]>([])
+  const [feedbackOpen, setFeedbackOpen] = useState(false)
+  const [feedbackLoading, setFeedbackLoading] = useState(false)
+  const [deletingFeedback, setDeletingFeedback] = useState<string | null>(null)
 
   useEffect(() => {
     async function loadProfile() {
@@ -165,6 +178,41 @@ export default function SetariPage() {
       setMockResult(err instanceof Error ? err.message : 'Eroare')
     } finally {
       setMockLoading(null)
+    }
+  }
+
+  async function loadFeedback() {
+    setFeedbackLoading(true)
+    try {
+      const { data: { session } } = await getSupabase().auth.getSession()
+      const res = await fetch('/api/feedback', {
+        headers: session ? { Authorization: `Bearer ${session.access_token}` } : {},
+      })
+      const data = await res.json()
+      if (res.ok) setFeedbackList(data.feedback || [])
+    } finally {
+      setFeedbackLoading(false)
+    }
+  }
+
+  async function handleDeleteFeedback(userId: string, feedbackId: number) {
+    const key = `${userId}-${feedbackId}`
+    setDeletingFeedback(key)
+    try {
+      const { data: { session } } = await getSupabase().auth.getSession()
+      const res = await fetch('/api/feedback', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(session ? { Authorization: `Bearer ${session.access_token}` } : {}),
+        },
+        body: JSON.stringify({ userId, feedbackId }),
+      })
+      if (res.ok) {
+        setFeedbackList(prev => prev.filter(f => !(f.userId === userId && f.feedbackId === feedbackId)))
+      }
+    } finally {
+      setDeletingFeedback(null)
     }
   }
 
@@ -698,6 +746,94 @@ export default function SetariPage() {
                   </div>
                   {mockResult && (
                     <p className="text-[0.75rem] text-center font-medium" style={{ color: 'var(--ink2)' }}>{mockResult}</p>
+                  )}
+                </div>
+              )}
+
+              {/* Feedback panel (admin only) */}
+              {isAdmin && (
+                <div
+                  className="rounded-lg border overflow-hidden"
+                  style={{ background: 'var(--white)', borderColor: 'var(--border)', boxShadow: 'var(--shadow-s)' }}
+                >
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const next = !feedbackOpen
+                      setFeedbackOpen(next)
+                      if (next && feedbackList.length === 0) loadFeedback()
+                    }}
+                    className="w-full flex items-center gap-3 px-4 py-3 text-left"
+                  >
+                    <MessageSquare size={18} style={{ color: 'var(--teal)' }} />
+                    <div className="flex-1">
+                      <p className="text-[0.82rem] font-bold" style={{ color: 'var(--ink)' }}>Feedback utilizatori</p>
+                      <p className="text-[0.72rem]" style={{ color: 'var(--ink3)' }}>
+                        {feedbackList.length > 0 ? `${feedbackList.length} mesaj${feedbackList.length !== 1 ? 'e' : ''}` : 'Vezi toate mesajele'}
+                      </p>
+                    </div>
+                    {feedbackOpen ? <ChevronUp size={16} style={{ color: 'var(--ink3)' }} /> : <ChevronDown size={16} style={{ color: 'var(--ink3)' }} />}
+                  </button>
+
+                  {feedbackOpen && (
+                    <div className="border-t" style={{ borderColor: 'var(--border)' }}>
+                      {feedbackLoading ? (
+                        <div className="flex justify-center py-6">
+                          <Loader2 size={20} className="animate-spin" style={{ color: 'var(--ink3)' }} />
+                        </div>
+                      ) : feedbackList.length === 0 ? (
+                        <p className="text-center text-[0.78rem] py-6" style={{ color: 'var(--ink3)' }}>
+                          Niciun feedback primit
+                        </p>
+                      ) : (
+                        <div className="divide-y" style={{ borderColor: 'var(--border)' }}>
+                          {feedbackList.map(f => (
+                            <div key={`${f.userId}-${f.feedbackId}`} className="px-4 py-3 space-y-1">
+                              <div className="flex items-center justify-between gap-2">
+                                <div>
+                                  <span className="text-[0.75rem] font-semibold" style={{ color: 'var(--ink)' }}>
+                                    {f.userName}
+                                  </span>
+                                  <span className="text-[0.68rem] ml-1.5" style={{ color: 'var(--ink3)' }}>
+                                    @{f.userUsername}
+                                  </span>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteFeedback(f.userId, f.feedbackId)}
+                                  disabled={deletingFeedback === `${f.userId}-${f.feedbackId}`}
+                                  className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded transition-opacity disabled:opacity-40"
+                                  style={{ color: 'var(--rose)' }}
+                                >
+                                  {deletingFeedback === `${f.userId}-${f.feedbackId}`
+                                    ? <Loader2 size={12} className="animate-spin" />
+                                    : <Trash2 size={12} />
+                                  }
+                                </button>
+                              </div>
+                              <p className="text-[0.72rem]" style={{ color: 'var(--ink3)' }}>
+                                {new Date(f.createdAt).toLocaleString('ro-RO', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                              </p>
+                              <p className="text-[0.82rem] whitespace-pre-wrap" style={{ color: 'var(--ink2)' }}>
+                                {f.message}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      <div className="px-4 pb-3 pt-1">
+                        <button
+                          type="button"
+                          onClick={loadFeedback}
+                          disabled={feedbackLoading}
+                          className="text-[0.72rem] font-medium disabled:opacity-50"
+                          style={{ color: 'var(--teal)' }}
+                        >
+                          Reîncarcă
+                        </button>
+                      </div>
+                    </div>
                   )}
                 </div>
               )}
