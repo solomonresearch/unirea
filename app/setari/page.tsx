@@ -379,7 +379,7 @@ export default function SetariPage() {
 
   if (!profile) return null
 
-  const inputClass = "w-full rounded-sm px-3 py-[11px] text-[0.88rem] outline-none transition-colors"
+  const inputClass = "w-full rounded-sm px-3 py-[11px] text-sm outline-none transition-colors"
   const inputStyle = {
     background: 'var(--cream2)',
     border: '1.5px solid var(--border)',
@@ -443,12 +443,12 @@ export default function SetariPage() {
                     onChange={e => { setEditUsername(e.target.value.toLowerCase()); setUsernameError('') }}
                     autoFocus
                     maxLength={30}
-                    className="w-24 text-[0.72rem] font-semibold px-1.5 py-0.5 rounded-xs outline-none"
+                    className="w-24 text-xxs font-semibold px-1.5 py-0.5 rounded-xs outline-none"
                     style={{ background: 'var(--cream2)', border: '1.5px solid var(--border)', color: 'var(--ink)' }}
                   />
                 </div>
                 {usernameError && (
-                  <span className="text-[0.62rem] flex items-center gap-0.5" style={{ color: 'var(--rose)' }}>
+                  <span className="text-2xs flex items-center gap-0.5" style={{ color: 'var(--rose)' }}>
                     <AlertCircle size={10} />
                     {usernameError}
                   </span>
@@ -458,7 +458,7 @@ export default function SetariPage() {
                     type="button"
                     onClick={handleSaveUsername}
                     disabled={savingUsername}
-                    className="flex items-center gap-1 rounded-xs px-2 py-0.5 text-[0.65rem] font-bold text-white disabled:opacity-50"
+                    className="flex items-center gap-1 rounded-xs px-2 py-0.5 text-2xs font-bold text-white disabled:opacity-50"
                     style={{ background: 'var(--ink)' }}
                   >
                     {savingUsername ? <Loader2 size={10} className="animate-spin" /> : <Check size={10} />}
@@ -467,7 +467,7 @@ export default function SetariPage() {
                   <button
                     type="button"
                     onClick={() => { setEditUsername(profile.username); setEditingUsername(false); setUsernameError('') }}
-                    className="rounded-xs px-2 py-0.5 text-[0.65rem] font-medium"
+                    className="rounded-xs px-2 py-0.5 text-2xs font-medium"
                     style={{ border: '1px solid var(--border)', color: 'var(--ink3)' }}
                   >
                     Anulează
@@ -478,7 +478,7 @@ export default function SetariPage() {
               <button
                 type="button"
                 onClick={() => setEditingUsername(true)}
-                className="flex items-center gap-1 text-[0.65rem] font-semibold px-2 py-1 rounded-xs transition-colors"
+                className="flex items-center gap-1 text-2xs font-semibold px-2 py-1 rounded-xs transition-colors"
                 style={{ background: 'var(--cream2)', color: 'var(--ink2)' }}
               >
                 @{profile.username}
@@ -525,7 +525,7 @@ export default function SetariPage() {
                     setEditingGraduation(false)
                   }}
                   disabled={savingGraduation || !editGradYear}
-                  className="flex items-center gap-1.5 rounded-sm px-4 py-2 text-[0.75rem] font-bold text-white disabled:opacity-50"
+                  className="flex items-center gap-1.5 rounded-sm px-4 py-2 text-xs font-bold text-white disabled:opacity-50"
                   style={{ background: 'var(--ink)' }}
                 >
                   {savingGraduation && <Loader2 size={14} className="animate-spin" />}
@@ -534,7 +534,7 @@ export default function SetariPage() {
                 <button
                   type="button"
                   onClick={() => { setEditGradYear(profile.graduation_year); setEditClass(profile.class || ''); setEditingGraduation(false) }}
-                  className="rounded-sm px-4 py-2 text-[0.75rem] font-medium"
+                  className="rounded-sm px-4 py-2 text-xs font-medium"
                   style={{ border: '1.5px solid var(--border)', color: 'var(--ink2)' }}
                 >
                   Anulează
@@ -542,7 +542,7 @@ export default function SetariPage() {
               </div>
             </div>
           ) : (
-            <p className="text-[0.7rem] flex items-center gap-1 mt-0.5" style={{ color: 'var(--ink3)' }}>
+            <p className="text-xxs flex items-center gap-1 mt-0.5" style={{ color: 'var(--ink3)' }}>
               <GraduationCap size={12} />
               {profile.highschool} · <span className="font-bold" style={{ color: 'var(--ink2)' }}>{profile.graduation_year}{profile.class || ''}</span>
               <button
@@ -589,7 +589,7 @@ export default function SetariPage() {
                     setEditingLocation(false)
                   }}
                   disabled={savingLocation}
-                  className="flex items-center gap-1.5 rounded-sm px-4 py-2 text-[0.75rem] font-bold text-white disabled:opacity-50"
+                  className="flex items-center gap-1.5 rounded-sm px-4 py-2 text-xs font-bold text-white disabled:opacity-50"
                   style={{ background: 'var(--ink)' }}
                 >
                   {savingLocation && <Loader2 size={14} className="animate-spin" />}
@@ -598,7 +598,7 @@ export default function SetariPage() {
                 <button
                   type="button"
                   onClick={() => { setEditCountry(profile.country || 'Romania'); setEditCity(profile.city || ''); setEditingLocation(false) }}
-                  className="rounded-sm px-4 py-2 text-[0.75rem] font-medium"
+                  className="rounded-sm px-4 py-2 text-xs font-medium"
                   style={{ border: '1.5px solid var(--border)', color: 'var(--ink2)' }}
                 >
                   Anulează
@@ -606,7 +606,7 @@ export default function SetariPage() {
               </div>
             </div>
           ) : (
-            <p className="text-[0.7rem] flex items-center gap-1 mt-0.5" style={{ color: 'var(--ink3)' }}>
+            <p className="text-xxs flex items-center gap-1 mt-0.5" style={{ color: 'var(--ink3)' }}>
               <MapPin size={12} />
               {[profile.city, profile.country].filter(Boolean).join(', ') || 'Nicio locație'}
               <button
@@ -635,7 +635,7 @@ export default function SetariPage() {
                 <span className="block font-display text-[1.25rem] leading-none" style={{ color: 'var(--ink)' }}>
                   {stat.value}
                 </span>
-                <span className="text-[0.58rem] uppercase tracking-wider" style={{ color: 'var(--ink3)' }}>
+                <span className="text-3xs uppercase tracking-wider" style={{ color: 'var(--ink3)' }}>
                   {stat.label}
                 </span>
               </div>
@@ -656,13 +656,13 @@ export default function SetariPage() {
                 onChange={e => setEditBio(e.target.value)}
                 placeholder="Povestește-ne despre tine..."
                 rows={4}
-                className="w-full rounded-sm px-3 py-2.5 text-[0.88rem] outline-none resize-none"
+                className="w-full rounded-sm px-3 py-2.5 text-sm outline-none resize-none"
                 style={{ background: 'var(--cream2)', border: '1.5px solid var(--border)', color: 'var(--ink)', fontFamily: 'inherit' }}
               />
             }
             onSave={async () => { await updateProfile({ bio: editBio }) }}
           >
-            <p className="text-[0.82rem] leading-relaxed" style={{ color: profile.bio ? 'var(--ink2)' : 'var(--ink3)' }}>
+            <p className="text-xs leading-relaxed" style={{ color: profile.bio ? 'var(--ink2)' : 'var(--ink3)' }}>
               {profile.bio || <em>Nicio descriere încă</em>}
             </p>
           </ProfileSection>
@@ -688,22 +688,22 @@ export default function SetariPage() {
                 {(profile.profession?.length > 0 || profile.domain?.length > 0) && (
                   <div className="flex flex-wrap gap-1.5">
                     {profile.profession?.map(p => (
-                      <span key={p} className="inline-flex items-center rounded px-2 py-0.5 text-[0.72rem] font-medium" style={{ background: 'var(--teal-soft)', color: 'var(--teal)' }}>{p}</span>
+                      <span key={p} className="inline-flex items-center rounded px-2 py-0.5 text-xxs font-medium" style={{ background: 'var(--teal-soft)', color: 'var(--teal)' }}>{p}</span>
                     ))}
                     {profile.domain?.map(d => (
-                      <span key={d} className="inline-flex items-center rounded px-2 py-0.5 text-[0.72rem] font-medium" style={{ background: 'var(--amber-soft)', color: 'var(--amber-dark)' }}>{d}</span>
+                      <span key={d} className="inline-flex items-center rounded px-2 py-0.5 text-xxs font-medium" style={{ background: 'var(--amber-soft)', color: 'var(--amber-dark)' }}>{d}</span>
                     ))}
                   </div>
                 )}
                 {profile.company && (
-                  <p className="text-[0.75rem] flex items-center gap-1" style={{ color: 'var(--ink3)' }}>
+                  <p className="text-xs flex items-center gap-1" style={{ color: 'var(--ink3)' }}>
                     <Building size={12} />
                     {profile.company}
                   </p>
                 )}
               </div>
             ) : (
-              <p className="text-[0.82rem] italic" style={{ color: 'var(--ink3)' }}>Nicio profesie sau domeniu</p>
+              <p className="text-xs italic" style={{ color: 'var(--ink3)' }}>Nicio profesie sau domeniu</p>
             )}
           </ProfileSection>
 
@@ -720,7 +720,7 @@ export default function SetariPage() {
                       key={label}
                       type="button"
                       onClick={() => toggleEditHobby(label)}
-                      className="flex flex-col items-center gap-0.5 rounded-xs px-0.5 py-1.5 text-[0.62rem] font-medium transition-all border"
+                      className="flex flex-col items-center gap-0.5 rounded-xs px-0.5 py-1.5 text-2xs font-medium transition-all border"
                       style={selected ? {
                         border: '1.5px solid var(--amber)',
                         background: 'var(--amber-soft)',
@@ -745,7 +745,7 @@ export default function SetariPage() {
                   const hobby = HOBBY_OPTIONS.find(o => o.label === h)
                   const Icon = hobby?.icon
                   return (
-                    <span key={h} className="inline-flex items-center gap-1 rounded px-2 py-0.5 text-[0.72rem] font-medium" style={{ background: 'var(--amber-soft)', color: 'var(--amber-dark)' }}>
+                    <span key={h} className="inline-flex items-center gap-1 rounded px-2 py-0.5 text-xxs font-medium" style={{ background: 'var(--amber-soft)', color: 'var(--amber-dark)' }}>
                       {Icon && <Icon size={11} />}
                       {h}
                     </span>
@@ -753,7 +753,7 @@ export default function SetariPage() {
                 })}
               </div>
             ) : (
-              <p className="text-[0.82rem] italic" style={{ color: 'var(--ink3)' }}>Niciun hobby selectat</p>
+              <p className="text-xs italic" style={{ color: 'var(--ink3)' }}>Niciun hobby selectat</p>
             )}
           </ProfileSection>
 
@@ -769,7 +769,7 @@ export default function SetariPage() {
             }
             onSave={async () => { await updateProfile({ phone: editPhone || null }) }}
           >
-            <div className="space-y-1.5 text-[0.82rem]" style={{ color: 'var(--ink2)' }}>
+            <div className="space-y-1.5 text-xs" style={{ color: 'var(--ink2)' }}>
               <p className="flex items-center gap-1.5">
                 <Mail size={13} style={{ color: 'var(--ink3)' }} />
                 {profile.email}
@@ -794,7 +794,7 @@ export default function SetariPage() {
                 <Loader2 size={16} className="animate-spin" style={{ color: 'var(--ink3)' }} />
               </div>
             ) : userPhotos.length === 0 ? (
-              <p className="text-[0.82rem] italic" style={{ color: 'var(--ink3)' }}>
+              <p className="text-xs italic" style={{ color: 'var(--ink3)' }}>
                 Nicio fotografie incarcata. Adauga din <Link href="/carusel" className="underline" style={{ color: 'var(--amber-dark)' }}>Carusel</Link>.
               </p>
             ) : (
@@ -812,7 +812,7 @@ export default function SetariPage() {
                     />
                     {photo.caption && (
                       <div className="absolute inset-x-0 bottom-0 px-1.5 py-1 bg-gradient-to-t from-black/60 to-transparent">
-                        <p className="text-[0.6rem] text-white truncate">{photo.caption}</p>
+                        <p className="text-2xs text-white truncate">{photo.caption}</p>
                       </div>
                     )}
                   </Link>
@@ -862,7 +862,7 @@ export default function SetariPage() {
                 className="rounded-lg border p-4"
                 style={{ background: 'var(--white)', borderColor: 'var(--border)', boxShadow: 'var(--shadow-s)' }}
               >
-                <p className="text-[0.64rem] font-bold uppercase tracking-widest mb-3" style={{ color: 'var(--ink3)' }}>
+                <p className="text-2xs font-bold uppercase tracking-widest mb-3" style={{ color: 'var(--ink3)' }}>
                   Aspect
                 </p>
                 <div className="grid grid-cols-3 gap-3">
@@ -898,7 +898,7 @@ export default function SetariPage() {
                           />
                         </div>
                         <span
-                          className="text-[0.72rem] font-semibold"
+                          className="text-xxs font-semibold"
                           style={{ color: selected ? 'var(--amber-dark)' : 'var(--ink2)' }}
                         >
                           {s.name}
@@ -911,7 +911,7 @@ export default function SetariPage() {
                   <button
                     type="button"
                     onClick={async () => { await setSkin(pendingSkin); setPendingSkin(null) }}
-                    className="mt-3 w-full rounded-sm py-2 text-[0.82rem] font-semibold transition-colors"
+                    className="mt-3 w-full rounded-sm py-2 text-xs font-semibold transition-colors"
                     style={{ background: 'var(--ink)', color: 'var(--white)' }}
                   >
                     Aplică
@@ -929,8 +929,8 @@ export default function SetariPage() {
                 >
                   <Shield size={20} style={{ color: 'var(--rose)' }} />
                   <div>
-                    <p className="text-[0.82rem] font-bold" style={{ color: 'var(--ink)' }}>Panou Admin</p>
-                    <p className="text-[0.72rem]" style={{ color: 'var(--ink3)' }}>Gestionează utilizatorii și rolurile</p>
+                    <p className="text-xs font-bold" style={{ color: 'var(--ink)' }}>Panou Admin</p>
+                    <p className="text-xxs" style={{ color: 'var(--ink3)' }}>Gestionează utilizatorii și rolurile</p>
                   </div>
                 </button>
               )}
@@ -944,8 +944,8 @@ export default function SetariPage() {
                   <div className="flex items-center gap-2">
                     <FlaskConical size={18} style={{ color: 'var(--teal)' }} />
                     <div>
-                      <p className="text-[0.82rem] font-bold" style={{ color: 'var(--ink)' }}>Date de test</p>
-                      <p className="text-[0.72rem]" style={{ color: 'var(--ink3)' }}>Creează profiluri bot pentru testare</p>
+                      <p className="text-xs font-bold" style={{ color: 'var(--ink)' }}>Date de test</p>
+                      <p className="text-xxs" style={{ color: 'var(--ink3)' }}>Creează profiluri bot pentru testare</p>
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-2">
@@ -960,7 +960,7 @@ export default function SetariPage() {
                         type="button"
                         onClick={() => handleMock(scope)}
                         disabled={!!mockLoading}
-                        className="flex items-center justify-center gap-1.5 rounded-sm px-3 py-2 text-[0.75rem] font-medium disabled:opacity-50 transition-opacity"
+                        className="flex items-center justify-center gap-1.5 rounded-sm px-3 py-2 text-xs font-medium disabled:opacity-50 transition-opacity"
                         style={{ background: 'var(--cream2)', border: '1.5px solid var(--border)', color: 'var(--ink2)' }}
                       >
                         {mockLoading === scope ? <Loader2 size={14} className="animate-spin" /> : null}
@@ -971,7 +971,7 @@ export default function SetariPage() {
                       type="button"
                       onClick={handleDeleteMock}
                       disabled={!!mockLoading}
-                      className="flex items-center justify-center gap-1.5 rounded-sm px-3 py-2 text-[0.75rem] font-medium disabled:opacity-50 col-span-2 transition-opacity"
+                      className="flex items-center justify-center gap-1.5 rounded-sm px-3 py-2 text-xs font-medium disabled:opacity-50 col-span-2 transition-opacity"
                       style={{ background: '#FEF2F2', border: '1.5px solid #FECACA', color: 'var(--rose)' }}
                     >
                       {mockLoading === 'delete' ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
@@ -979,7 +979,7 @@ export default function SetariPage() {
                     </button>
                   </div>
                   {mockResult && (
-                    <p className="text-[0.75rem] text-center font-medium" style={{ color: 'var(--ink2)' }}>{mockResult}</p>
+                    <p className="text-xs text-center font-medium" style={{ color: 'var(--ink2)' }}>{mockResult}</p>
                   )}
                 </div>
               )}
@@ -1001,8 +1001,8 @@ export default function SetariPage() {
                   >
                     <MessageSquare size={18} style={{ color: 'var(--teal)' }} />
                     <div className="flex-1">
-                      <p className="text-[0.82rem] font-bold" style={{ color: 'var(--ink)' }}>Feedback utilizatori</p>
-                      <p className="text-[0.72rem]" style={{ color: 'var(--ink3)' }}>
+                      <p className="text-xs font-bold" style={{ color: 'var(--ink)' }}>Feedback utilizatori</p>
+                      <p className="text-xxs" style={{ color: 'var(--ink3)' }}>
                         {feedbackList.length > 0 ? `${feedbackList.length} mesaj${feedbackList.length !== 1 ? 'e' : ''}` : 'Vezi toate mesajele'}
                       </p>
                     </div>
@@ -1016,7 +1016,7 @@ export default function SetariPage() {
                           <Loader2 size={20} className="animate-spin" style={{ color: 'var(--ink3)' }} />
                         </div>
                       ) : feedbackList.length === 0 ? (
-                        <p className="text-center text-[0.78rem] py-6" style={{ color: 'var(--ink3)' }}>
+                        <p className="text-center text-xs py-6" style={{ color: 'var(--ink3)' }}>
                           Niciun feedback primit
                         </p>
                       ) : (
@@ -1025,10 +1025,10 @@ export default function SetariPage() {
                             <div key={`${f.userId}-${f.feedbackId}`} className="px-4 py-3 space-y-1">
                               <div className="flex items-center justify-between gap-2">
                                 <div>
-                                  <span className="text-[0.75rem] font-semibold" style={{ color: 'var(--ink)' }}>
+                                  <span className="text-xs font-semibold" style={{ color: 'var(--ink)' }}>
                                     {f.userName}
                                   </span>
-                                  <span className="text-[0.68rem] ml-1.5" style={{ color: 'var(--ink3)' }}>
+                                  <span className="text-xxs ml-1.5" style={{ color: 'var(--ink3)' }}>
                                     @{f.userUsername}
                                   </span>
                                 </div>
@@ -1046,16 +1046,16 @@ export default function SetariPage() {
                                 </button>
                               </div>
                               <div className="flex items-center gap-2 flex-wrap">
-                                <p className="text-[0.72rem]" style={{ color: 'var(--ink3)' }}>
+                                <p className="text-xxs" style={{ color: 'var(--ink3)' }}>
                                   {new Date(f.createdAt).toLocaleString('ro-RO', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                                 </p>
                                 {f.page && (
-                                  <span className="text-[0.68rem] font-mono px-1.5 py-0.5 rounded-xs" style={{ background: 'var(--cream2)', color: 'var(--ink2)' }}>
+                                  <span className="text-xxs font-mono px-1.5 py-0.5 rounded-xs" style={{ background: 'var(--cream2)', color: 'var(--ink2)' }}>
                                     {f.page}
                                   </span>
                                 )}
                               </div>
-                              <p className="text-[0.82rem] whitespace-pre-wrap" style={{ color: 'var(--ink2)' }}>
+                              <p className="text-xs whitespace-pre-wrap" style={{ color: 'var(--ink2)' }}>
                                 {f.message}
                               </p>
                             </div>
@@ -1068,7 +1068,7 @@ export default function SetariPage() {
                           type="button"
                           onClick={loadFeedback}
                           disabled={feedbackLoading}
-                          className="text-[0.72rem] font-medium disabled:opacity-50"
+                          className="text-xxs font-medium disabled:opacity-50"
                           style={{ color: 'var(--teal)' }}
                         >
                           Reîncarcă
@@ -1096,8 +1096,8 @@ export default function SetariPage() {
                   >
                     <Layers size={18} style={{ color: 'var(--amber-dark)' }} />
                     <div className="flex-1">
-                      <p className="text-[0.82rem] font-bold" style={{ color: 'var(--ink)' }}>Feedback grupat</p>
-                      <p className="text-[0.72rem]" style={{ color: 'var(--ink3)' }}>
+                      <p className="text-xs font-bold" style={{ color: 'var(--ink)' }}>Feedback grupat</p>
+                      <p className="text-xxs" style={{ color: 'var(--ink3)' }}>
                         {clustered
                           ? `${feedbackList.length} mesaje în ${Object.values(clustered).filter(b => b.length > 0).length} categorii`
                           : 'Clasificare pe categorii'}
@@ -1121,7 +1121,7 @@ export default function SetariPage() {
                             }
                           }}
                           disabled={feedbackLoading}
-                          className="flex items-center gap-2 rounded-sm px-5 py-2 text-[0.82rem] font-bold text-white disabled:opacity-50 transition-opacity active:scale-95"
+                          className="flex items-center gap-2 rounded-sm px-5 py-2 text-xs font-bold text-white disabled:opacity-50 transition-opacity active:scale-95"
                           style={{ background: '#DC2626' }}
                         >
                           {feedbackLoading && <Loader2 size={14} className="animate-spin" />}
@@ -1130,7 +1130,7 @@ export default function SetariPage() {
                       </div>
 
                       {!clustered ? (
-                        <p className="text-center text-[0.78rem] py-4 px-4" style={{ color: 'var(--ink3)' }}>
+                        <p className="text-center text-xs py-4 px-4" style={{ color: 'var(--ink3)' }}>
                           Apasă RUN pentru a clasifica feedback-ul
                         </p>
                       ) : (
@@ -1149,16 +1149,16 @@ export default function SetariPage() {
                                 {/* Bucket header */}
                                 <div className="flex items-center gap-2 px-4 py-2" style={{ background: 'var(--cream2)' }}>
                                   <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: dot }} />
-                                  <span className="text-[0.72rem] font-bold uppercase tracking-wider" style={{ color: 'var(--ink2)' }}>
+                                  <span className="text-xxs font-bold uppercase tracking-wider" style={{ color: 'var(--ink2)' }}>
                                     {label}
                                   </span>
-                                  <span className="ml-auto text-[0.68rem] font-semibold" style={{ color: 'var(--ink3)' }}>
+                                  <span className="ml-auto text-xxs font-semibold" style={{ color: 'var(--ink3)' }}>
                                     {items.length}
                                   </span>
                                 </div>
 
                                 {items.length === 0 ? (
-                                  <p className="px-4 py-2 text-[0.75rem] italic" style={{ color: 'var(--ink3)' }}>
+                                  <p className="px-4 py-2 text-xs italic" style={{ color: 'var(--ink3)' }}>
                                     Niciun mesaj
                                   </p>
                                 ) : (
@@ -1166,7 +1166,7 @@ export default function SetariPage() {
                                     {items.map(f => (
                                       <div key={`${f.userId}-${f.feedbackId}`} className="px-4 py-2.5 space-y-1">
                                         <div className="flex items-center gap-2 justify-between">
-                                          <span className="text-[0.72rem] font-semibold" style={{ color: 'var(--ink)' }}>
+                                          <span className="text-xxs font-semibold" style={{ color: 'var(--ink)' }}>
                                             {f.userName}
                                             <span className="font-normal ml-1" style={{ color: 'var(--ink3)' }}>@{f.userUsername}</span>
                                           </span>
@@ -1174,7 +1174,7 @@ export default function SetariPage() {
                                           <select
                                             value={key}
                                             onChange={e => moveToCategory(f, key, e.target.value as ClusterCategory)}
-                                            className="text-[0.68rem] rounded-xs px-1 py-0.5 outline-none cursor-pointer"
+                                            className="text-xxs rounded-xs px-1 py-0.5 outline-none cursor-pointer"
                                             style={{
                                               background: 'var(--cream2)',
                                               border: '1px solid var(--border)',
@@ -1189,11 +1189,11 @@ export default function SetariPage() {
                                           </select>
                                         </div>
                                         {f.page && (
-                                          <span className="text-[0.65rem] font-mono px-1 py-0.5 rounded-xs" style={{ background: 'var(--cream2)', color: 'var(--ink3)' }}>
+                                          <span className="text-2xs font-mono px-1 py-0.5 rounded-xs" style={{ background: 'var(--cream2)', color: 'var(--ink3)' }}>
                                             {f.page}
                                           </span>
                                         )}
-                                        <p className="text-[0.78rem] whitespace-pre-wrap" style={{ color: 'var(--ink2)' }}>
+                                        <p className="text-xs whitespace-pre-wrap" style={{ color: 'var(--ink2)' }}>
                                           {f.message}
                                         </p>
                                       </div>
@@ -1218,7 +1218,7 @@ export default function SetariPage() {
                 style={{ background: 'var(--white)', borderColor: 'var(--border)', boxShadow: 'var(--shadow-s)', color: 'var(--rose)' }}
               >
                 <LogOut size={18} />
-                <span className="text-[0.82rem] font-semibold">Ieșire din cont</span>
+                <span className="text-xs font-semibold">Ieșire din cont</span>
               </button>
             </div>
           </div>

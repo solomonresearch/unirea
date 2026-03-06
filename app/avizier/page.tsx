@@ -444,14 +444,14 @@ export default function AvizierPage() {
                 <Logo size={32} />
                 <span className="font-display text-xl" style={{ color: 'var(--ink)' }}>Avizier</span>
               </div>
-              <p className="text-[0.72rem] mt-1 ml-10" style={{ color: 'var(--ink3)' }}>
+              <p className="text-xxs mt-1 ml-10" style={{ color: 'var(--ink3)' }}>
                 {profile.highschool}
               </p>
             </div>
             <div className="flex items-center gap-2">
               <Link
                 href="/cauta"
-                className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[0.72rem] font-semibold"
+                className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xxs font-semibold"
                 style={{ background: 'var(--white)', border: '1.5px solid var(--border)', color: 'var(--ink3)', boxShadow: 'var(--shadow-s)' }}
               >
                 <Search size={14} strokeWidth={1.75} />
@@ -462,7 +462,7 @@ export default function AvizierPage() {
                 {profile.avatar_url ? (
                   <img src={profile.avatar_url} alt={profile.name} className="w-full h-full object-cover" />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-[0.7rem] font-bold" style={{ background: 'var(--cream2)', color: 'var(--ink2)' }}>
+                  <div className="w-full h-full flex items-center justify-center text-xxs font-bold" style={{ background: 'var(--cream2)', color: 'var(--ink2)' }}>
                     {getInitials(profile.name || '')}
                   </div>
                 )}
@@ -481,7 +481,7 @@ export default function AvizierPage() {
                   key={s}
                   type="button"
                   onClick={() => handleScopeChange(s)}
-                  className="flex-1 py-[7px] rounded-sm text-[0.68rem] font-semibold transition-all"
+                  className="flex-1 py-[7px] rounded-sm text-xxs font-semibold transition-all"
                   style={scope === s ? {
                     background: 'var(--white)',
                     color: 'var(--ink)',
@@ -499,7 +499,7 @@ export default function AvizierPage() {
 
         <div className="max-w-sm mx-auto w-full px-4 pt-4 space-y-2">
           {(missingClassData || missingPromotieData) && (
-            <p className="text-[0.82rem] text-center py-8" style={{ color: 'var(--ink3)' }}>
+            <p className="text-xs text-center py-8" style={{ color: 'var(--ink3)' }}>
               Completează profilul pentru a accesa această secțiune.
             </p>
           )}
@@ -510,7 +510,7 @@ export default function AvizierPage() {
               {isAdmin && (
                 <button
                   onClick={() => setCreateQuizOpen(true)}
-                  className="flex items-center gap-2 w-full px-4 py-2.5 rounded-sm text-[0.82rem] font-semibold justify-center transition-opacity hover:opacity-80"
+                  className="flex items-center gap-2 w-full px-4 py-2.5 rounded-sm text-xs font-semibold justify-center transition-opacity hover:opacity-80"
                   style={{ background: 'var(--teal)', color: 'var(--white)' }}
                 >
                   <Plus size={16} />
@@ -539,7 +539,7 @@ export default function AvizierPage() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-1.5 mb-1">
                           <span
-                            className="text-[0.6rem] font-bold uppercase tracking-wider"
+                            className="text-2xs font-bold uppercase tracking-wider"
                             style={{ color: 'var(--teal)' }}
                           >
                             Sondaj
@@ -551,9 +551,9 @@ export default function AvizierPage() {
                             <Lock size={12} style={{ color: 'var(--ink3)' }} />
                           )}
                         </div>
-                        <h3 className="font-bold text-[0.82rem]" style={{ color: 'var(--ink)' }}>{quiz.title}</h3>
+                        <h3 className="font-bold text-xs" style={{ color: 'var(--ink)' }}>{quiz.title}</h3>
                         {quiz.description && (
-                          <p className="text-[0.72rem] mt-0.5 line-clamp-2" style={{ color: 'var(--ink3)' }}>{quiz.description}</p>
+                          <p className="text-xxs mt-0.5 line-clamp-2" style={{ color: 'var(--ink3)' }}>{quiz.description}</p>
                         )}
                       </div>
                       {isAdminOrMod && (
@@ -568,12 +568,12 @@ export default function AvizierPage() {
                     </div>
 
                     <div className="flex items-center gap-3 mt-2">
-                      <span className="flex items-center gap-1 text-[0.68rem]" style={{ color: 'var(--ink3)' }}>
+                      <span className="flex items-center gap-1 text-xxs" style={{ color: 'var(--ink3)' }}>
                         <Users size={12} />
                         {quiz.response_count} {quiz.response_count === 1 ? 'răspuns' : 'răspunsuri'}
                       </span>
                       {quiz.expires_at && (
-                        <span className="flex items-center gap-1 text-[0.68rem]" style={{ color: 'var(--ink3)' }}>
+                        <span className="flex items-center gap-1 text-xxs" style={{ color: 'var(--ink3)' }}>
                           <Clock size={12} />
                           {quizExpiryLabel(quiz.expires_at)}
                         </span>
@@ -583,10 +583,10 @@ export default function AvizierPage() {
                     {resultsLocked && (
                       <div className="mt-3">
                         <div className="flex justify-between items-center mb-1">
-                          <p className="text-[0.68rem]" style={{ color: 'var(--ink3)' }}>
+                          <p className="text-xxs" style={{ color: 'var(--ink3)' }}>
                             {quiz.response_count}/{quiz.reveal_threshold} colegi
                           </p>
-                          <p className="text-[0.68rem]" style={{ color: 'var(--ink3)' }}>{progressPct}%</p>
+                          <p className="text-xxs" style={{ color: 'var(--ink3)' }}>{progressPct}%</p>
                         </div>
                         <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--cream2)' }}>
                           <div
@@ -601,7 +601,7 @@ export default function AvizierPage() {
                       {!quiz.completed && (
                         <button
                           onClick={() => openQuizTake(quiz)}
-                          className="w-full py-2 rounded-sm text-[0.75rem] font-bold transition-opacity hover:opacity-80"
+                          className="w-full py-2 rounded-sm text-xs font-bold transition-opacity hover:opacity-80"
                           style={{ background: 'var(--ink)', color: 'var(--white)' }}
                         >
                           Participă
@@ -610,7 +610,7 @@ export default function AvizierPage() {
                       {quiz.completed && resultsUnlocked && (
                         <button
                           onClick={() => openQuizResults(quiz)}
-                          className="w-full py-2 rounded-sm text-[0.75rem] font-semibold transition-colors"
+                          className="w-full py-2 rounded-sm text-xs font-semibold transition-colors"
                           style={{ border: '1.5px solid var(--teal)', color: 'var(--teal)', background: 'transparent' }}
                         >
                           Vezi rezultate
@@ -620,7 +620,7 @@ export default function AvizierPage() {
                         <button
                           onClick={() => !quiz.has_peeked && openQuizPeek(quiz)}
                           disabled={quiz.has_peeked}
-                          className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded-sm text-[0.72rem] font-medium transition-colors"
+                          className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded-sm text-xxs font-medium transition-colors"
                           style={{ color: quiz.has_peeked ? 'var(--ink3)' : 'var(--ink2)', cursor: quiz.has_peeked ? 'default' : 'pointer' }}
                         >
                           <Eye size={13} />
@@ -644,7 +644,7 @@ export default function AvizierPage() {
                     placeholder={placeholder}
                     rows={2}
                     multiline
-                    className="w-full rounded-sm px-3 py-2 text-[0.82rem] outline-none resize-none"
+                    className="w-full rounded-sm px-3 py-2 text-xs outline-none resize-none"
                     style={{
                       background: 'var(--cream2)',
                       border: '1.5px solid var(--border)',
@@ -657,7 +657,7 @@ export default function AvizierPage() {
                       <select
                         value={expiryDays}
                         onChange={e => setExpiryDays(Number(e.target.value))}
-                        className="rounded-sm px-2 py-1.5 text-[0.78rem] outline-none"
+                        className="rounded-sm px-2 py-1.5 text-xs outline-none"
                         style={{
                           background: 'var(--cream2)',
                           border: '1.5px solid var(--border)',
@@ -673,14 +673,14 @@ export default function AvizierPage() {
                     <button
                       type="submit"
                       disabled={submitting || !newContent.trim()}
-                      className="ml-auto rounded-sm px-3 py-1.5 text-[0.78rem] font-bold text-white disabled:opacity-40 transition-opacity hover:opacity-80"
+                      className="ml-auto rounded-sm px-3 py-1.5 text-xs font-bold text-white disabled:opacity-40 transition-opacity hover:opacity-80"
                       style={{ background: 'var(--ink)' }}
                     >
                       {submitting ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
                     </button>
                   </div>
                   {submitError && (
-                    <p className="text-[0.72rem]" style={{ color: 'var(--rose)' }}>{submitError}</p>
+                    <p className="text-xxs" style={{ color: 'var(--rose)' }}>{submitError}</p>
                   )}
                 </form>
               </div>
@@ -694,7 +694,7 @@ export default function AvizierPage() {
               {!postsLoading && posts.length === 0 && (
                 <div className="flex flex-col items-center py-8 gap-2">
                   <MessageCircle size={32} style={{ color: 'var(--ink3)' }} />
-                  <p className="text-center text-[0.82rem]" style={{ color: 'var(--ink3)' }}>
+                  <p className="text-center text-xs" style={{ color: 'var(--ink3)' }}>
                     {emptyText}
                   </p>
                 </div>
@@ -715,21 +715,21 @@ export default function AvizierPage() {
                       {/* Post header */}
                       <div className="flex items-center gap-2.5 mb-2">
                         <div
-                          className="w-9 h-9 rounded-sm flex items-center justify-center text-white text-[0.72rem] font-bold flex-shrink-0"
+                          className="w-9 h-9 rounded-sm flex items-center justify-center text-white text-xxs font-bold flex-shrink-0"
                           style={{ background: bg }}
                         >
                           {ini}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-[0.8rem] font-bold leading-none" style={{ color: 'var(--ink)' }}>
+                          <p className="text-xs font-bold leading-none" style={{ color: 'var(--ink)' }}>
                             {name}
                           </p>
-                          <p className="text-[0.65rem] mt-0.5" style={{ color: 'var(--ink3)' }}>
+                          <p className="text-2xs mt-0.5" style={{ color: 'var(--ink3)' }}>
                             @{post.profiles?.username}
                           </p>
                         </div>
                         <div className="flex items-center gap-2 flex-shrink-0">
-                          <span className="text-[0.6rem]" style={{ color: 'var(--ink3)' }}>
+                          <span className="text-2xs" style={{ color: 'var(--ink3)' }}>
                             {relativeTime(post.created_at, true)}
                           </span>
                           {post.user_id === profile.id && (
@@ -746,7 +746,7 @@ export default function AvizierPage() {
                       </div>
 
                       {/* Post body */}
-                      <p className="text-[0.77rem] leading-[1.65] whitespace-pre-wrap" style={{ color: 'var(--ink2)' }}>
+                      <p className="text-xs leading-[1.65] whitespace-pre-wrap" style={{ color: 'var(--ink2)' }}>
                         <MentionText text={post.content} />
                       </p>
 
@@ -754,7 +754,7 @@ export default function AvizierPage() {
                       {post.expires_at && (
                         <div className="flex items-center gap-1 mt-2">
                           <Clock size={11} style={{ color: 'var(--ink3)' }} />
-                          <span className="text-[0.62rem]" style={{ color: 'var(--ink3)' }}>{expiryLabel(post.expires_at)}</span>
+                          <span className="text-2xs" style={{ color: 'var(--ink3)' }}>{expiryLabel(post.expires_at)}</span>
                         </div>
                       )}
                     </div>
@@ -774,7 +774,7 @@ export default function AvizierPage() {
                           <ChevronUp size={18} strokeWidth={post.user_vote === 1 ? 3 : 2} />
                         </button>
                         <span
-                          className="text-[0.72rem] font-semibold min-w-[20px] text-center"
+                          className="text-xxs font-semibold min-w-[20px] text-center"
                           style={{
                             color: score > 0 ? 'var(--teal)' : score < 0 ? 'var(--rose)' : 'var(--ink3)',
                           }}
@@ -798,7 +798,7 @@ export default function AvizierPage() {
                         style={{ color: 'var(--ink3)' }}
                       >
                         <MessageCircle size={15} />
-                        <span className="text-[0.68rem]">{post.comments.length || ''}</span>
+                        <span className="text-xxs">{post.comments.length || ''}</span>
                       </button>
                     </div>
 
@@ -812,10 +812,10 @@ export default function AvizierPage() {
                           <div key={comment.id} className="flex items-start gap-2">
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2">
-                                <span className="text-[0.72rem] font-semibold" style={{ color: 'var(--ink2)' }}>
+                                <span className="text-xxs font-semibold" style={{ color: 'var(--ink2)' }}>
                                   @{comment.profiles?.username}
                                 </span>
-                                <span className="text-[0.6rem]" style={{ color: 'var(--ink3)' }}>
+                                <span className="text-2xs" style={{ color: 'var(--ink3)' }}>
                                   {relativeTime(comment.created_at, true)}
                                 </span>
                                 {comment.user_id === profile.id && (
@@ -829,7 +829,7 @@ export default function AvizierPage() {
                                   </button>
                                 )}
                               </div>
-                              <p className="text-[0.75rem] mt-0.5" style={{ color: 'var(--ink2)' }}><MentionText text={comment.content} /></p>
+                              <p className="text-xs mt-0.5" style={{ color: 'var(--ink2)' }}><MentionText text={comment.content} /></p>
                             </div>
                           </div>
                         ))}
@@ -840,7 +840,7 @@ export default function AvizierPage() {
                             onChange={v => setCommentTexts(prev => ({ ...prev, [post.id]: v }))}
                             onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleComment(post.id) } }}
                             placeholder="Comentează..."
-                            className="flex-1 rounded-sm px-2.5 py-1.5 text-[0.75rem] outline-none"
+                            className="flex-1 rounded-sm px-2.5 py-1.5 text-xs outline-none"
                             style={{
                               background: 'var(--white)',
                               border: '1.5px solid var(--border)',
@@ -878,7 +878,7 @@ export default function AvizierPage() {
             style={{ background: 'var(--white)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-m)' }}
           >
             <div className="flex items-center justify-between">
-              <span className="font-semibold text-[0.9rem]" style={{ color: 'var(--ink)' }}>Scrie un anunț</span>
+              <span className="font-semibold text-sm" style={{ color: 'var(--ink)' }}>Scrie un anunț</span>
               <button onClick={() => setShowPostModal(false)} style={{ color: 'var(--ink3)' }}>
                 <Plus size={18} style={{ transform: 'rotate(45deg)' }} />
               </button>
@@ -919,7 +919,7 @@ export default function AvizierPage() {
                   'Scrie un anunț...'
                 }
                 rows={3}
-                className="w-full rounded-sm px-3 py-2 text-[0.82rem] outline-none resize-none"
+                className="w-full rounded-sm px-3 py-2 text-xs outline-none resize-none"
                 style={{
                   background: 'var(--cream2)',
                   border: '1.5px solid var(--border)',
@@ -932,7 +932,7 @@ export default function AvizierPage() {
                 <select
                   value={modalScope}
                   onChange={e => setModalScope(e.target.value as Scope)}
-                  className="rounded-sm px-2 py-1.5 text-[0.78rem] outline-none"
+                  className="rounded-sm px-2 py-1.5 text-xs outline-none"
                   style={{
                     background: 'var(--cream2)',
                     border: '1.5px solid var(--border)',
@@ -948,7 +948,7 @@ export default function AvizierPage() {
                   <select
                     value={modalExpiryDays}
                     onChange={e => setModalExpiryDays(Number(e.target.value))}
-                    className="rounded-sm px-2 py-1.5 text-[0.78rem] outline-none"
+                    className="rounded-sm px-2 py-1.5 text-xs outline-none"
                     style={{
                       background: 'var(--cream2)',
                       border: '1.5px solid var(--border)',
@@ -964,14 +964,14 @@ export default function AvizierPage() {
                 <button
                   type="submit"
                   disabled={submitting || !newContent.trim()}
-                  className="ml-auto rounded-sm px-3 py-1.5 text-[0.78rem] font-bold text-white disabled:opacity-40 transition-opacity hover:opacity-80"
+                  className="ml-auto rounded-sm px-3 py-1.5 text-xs font-bold text-white disabled:opacity-40 transition-opacity hover:opacity-80"
                   style={{ background: 'var(--ink)' }}
                 >
                   {submitting ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
                 </button>
               </div>
               {submitError && (
-                <p className="text-[0.72rem]" style={{ color: 'var(--rose)' }}>{submitError}</p>
+                <p className="text-xxs" style={{ color: 'var(--rose)' }}>{submitError}</p>
               )}
             </form>
           </div>

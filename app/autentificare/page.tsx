@@ -59,7 +59,7 @@ export default function LoginPage() {
           >
             Bun venit <em className="italic" style={{ color: 'var(--amber)' }}>înapoi</em>
           </h1>
-          <p className="text-[0.77rem]" style={{ color: 'var(--ink3)' }}>
+          <p className="text-xs" style={{ color: 'var(--ink3)' }}>
             Autentifică-te pentru a continua
           </p>
         </div>
@@ -82,7 +82,7 @@ export default function LoginPage() {
               value={email}
               onChange={e => setEmail(e.target.value)}
               placeholder="Email"
-              className="w-full pl-9 pr-3 py-[11px] text-[0.88rem] rounded-sm outline-none transition-colors"
+              className="w-full pl-9 pr-3 py-[11px] text-sm rounded-sm outline-none transition-colors"
               style={{
                 background: 'var(--cream2)',
                 border: '1.5px solid var(--border)',
@@ -100,7 +100,7 @@ export default function LoginPage() {
               value={password}
               onChange={e => setPassword(e.target.value)}
               placeholder="Parola"
-              className="w-full pl-9 pr-3 py-[11px] text-[0.88rem] rounded-sm outline-none transition-colors"
+              className="w-full pl-9 pr-3 py-[11px] text-sm rounded-sm outline-none transition-colors"
               style={{
                 background: 'var(--cream2)',
                 border: '1.5px solid var(--border)',
@@ -113,7 +113,7 @@ export default function LoginPage() {
           <div className="text-right">
             <Link
               href="/resetare-parola"
-              className="text-[0.75rem] hover:underline"
+              className="text-xs hover:underline"
               style={{ color: 'var(--amber-dark)' }}
             >
               Ai uitat parola?
@@ -123,7 +123,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="flex items-center justify-center gap-2 w-full py-[15px] rounded-md text-[0.88rem] font-bold text-white disabled:opacity-50 transition-opacity hover:opacity-90"
+            className="flex items-center justify-center gap-2 w-full py-[15px] rounded-md text-sm font-bold text-white disabled:opacity-50 transition-opacity hover:opacity-90"
             style={{ background: 'var(--ink)', fontFamily: 'inherit' }}
           >
             {loading && <Loader2 size={16} className="animate-spin" />}
@@ -131,7 +131,7 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <p className="text-center text-[0.82rem]" style={{ color: 'var(--ink3)' }}>
+        <p className="text-center text-xs" style={{ color: 'var(--ink3)' }}>
           Nu ai cont?{' '}
           <Link
             href="/inregistrare"

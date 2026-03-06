@@ -180,7 +180,7 @@ export function MentionInput({
               style={{ background: i === selectedIndex ? 'var(--cream2)' : 'transparent' }}
             >
               <div
-                className="w-7 h-7 rounded-full overflow-hidden flex items-center justify-center text-white text-[0.55rem] font-bold flex-shrink-0"
+                className="w-7 h-7 rounded-full overflow-hidden flex items-center justify-center text-white text-3xs font-bold flex-shrink-0"
                 style={{ background: s.avatar_url ? 'transparent' : avatarColor(s.name) }}
               >
                 {s.avatar_url
@@ -189,8 +189,8 @@ export function MentionInput({
                 }
               </div>
               <div className="min-w-0">
-                <p className="text-[0.78rem] font-medium leading-tight truncate" style={{ color: 'var(--ink)' }}>{s.name}</p>
-                <p className="text-[0.65rem]" style={{ color: 'var(--ink3)' }}>@{s.username}</p>
+                <p className="text-xs font-medium leading-tight truncate" style={{ color: 'var(--ink)' }}>{s.name}</p>
+                <p className="text-2xs" style={{ color: 'var(--ink3)' }}>@{s.username}</p>
               </div>
             </button>
           ))}

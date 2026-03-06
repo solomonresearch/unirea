@@ -227,7 +227,7 @@ export default function CaruselPage() {
               <span className="font-display text-xl" style={{ color: 'var(--ink)' }}>Amintiri</span>
             </div>
             {userHighschool && (
-              <p className="text-[0.72rem] mt-1 ml-10" style={{ color: 'var(--ink3)' }}>
+              <p className="text-xxs mt-1 ml-10" style={{ color: 'var(--ink3)' }}>
                 {userHighschool}
               </p>
             )}
@@ -235,7 +235,7 @@ export default function CaruselPage() {
           <div className="flex items-center gap-2">
             <Link
               href="/cauta"
-              className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[0.72rem] font-semibold"
+              className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xxs font-semibold"
               style={{ background: 'var(--white)', border: '1.5px solid var(--border)', color: 'var(--ink3)', boxShadow: 'var(--shadow-s)' }}
             >
               <Search size={14} strokeWidth={1.75} />
@@ -246,7 +246,7 @@ export default function CaruselPage() {
               {userAvatar ? (
                 <img src={userAvatar} alt={userName} className="w-full h-full object-cover" />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-[0.7rem] font-bold" style={{ background: 'var(--cream2)', color: 'var(--ink2)' }}>
+                <div className="w-full h-full flex items-center justify-center text-xxs font-bold" style={{ background: 'var(--cream2)', color: 'var(--ink2)' }}>
                   {getInitials(userName)}
                 </div>
               )}
@@ -265,7 +265,7 @@ export default function CaruselPage() {
                 key={s}
                 type="button"
                 onClick={() => handleScopeChange(s)}
-                className="flex-1 py-[7px] rounded-sm text-[0.68rem] font-semibold transition-all"
+                className="flex-1 py-[7px] rounded-sm text-xxs font-semibold transition-all"
                 style={scope === s ? {
                   background: 'var(--white)',
                   color: 'var(--ink)',
@@ -468,7 +468,7 @@ export default function CaruselPage() {
                     key={s}
                     type="button"
                     onClick={() => setUploadScope(s)}
-                    className="flex-1 py-[7px] rounded-sm text-[0.68rem] font-semibold transition-all"
+                    className="flex-1 py-[7px] rounded-sm text-xxs font-semibold transition-all"
                     style={uploadScope === s ? {
                       background: 'var(--white)',
                       color: 'var(--ink)',

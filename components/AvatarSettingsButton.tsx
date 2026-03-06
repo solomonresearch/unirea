@@ -40,7 +40,7 @@ export function AvatarSettingsButton() {
   return (
     <Link href="/setari" className="flex-shrink-0">
       <div
-        className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center text-white text-[0.65rem] font-bold"
+        className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center text-white text-2xs font-bold"
         style={{ background: avatarUrl ? 'transparent' : bg }}
       >
         {avatarUrl

@@ -172,7 +172,7 @@ export function NotificationBell() {
                   style={{ background: n.read_at ? 'transparent' : 'rgba(245, 158, 11, 0.05)' }}
                 >
                   <div
-                    className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center text-white text-[0.6rem] font-bold flex-shrink-0 mt-0.5"
+                    className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center text-white text-2xs font-bold flex-shrink-0 mt-0.5"
                     style={{ background: n.actor.avatar_url ? 'transparent' : avatarColor(n.actor.name) }}
                   >
                     {n.actor.avatar_url
@@ -181,16 +181,16 @@ export function NotificationBell() {
                     }
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-[0.78rem] leading-snug" style={{ color: 'var(--ink)' }}>
+                    <p className="text-xs leading-snug" style={{ color: 'var(--ink)' }}>
                       <span className="font-semibold">{n.actor.name}</span>{' '}
                       <span style={{ color: 'var(--ink2)' }}>{actionText(n)}</span>
                     </p>
                     {n.content_preview && (
-                      <p className="text-[0.7rem] mt-0.5 line-clamp-2" style={{ color: 'var(--ink3)' }}>
+                      <p className="text-xxs mt-0.5 line-clamp-2" style={{ color: 'var(--ink3)' }}>
                         {n.content_preview}
                       </p>
                     )}
-                    <p className="text-[0.62rem] mt-1" style={{ color: 'var(--ink3)' }}>
+                    <p className="text-2xs mt-1" style={{ color: 'var(--ink3)' }}>
                       {relativeTime(n.created_at, true)}
                     </p>
                   </div>

@@ -87,7 +87,7 @@ export function FeedbackButton() {
             </div>
 
             {done ? (
-              <p className="text-center py-4 text-[0.9rem] font-semibold" style={{ color: 'var(--teal)' }}>
+              <p className="text-center py-4 text-sm font-semibold" style={{ color: 'var(--teal)' }}>
                 Mulțumim pentru feedback!
               </p>
             ) : (
@@ -97,7 +97,7 @@ export function FeedbackButton() {
                   onChange={e => setMessage(e.target.value)}
                   placeholder="Descrie funcționalitatea sau problema..."
                   rows={5}
-                  className="w-full rounded-sm px-3 py-2.5 text-[0.88rem] outline-none resize-none"
+                  className="w-full rounded-sm px-3 py-2.5 text-sm outline-none resize-none"
                   style={{
                     background: 'var(--cream2)',
                     border: '1.5px solid var(--border)',
@@ -110,7 +110,7 @@ export function FeedbackButton() {
                   type="button"
                   onClick={handleSubmit}
                   disabled={saving || !message.trim()}
-                  className="w-full flex items-center justify-center gap-2 rounded-sm py-2.5 text-[0.88rem] font-bold text-white disabled:opacity-50 transition-opacity"
+                  className="w-full flex items-center justify-center gap-2 rounded-sm py-2.5 text-sm font-bold text-white disabled:opacity-50 transition-opacity"
                   style={{ background: '#DC2626' }}
                 >
                   {saving && <Loader2 size={15} className="animate-spin" />}

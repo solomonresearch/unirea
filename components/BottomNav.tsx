@@ -140,7 +140,7 @@ export function BottomNav() {
                   />
                 </div>
                 <span
-                  className="text-[0.56rem] tracking-[0.02em]"
+                  className="text-3xs tracking-[0.02em]"
                   style={{
                     color: active ? 'var(--ink)' : 'var(--ink3)',
                     fontWeight: active ? 700 : 500,
@@ -179,7 +179,7 @@ export function BottomNav() {
                   )}
                 </div>
                 <span
-                  className="text-[0.56rem] tracking-[0.02em]"
+                  className="text-3xs tracking-[0.02em]"
                   style={{
                     color: active ? 'var(--ink)' : 'var(--ink3)',
                     fontWeight: active ? 700 : 500,
@@ -245,7 +245,7 @@ export function BottomNav() {
 
             {/* Label */}
             <span
-              className="text-[0.56rem] tracking-[0.02em]"
+              className="text-3xs tracking-[0.02em]"
               style={{ color: 'var(--ink)', fontWeight: 700 }}
             >
               Posteaza

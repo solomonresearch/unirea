@@ -15,7 +15,7 @@ export default function Home() {
 
         {/* Status badge */}
         <div
-          className="hero-fade-down flex items-center gap-2 rounded-full px-4 py-1.5 mb-6 text-[0.78rem] font-medium"
+          className="hero-fade-down flex items-center gap-2 rounded-full px-4 py-1.5 mb-6 text-xs font-medium"
           style={{ background: 'var(--white)', border: '1px solid var(--border)', color: 'var(--ink2)' }}
         >
           <span className="hero-badge-dot w-2 h-2 rounded-full flex-shrink-0" style={{ background: '#7ba68d' }} />
@@ -41,7 +41,7 @@ export default function Home() {
 
         {/* Subheadline */}
         <p
-          className="hero-fade-up text-[0.85rem] text-center leading-[1.65] mb-7"
+          className="hero-fade-up text-sm text-center leading-[1.65] mb-7"
           style={{ color: 'var(--ink2)', maxWidth: 310, animationDelay: '0.4s' }}
         >
           Platforma absolvenților unde amintirile de liceu prind viață, mentorii întâlnesc talente noi, iar prietenii vechi plănuiesc aventuri noi.
@@ -51,14 +51,14 @@ export default function Home() {
         <div className="hero-fade-up flex flex-col w-full gap-3 mb-8" style={{ animationDelay: '0.6s' }}>
           <Link
             href="/inregistrare"
-            className="hero-cta-primary flex items-center justify-center gap-2 w-full py-4 rounded-full text-[0.88rem] font-bold text-white"
+            className="hero-cta-primary flex items-center justify-center gap-2 w-full py-4 rounded-full text-sm font-bold text-white"
           >
             <Search size={17} />
             Creează cont
           </Link>
           <Link
             href="/autentificare"
-            className="hero-cta-secondary flex items-center justify-center gap-2 w-full py-4 rounded-full text-[0.88rem] font-semibold"
+            className="hero-cta-secondary flex items-center justify-center gap-2 w-full py-4 rounded-full text-sm font-semibold"
           >
             <PlayCircle size={17} />
             Am deja cont
@@ -91,7 +91,7 @@ export default function Home() {
               animationDelay: '0.5s',
             }}
           >
-            <p className="text-[0.58rem] font-bold uppercase mb-2 flex items-center gap-1" style={{ color: '#ef6b4a', letterSpacing: '1.5px' }}>
+            <p className="text-3xs font-bold uppercase mb-2 flex items-center gap-1" style={{ color: '#ef6b4a', letterSpacing: '1.5px' }}>
               <MapPin size={9} />
               Ne vedem in oras?
             </p>
@@ -130,7 +130,7 @@ export default function Home() {
             >
               <Users size={20} style={{ color: '#f5d590' }} />
             </div>
-            <p className="text-[0.88rem] font-semibold" style={{ color: 'rgba(255,255,255,0.9)' }}>Colegi Reconectați</p>
+            <p className="text-sm font-semibold" style={{ color: 'rgba(255,255,255,0.9)' }}>Colegi Reconectați</p>
           </div>
 
           {/* Card B — Mentor */}
@@ -143,7 +143,7 @@ export default function Home() {
             }}
           >
             <p
-              className="text-[0.58rem] font-bold uppercase mb-2.5"
+              className="text-3xs font-bold uppercase mb-2.5"
               style={{ color: '#7ba68d', letterSpacing: '1.5px' }}
             >
               Mentorat
@@ -157,7 +157,7 @@ export default function Home() {
                 <BookOpen size={15} color="white" />
               </div>
             </div>
-            <p className="text-[0.63rem] leading-[1.4]" style={{ color: 'var(--ink2)' }}>Maria ('08) îndrumă Alex în carieră</p>
+            <p className="text-2xs leading-[1.4]" style={{ color: 'var(--ink2)' }}>Maria ('08) îndrumă Alex în carieră</p>
           </div>
 
           {/* Card F — Event */}
@@ -175,10 +175,10 @@ export default function Home() {
             >
               <CalendarHeart size={18} style={{ color: '#9b8ec4' }} />
             </div>
-            <p className="text-[0.7rem] font-bold leading-tight" style={{ color: '#1a1f3a' }}>
+            <p className="text-xxs font-bold leading-tight" style={{ color: '#1a1f3a' }}>
               Reuniune Promoția &apos;15
             </p>
-            <p className="text-[0.6rem] mt-1 flex items-center gap-1" style={{ color: 'var(--ink3)' }}>
+            <p className="text-2xs mt-1 flex items-center gap-1" style={{ color: 'var(--ink3)' }}>
               <Clock size={9} />
               Sâmbătă 15:00 · Herăstrău
             </p>
@@ -186,7 +186,7 @@ export default function Home() {
 
         </div>
 
-        <p className="text-[0.63rem] text-center mt-5" style={{ color: 'var(--ink3)' }}>
+        <p className="text-2xs text-center mt-5" style={{ color: 'var(--ink3)' }}>
           Prin continuare ești de acord cu{' '}
           <span className="underline cursor-pointer">Termenii de utilizare</span>
         </p>

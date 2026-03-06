@@ -104,7 +104,7 @@ export default function SignupPage() {
 
   const currentYear = new Date().getFullYear()
 
-  const inputClass = "w-full pl-9 pr-3 py-[11px] text-[0.88rem] rounded-sm outline-none transition-colors"
+  const inputClass = "w-full pl-9 pr-3 py-[11px] text-sm rounded-sm outline-none transition-colors"
   const inputStyle = {
     background: 'var(--cream2)',
     border: '1.5px solid var(--border)',
@@ -140,7 +140,7 @@ export default function SignupPage() {
           >
             Alătură-te <em className="italic" style={{ color: 'var(--amber)' }}>cercului</em>
           </h1>
-          <p className="text-[0.77rem]" style={{ color: 'var(--ink3)' }}>
+          <p className="text-xs" style={{ color: 'var(--ink3)' }}>
             Creează-ți contul pentru a te reconecta
           </p>
         </div>
@@ -237,7 +237,7 @@ export default function SignupPage() {
           <button
             type="submit"
             disabled={loading}
-            className="flex items-center justify-center gap-2 w-full py-[15px] rounded-md text-[0.88rem] font-bold text-white disabled:opacity-50 transition-opacity hover:opacity-90"
+            className="flex items-center justify-center gap-2 w-full py-[15px] rounded-md text-sm font-bold text-white disabled:opacity-50 transition-opacity hover:opacity-90"
             style={{ background: 'var(--ink)', fontFamily: 'inherit' }}
           >
             {loading && <Loader2 size={16} className="animate-spin" />}
@@ -245,7 +245,7 @@ export default function SignupPage() {
           </button>
         </form>
 
-        <p className="text-center text-[0.82rem]" style={{ color: 'var(--ink3)' }}>
+        <p className="text-center text-xs" style={{ color: 'var(--ink3)' }}>
           Ai deja cont?{' '}
           <Link
             href="/autentificare"

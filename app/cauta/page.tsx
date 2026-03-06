@@ -356,7 +356,7 @@ export default function CautaPage() {
                 <button
                   type="button"
                   onClick={toggleSelectAll}
-                  className="flex items-center gap-1 text-[0.72rem] transition-colors"
+                  className="flex items-center gap-1 text-xxs transition-colors"
                   style={{ color: 'var(--ink3)' }}
                 >
                   <Check size={12} /> {allSelected ? 'Deselectează' : 'Selectează tot'}
@@ -439,7 +439,7 @@ export default function CautaPage() {
           <button
             type="button"
             onClick={() => setShowGroupConfirm(true)}
-            className="flex items-center gap-2 rounded-sm px-5 py-3 text-[0.82rem] font-bold shadow-lg transition-transform active:scale-95"
+            className="flex items-center gap-2 rounded-sm px-5 py-3 text-xs font-bold shadow-lg transition-transform active:scale-95"
             style={{ background: 'var(--ink)', color: 'var(--white)' }}
           >
             <UsersRound size={16} />
@@ -455,17 +455,17 @@ export default function CautaPage() {
             className="w-full max-w-xs rounded-lg p-6 space-y-4"
             style={{ background: 'var(--white)', boxShadow: 'var(--shadow-l)' }}
           >
-            <p className="text-[0.92rem] font-bold text-center" style={{ color: 'var(--ink)' }}>
+            <p className="text-sm font-bold text-center" style={{ color: 'var(--ink)' }}>
               Creează grup?
             </p>
-            <p className="text-[0.75rem] text-center" style={{ color: 'var(--ink2)' }}>
+            <p className="text-xs text-center" style={{ color: 'var(--ink2)' }}>
               {selectedPeople.size} {selectedPeople.size === 1 ? 'persoană selectată' : 'persoane selectate'}
             </p>
             <div className="flex gap-3">
               <button
                 type="button"
                 onClick={() => setShowGroupConfirm(false)}
-                className="flex-1 rounded-sm py-2.5 text-[0.82rem] font-semibold transition-colors"
+                className="flex-1 rounded-sm py-2.5 text-xs font-semibold transition-colors"
                 style={{ background: 'var(--cream2)', color: 'var(--ink2)' }}
               >
                 Nu
@@ -474,7 +474,7 @@ export default function CautaPage() {
                 type="button"
                 onClick={handleCreateGroup}
                 disabled={creatingGroup}
-                className="flex-1 rounded-sm py-2.5 text-[0.82rem] font-semibold transition-opacity disabled:opacity-60"
+                className="flex-1 rounded-sm py-2.5 text-xs font-semibold transition-opacity disabled:opacity-60"
                 style={{ background: 'var(--ink)', color: 'var(--white)' }}
               >
                 {creatingGroup ? <Loader2 size={16} className="animate-spin mx-auto" /> : 'Da'}

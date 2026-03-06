@@ -222,7 +222,7 @@ export default function CercuriPage() {
               <span className="font-display text-xl" style={{ color: 'var(--ink)' }}>Cercuri</span>
             </div>
             {data?.user_info.highschool && (
-              <p className="text-[0.72rem] mt-1 ml-10" style={{ color: 'var(--ink3)' }}>
+              <p className="text-xxs mt-1 ml-10" style={{ color: 'var(--ink3)' }}>
                 {data.user_info.highschool}
               </p>
             )}
@@ -230,7 +230,7 @@ export default function CercuriPage() {
           <div className="flex items-center gap-2">
           <Link
             href="/cauta"
-            className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[0.72rem] font-semibold"
+            className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xxs font-semibold"
             style={{ background: 'var(--white)', border: '1.5px solid var(--border)', color: 'var(--ink3)', boxShadow: 'var(--shadow-s)' }}
           >
             <Search size={14} strokeWidth={1.75} />
@@ -241,7 +241,7 @@ export default function CercuriPage() {
             {userAvatar ? (
               <img src={userAvatar} alt={userName} className="w-full h-full object-cover" />
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-[0.7rem] font-bold" style={{ background: 'var(--cream2)', color: 'var(--ink2)' }}>
+              <div className="w-full h-full flex items-center justify-center text-xxs font-bold" style={{ background: 'var(--cream2)', color: 'var(--ink2)' }}>
                 {getInitials(userName)}
               </div>
             )}
@@ -277,8 +277,8 @@ export default function CercuriPage() {
             style={{ background: 'var(--amber-soft)', border: '1px solid rgba(232,150,58,0.3)' }}
           >
             <Users size={14} style={{ color: 'var(--amber-dark)' }} />
-            <span className="text-[0.75rem] font-semibold" style={{ color: 'var(--amber-dark)' }}>{intersectionLabel}</span>
-            <span className="text-[0.72rem] ml-auto" style={{ color: 'var(--amber)' }}>{filteredPeople.length} persoane</span>
+            <span className="text-xs font-semibold" style={{ color: 'var(--amber-dark)' }}>{intersectionLabel}</span>
+            <span className="text-xxs ml-auto" style={{ color: 'var(--amber)' }}>{filteredPeople.length} persoane</span>
           </div>
         )}
 
@@ -288,7 +288,7 @@ export default function CercuriPage() {
             {ALL_DOTS.filter(d => (intersectionCounts[d.key] || 0) > 0).length > 0 && (
               <>
                 <p
-                  className="text-[0.64rem] font-bold uppercase tracking-widest"
+                  className="text-2xs font-bold uppercase tracking-widest"
                   style={{ color: 'var(--ink3)' }}
                 >
                   Suprapuneri
@@ -315,14 +315,14 @@ export default function CercuriPage() {
                         <span className="text-lg">{is3Plus ? '✨' : '🔗'}</span>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-[0.82rem] font-bold" style={{ color: 'var(--ink)' }}>{dot.label}</p>
+                        <p className="text-xs font-bold" style={{ color: 'var(--ink)' }}>{dot.label}</p>
                         <div className="flex items-center gap-1 mt-0.5">
-                          <span className="text-[0.68rem]" style={{ color: 'var(--ink2)' }}>
+                          <span className="text-xxs" style={{ color: 'var(--ink2)' }}>
                             {count} persoane
                           </span>
-                          <span className="text-[0.68rem]" style={{ color: 'var(--border)' }}>·</span>
+                          <span className="text-xxs" style={{ color: 'var(--border)' }}>·</span>
                           {dot.circles.map(c => (
-                            <span key={c} className="text-[0.68rem]">{CIRCLE_CONFIG[c as CircleKey].emoji}</span>
+                            <span key={c} className="text-xxs">{CIRCLE_CONFIG[c as CircleKey].emoji}</span>
                           ))}
                         </div>
                       </div>
@@ -340,14 +340,14 @@ export default function CercuriPage() {
         ) : filteredPeople.length === 0 ? (
           <div className="text-center py-12">
             <Users size={32} strokeWidth={1} className="mx-auto mb-2" style={{ color: 'var(--ink3)' }} />
-            <p className="text-[0.82rem]" style={{ color: 'var(--ink3)' }}>Nicio persoană găsită</p>
-            <p className="text-[0.72rem] mt-1" style={{ color: 'var(--ink3)' }}>Încearcă alte cercuri</p>
+            <p className="text-xs" style={{ color: 'var(--ink3)' }}>Nicio persoană găsită</p>
+            <p className="text-xxs mt-1" style={{ color: 'var(--ink3)' }}>Încearcă alte cercuri</p>
           </div>
         ) : (
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <p
-                className="text-[0.64rem] font-bold uppercase tracking-widest"
+                className="text-2xs font-bold uppercase tracking-widest"
                 style={{ color: 'var(--ink3)' }}
               >
                 {activeFilters.length >= 2 ? 'Suprapunere' : CIRCLE_CONFIG[activeFilters[0]].label}
@@ -357,7 +357,7 @@ export default function CercuriPage() {
                   <button
                     type="button"
                     onClick={toggleSelectAll}
-                    className="flex items-center gap-1 text-[0.72rem] transition-colors"
+                    className="flex items-center gap-1 text-xxs transition-colors"
                     style={{ color: 'var(--ink3)' }}
                   >
                     <Check size={12} /> {allSelected ? 'Deselectează' : 'Selectează tot'}
@@ -366,7 +366,7 @@ export default function CercuriPage() {
                 <button
                   type="button"
                   onClick={() => setActiveFilters([])}
-                  className="flex items-center gap-1 text-[0.72rem] transition-colors"
+                  className="flex items-center gap-1 text-xxs transition-colors"
                   style={{ color: 'var(--ink3)' }}
                 >
                   <X size={12} /> Șterge filtrele
@@ -393,7 +393,7 @@ export default function CercuriPage() {
           <button
             type="button"
             onClick={() => setShowGroupConfirm(true)}
-            className="flex items-center gap-2 rounded-sm px-5 py-3 text-[0.82rem] font-bold shadow-lg transition-transform active:scale-95"
+            className="flex items-center gap-2 rounded-sm px-5 py-3 text-xs font-bold shadow-lg transition-transform active:scale-95"
             style={{ background: 'var(--ink)', color: 'var(--white)' }}
           >
             <UsersRound size={16} />
@@ -409,17 +409,17 @@ export default function CercuriPage() {
             className="w-full max-w-xs rounded-lg p-6 space-y-4"
             style={{ background: 'var(--white)', boxShadow: 'var(--shadow-l)' }}
           >
-            <p className="text-[0.92rem] font-bold text-center" style={{ color: 'var(--ink)' }}>
+            <p className="text-sm font-bold text-center" style={{ color: 'var(--ink)' }}>
               Creează grup?
             </p>
-            <p className="text-[0.75rem] text-center" style={{ color: 'var(--ink2)' }}>
+            <p className="text-xs text-center" style={{ color: 'var(--ink2)' }}>
               {selectedPeople.size} {selectedPeople.size === 1 ? 'persoană selectată' : 'persoane selectate'}
             </p>
             <div className="flex gap-3">
               <button
                 type="button"
                 onClick={() => setShowGroupConfirm(false)}
-                className="flex-1 rounded-sm py-2.5 text-[0.82rem] font-semibold transition-colors"
+                className="flex-1 rounded-sm py-2.5 text-xs font-semibold transition-colors"
                 style={{ background: 'var(--cream2)', color: 'var(--ink2)' }}
               >
                 Nu
@@ -428,7 +428,7 @@ export default function CercuriPage() {
                 type="button"
                 onClick={handleCreateGroup}
                 disabled={creatingGroup}
-                className="flex-1 rounded-sm py-2.5 text-[0.82rem] font-semibold transition-opacity disabled:opacity-60"
+                className="flex-1 rounded-sm py-2.5 text-xs font-semibold transition-opacity disabled:opacity-60"
                 style={{ background: 'var(--ink)', color: 'var(--white)' }}
               >
                 {creatingGroup ? <Loader2 size={16} className="animate-spin mx-auto" /> : 'Da'}
@@ -487,7 +487,7 @@ function PersonTags({ person, activeFilters }: { person: Person; activeFilters: 
   if (tags.length === 0 && !showDefault && person.company) {
     return (
       <div className="mt-1">
-        <span className="text-[0.68rem]" style={{ color: 'var(--ink2)' }}>{person.company}</span>
+        <span className="text-xxs" style={{ color: 'var(--ink2)' }}>{person.company}</span>
       </div>
     )
   }
@@ -497,12 +497,12 @@ function PersonTags({ person, activeFilters }: { person: Person; activeFilters: 
   return (
     <div className="mt-1 flex flex-wrap gap-1">
       {person.company && showDefault && (
-        <span className="text-[0.68rem]" style={{ color: 'var(--ink2)' }}>{person.company}</span>
+        <span className="text-xxs" style={{ color: 'var(--ink2)' }}>{person.company}</span>
       )}
       {tags.map(t => (
         <span
           key={t.label}
-          className="inline-flex rounded px-1.5 py-0.5 text-[0.62rem] font-medium"
+          className="inline-flex rounded px-1.5 py-0.5 text-2xs font-medium"
           style={{ background: t.bg, color: t.color }}
         >
           {t.label}
@@ -589,7 +589,7 @@ function PersonCard({ person, currentUserId, activeFilters, selected, onSelect }
       <Link href={`/cercuri/${person.id}`} className="flex-1 min-w-0 px-3 py-3">
         <div className="flex items-start gap-3">
           <div
-            className="w-[46px] h-[46px] rounded-md flex items-center justify-center text-white text-[0.82rem] font-bold flex-shrink-0"
+            className="w-[46px] h-[46px] rounded-md flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
             style={{ background: person.avatar_url ? 'transparent' : bg }}
           >
             {person.avatar_url
@@ -598,8 +598,8 @@ function PersonCard({ person, currentUserId, activeFilters, selected, onSelect }
             }
           </div>
           <div className="min-w-0">
-            <p className="text-[0.82rem] font-bold" style={{ color: 'var(--ink)' }}>{person.name}</p>
-            <p className="text-[0.66rem]" style={{ color: 'var(--ink2)' }}>@{person.username}</p>
+            <p className="text-xs font-bold" style={{ color: 'var(--ink)' }}>{person.name}</p>
+            <p className="text-2xs" style={{ color: 'var(--ink2)' }}>@{person.username}</p>
             <PersonTags person={person} activeFilters={activeFilters} />
           </div>
         </div>

@@ -68,7 +68,7 @@ export function CircleChips({ circles, activeFilters, counts, onToggle, generati
               }}
             />
           </div>
-          <span className="text-[0.68rem]" style={{ color: generationFilter ? 'var(--amber-dark)' : 'var(--ink3)' }}>±2 ani</span>
+          <span className="text-xxs" style={{ color: generationFilter ? 'var(--amber-dark)' : 'var(--ink3)' }}>±2 ani</span>
         </button>
       )}
     </div>
