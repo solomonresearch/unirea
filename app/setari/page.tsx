@@ -74,6 +74,7 @@ export default function SetariPage() {
   const [mockLoading, setMockLoading] = useState<string | null>(null)
   const [mockResult, setMockResult] = useState<string | null>(null)
 
+  type ClusterCategory = 'design' | 'functional' | 'improvement' | 'other'
   interface FeedbackItem {
     userId: string
     userName: string
@@ -82,19 +83,18 @@ export default function SetariPage() {
     message: string
     createdAt: string
     page: string | null
+    category: ClusterCategory | null
   }
-  const [feedbackList, setFeedbackList] = useState<FeedbackItem[]>([])
-  const [feedbackOpen, setFeedbackOpen] = useState(false)
-  const [feedbackLoading, setFeedbackLoading] = useState(false)
-  const [deletingFeedback, setDeletingFeedback] = useState<string | null>(null)
-
-  type ClusterCategory = 'design' | 'functional' | 'improvement' | 'other'
   interface ClusteredFeedback {
     design: FeedbackItem[]
     functional: FeedbackItem[]
     improvement: FeedbackItem[]
     other: FeedbackItem[]
   }
+  const [feedbackList, setFeedbackList] = useState<FeedbackItem[]>([])
+  const [feedbackOpen, setFeedbackOpen] = useState(false)
+  const [feedbackLoading, setFeedbackLoading] = useState(false)
+  const [deletingFeedback, setDeletingFeedback] = useState<string | null>(null)
   const [clusterOpen, setClusterOpen] = useState(false)
   const [clustered, setClustered] = useState<ClusteredFeedback | null>(null)
 
@@ -261,6 +261,10 @@ export default function SetariPage() {
     const source = items ?? feedbackList
     const result: ClusteredFeedback = { design: [], functional: [], improvement: [], other: [] }
     for (const item of source) {
+      if (item.category) {
+        result[item.category].push(item)
+        continue
+      }
       const lower = item.message.toLowerCase()
       if (DESIGN_KW.some(k => lower.includes(k))) result.design.push(item)
       else if (FUNCTIONAL_KW.some(k => lower.includes(k))) result.functional.push(item)
@@ -270,15 +274,29 @@ export default function SetariPage() {
     setClustered(result)
   }
 
-  function moveToCategory(item: FeedbackItem, from: ClusterCategory, to: ClusterCategory) {
+  async function moveToCategory(item: FeedbackItem, from: ClusterCategory, to: ClusterCategory) {
     if (!clustered || from === to) return
+    // Optimistic UI update
     setClustered(prev => {
       if (!prev) return prev
       return {
         ...prev,
         [from]: prev[from].filter(f => !(f.userId === item.userId && f.feedbackId === item.feedbackId)),
-        [to]: [...prev[to], item],
+        [to]: [...prev[to], { ...item, category: to }],
       }
+    })
+    setFeedbackList(prev => prev.map(f =>
+      f.userId === item.userId && f.feedbackId === item.feedbackId ? { ...f, category: to } : f
+    ))
+    // Persist to DB
+    const { data: { session } } = await getSupabase().auth.getSession()
+    await fetch('/api/feedback', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(session ? { Authorization: `Bearer ${session.access_token}` } : {}),
+      },
+      body: JSON.stringify({ userId: item.userId, feedbackId: item.feedbackId, category: to }),
     })
   }
 

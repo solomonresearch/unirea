@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient, createServiceRoleClient } from '@/lib/supabase-server'
 
+type FeedbackCategory = 'design' | 'functional' | 'improvement' | 'other'
+
 interface FeedbackEntry {
   id: number
   msg: string
   at: string
   page?: string
+  category?: FeedbackCategory
 }
 
 export async function POST(request: NextRequest) {
@@ -84,10 +87,60 @@ export async function GET(request: NextRequest) {
         message: e.msg,
         createdAt: e.at,
         page: e.page ?? null,
+        category: e.category ?? null,
       }))
     }).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
 
     return NextResponse.json({ feedback: allFeedback })
+  } catch (err: unknown) {
+    return NextResponse.json({ error: err instanceof Error ? err.message : 'Server error' }, { status: 500 })
+  }
+}
+
+export async function PATCH(request: NextRequest) {
+  try {
+    const token = request.headers.get('Authorization')?.replace('Bearer ', '')
+    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+    const serviceClient = createServiceRoleClient()
+    const { data: { user } } = await serviceClient.auth.getUser(token)
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+    const { data: callerProfile } = await serviceClient
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single()
+
+    if (!callerProfile || callerProfile.role !== 'admin') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
+    const { userId, feedbackId, category } = await request.json()
+    const VALID: FeedbackCategory[] = ['design', 'functional', 'improvement', 'other']
+    if (!userId || feedbackId == null || !VALID.includes(category)) {
+      return NextResponse.json({ error: 'userId, feedbackId and valid category required' }, { status: 400 })
+    }
+
+    const { data: targetProfile, error: fetchError } = await serviceClient
+      .from('profiles')
+      .select('feedback')
+      .eq('id', userId)
+      .single()
+
+    if (fetchError) return NextResponse.json({ error: fetchError.message }, { status: 500 })
+
+    const existing: FeedbackEntry[] = Array.isArray(targetProfile?.feedback) ? targetProfile.feedback : []
+    const updated = existing.map(e => e.id === feedbackId ? { ...e, category } : e)
+
+    const { error: updateError } = await serviceClient
+      .from('profiles')
+      .update({ feedback: updated })
+      .eq('id', userId)
+
+    if (updateError) return NextResponse.json({ error: updateError.message }, { status: 500 })
+
+    return NextResponse.json({ ok: true })
   } catch (err: unknown) {
     return NextResponse.json({ error: err instanceof Error ? err.message : 'Server error' }, { status: 500 })
   }
