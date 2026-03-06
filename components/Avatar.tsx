@@ -14,32 +14,34 @@ interface AvatarProps {
 
 export function Avatar({ name, avatarUrl, userId, onUpload }: AvatarProps) {
   const [uploading, setUploading] = useState(false)
+  const [error, setError] = useState('')
   const fileRef = useRef<HTMLInputElement>(null)
 
   async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
+    setError('')
 
     if (file.size > 2 * 1024 * 1024) {
-      alert('Fisierul este prea mare. Maxim 2MB.')
+      setError('Fisierul este prea mare. Maxim 2MB.')
       return
     }
 
     const ext = file.name.split('.').pop()?.toLowerCase()
     if (!ext || !['jpg', 'jpeg', 'png', 'webp'].includes(ext)) {
-      alert('Format invalid. Foloseste JPG, PNG sau WebP.')
+      setError('Format invalid. Foloseste JPG, PNG sau WebP.')
       return
     }
 
     setUploading(true)
     const path = `${userId}/avatar.${ext}`
 
-    const { error } = await getSupabase().storage
+    const { error: uploadError } = await getSupabase().storage
       .from('avatars')
       .upload(path, file, { upsert: true })
 
-    if (error) {
-      alert('Eroare la incarcare. Incearca din nou.')
+    if (uploadError) {
+      setError('Eroare la incarcare. Incearca din nou.')
       setUploading(false)
       return
     }
@@ -97,6 +99,9 @@ export function Avatar({ name, avatarUrl, userId, onUpload }: AvatarProps) {
           )}
         </div>
       </button>
+      {error && (
+        <p className="text-xs mt-1.5 text-center max-w-[120px]" style={{ color: 'var(--rose)' }}>{error}</p>
+      )}
     </div>
   )
 }

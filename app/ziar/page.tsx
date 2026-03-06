@@ -61,6 +61,7 @@ export default function ZiarPage() {
   const [county, setCounty] = useState('')
   const [country, setCountry] = useState('Romania')
   const [links, setLinks] = useState<string[]>([''])
+  const [submitError, setSubmitError] = useState('')
 
   const loadPosts = useCallback(async (categoryFilter?: string | null) => {
     const params = new URLSearchParams()
@@ -111,6 +112,7 @@ export default function ZiarPage() {
     e.preventDefault()
     if (!title.trim() || !body.trim() || submitting) return
     setSubmitting(true)
+    setSubmitError('')
 
     const filteredLinks = links.filter(l => l.trim())
 
@@ -137,7 +139,7 @@ export default function ZiarPage() {
       await loadPosts()
     } else {
       const data = await res.json()
-      alert(data.error || 'Eroare la publicare')
+      setSubmitError(data.error || 'Eroare la publicare')
     }
     setSubmitting(false)
   }
@@ -425,6 +427,9 @@ export default function ZiarPage() {
             </div>
 
             {/* Submit */}
+            {submitError && (
+              <p className="text-xs" style={{ color: 'var(--rose)' }}>{submitError}</p>
+            )}
             <button
               type="submit"
               disabled={submitting || !title.trim() || !body.trim()}
