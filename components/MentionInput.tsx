@@ -71,7 +71,8 @@ export function MentionInput({
 
   function checkForMention(inputEl: HTMLInputElement | HTMLTextAreaElement) {
     const cursorPos = inputEl.selectionStart ?? 0
-    const textBeforeCursor = value.slice(0, cursorPos)
+    const currentValue = inputEl.value
+    const textBeforeCursor = currentValue.slice(0, cursorPos)
     const mentionMatch = textBeforeCursor.match(/@([a-z0-9._]{3,})$/i)
 
     if (mentionMatch) {
@@ -97,9 +98,10 @@ export function MentionInput({
 
   function selectSuggestion(suggestion: Suggestion) {
     if (mentionStart < 0) return
-    const cursorPos = inputRef.current?.selectionStart ?? value.length
-    const before = value.slice(0, mentionStart)
-    const after = value.slice(cursorPos)
+    const currentValue = inputRef.current?.value ?? value
+    const cursorPos = inputRef.current?.selectionStart ?? currentValue.length
+    const before = currentValue.slice(0, mentionStart)
+    const after = currentValue.slice(cursorPos)
     const newValue = `${before}@${suggestion.username} ${after}`
     onChange(newValue)
     setShowSuggestions(false)
