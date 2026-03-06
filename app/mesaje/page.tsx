@@ -8,6 +8,7 @@ import { BottomNav } from '@/components/BottomNav'
 import { AvatarSettingsButton } from '@/components/AvatarSettingsButton'
 import { getSupabase } from '@/lib/supabase'
 import { Loader2, MessageCircle, Plus, Search, X, Users } from 'lucide-react'
+import { SwipeableRow } from '@/components/mesaje/SwipeableRow'
 
 interface Conversation {
   id: string
@@ -80,6 +81,7 @@ export default function MesajePage() {
   const [selectedMembers, setSelectedMembers] = useState<SearchResult[]>([])
   const [searchingMembers, setSearchingMembers] = useState(false)
   const [creatingGroup, setCreatingGroup] = useState(false)
+  const [archivingId, setArchivingId] = useState<string | null>(null)
 
   useEffect(() => {
     async function load() {
@@ -92,6 +94,7 @@ export default function MesajePage() {
         .from('conversation_participants')
         .select('conversation_id, last_read_at')
         .eq('user_id', user.id)
+        .is('archived_at', null)
 
       if (!participations || participations.length === 0) {
         setLoading(false)
@@ -119,6 +122,7 @@ export default function MesajePage() {
         .from('messages')
         .select('conversation_id, content, created_at, user_id')
         .in('conversation_id', conversationIds)
+        .is('deleted_at', null)
         .order('created_at', { ascending: false })
 
       const unreadCounts = new Map<string, number>()
@@ -129,6 +133,7 @@ export default function MesajePage() {
           .select('id', { count: 'exact', head: true })
           .eq('conversation_id', cid)
           .neq('user_id', user.id)
+          .is('deleted_at', null)
           .gt('created_at', lastRead)
         unreadCounts.set(cid, count || 0)
       }
@@ -330,6 +335,22 @@ export default function MesajePage() {
     setGroupMemberQuery('')
     setGroupMemberResults([])
     setSelectedMembers([])
+  }
+
+  async function handleArchiveConversation(conversationId: string) {
+    if (archivingId) return
+    setArchivingId(conversationId)
+    const supabase = getSupabase()
+    const { error } = await supabase
+      .from('conversation_participants')
+      .update({ archived_at: new Date().toISOString() })
+      .eq('conversation_id', conversationId)
+      .eq('user_id', currentUserId)
+
+    if (!error) {
+      setConversations(prev => prev.filter(c => c.id !== conversationId))
+    }
+    setArchivingId(null)
   }
 
   function getLastMessagePreview(convo: Conversation): string {
@@ -571,57 +592,62 @@ export default function MesajePage() {
               const preview = getLastMessagePreview(convo)
 
               return (
-                <Link
+                <SwipeableRow
                   key={convo.id}
-                  href={`/mesaje/${convo.id}`}
-                  className="flex items-center gap-3 rounded-xl px-4 py-3 transition-colors"
-                  style={{
-                    background: 'var(--white)',
-                    border: hasUnread ? '1px solid var(--amber)' : '1px solid var(--border)',
-                    boxShadow: 'var(--shadow-s)',
-                  }}
+                  onArchive={() => handleArchiveConversation(convo.id)}
+                  archiving={archivingId === convo.id}
                 >
-                  <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
-                    {convo.is_group ? (
-                      <div className="w-full h-full flex items-center justify-center" style={{ background: 'var(--amber-soft)' }}>
-                        <Users size={18} style={{ color: 'var(--amber-dark)' }} />
-                      </div>
-                    ) : convo.other_user?.avatar_url ? (
-                      <img src={convo.other_user.avatar_url} alt={displayName} className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center" style={{ background: 'var(--amber-soft)' }}>
-                        <span className="text-sm font-bold" style={{ color: 'var(--amber-dark)' }}>{getInitials(displayName)}</span>
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1.5 min-w-0">
-                        <p className="text-sm truncate font-semibold" style={{ color: 'var(--ink)' }}>
-                          {displayName}
-                        </p>
-                        {convo.is_group && (
-                          <span className="text-[10px] flex-shrink-0" style={{ color: 'var(--ink3)' }}>{convo.members.length}</span>
+                  <Link
+                    href={`/mesaje/${convo.id}`}
+                    className="flex items-center gap-3 rounded-xl px-4 py-3 transition-colors"
+                    style={{
+                      background: 'var(--white)',
+                      border: hasUnread ? '1px solid var(--amber)' : '1px solid var(--border)',
+                      boxShadow: 'var(--shadow-s)',
+                    }}
+                  >
+                    <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
+                      {convo.is_group ? (
+                        <div className="w-full h-full flex items-center justify-center" style={{ background: 'var(--amber-soft)' }}>
+                          <Users size={18} style={{ color: 'var(--amber-dark)' }} />
+                        </div>
+                      ) : convo.other_user?.avatar_url ? (
+                        <img src={convo.other_user.avatar_url} alt={displayName} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center" style={{ background: 'var(--amber-soft)' }}>
+                          <span className="text-sm font-bold" style={{ color: 'var(--amber-dark)' }}>{getInitials(displayName)}</span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <p className="text-sm truncate font-semibold" style={{ color: 'var(--ink)' }}>
+                            {displayName}
+                          </p>
+                          {convo.is_group && (
+                            <span className="text-[10px] flex-shrink-0" style={{ color: 'var(--ink3)' }}>{convo.members.length}</span>
+                          )}
+                        </div>
+                        {convo.last_message && (
+                          <span className="text-[10px] flex-shrink-0 ml-2" style={{ color: hasUnread ? 'var(--amber-dark)' : 'var(--ink3)', fontWeight: hasUnread ? 600 : 400 }}>
+                            {relativeTime(convo.last_message.created_at)}
+                          </span>
                         )}
                       </div>
-                      {convo.last_message && (
-                        <span className="text-[10px] flex-shrink-0 ml-2" style={{ color: hasUnread ? 'var(--amber-dark)' : 'var(--ink3)', fontWeight: hasUnread ? 600 : 400 }}>
-                          {relativeTime(convo.last_message.created_at)}
-                        </span>
-                      )}
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs truncate" style={{ color: hasUnread ? 'var(--ink2)' : 'var(--ink3)', fontWeight: hasUnread ? 500 : 400 }}>
+                          {preview}
+                        </p>
+                        {hasUnread && (
+                          <span className="ml-2 flex-shrink-0 min-w-[18px] h-[18px] flex items-center justify-center rounded-full px-1 text-[9px] font-bold" style={{ background: 'var(--ink)', color: 'var(--white)' }}>
+                            {convo.unread_count > 99 ? '99+' : convo.unread_count}
+                          </span>
+                        )}
+                      </div>
                     </div>
-                    <div className="flex items-center justify-between">
-                      <p className="text-xs truncate" style={{ color: hasUnread ? 'var(--ink2)' : 'var(--ink3)', fontWeight: hasUnread ? 500 : 400 }}>
-                        {preview}
-                      </p>
-                      {hasUnread && (
-                        <span className="ml-2 flex-shrink-0 min-w-[18px] h-[18px] flex items-center justify-center rounded-full px-1 text-[9px] font-bold" style={{ background: 'var(--ink)', color: 'var(--white)' }}>
-                          {convo.unread_count > 99 ? '99+' : convo.unread_count}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </Link>
+                  </Link>
+                </SwipeableRow>
               )
             })}
           </div>

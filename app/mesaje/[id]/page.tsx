@@ -69,6 +69,9 @@ export default function ChatPage() {
   const [newMessage, setNewMessage] = useState('')
   const [sending, setSending] = useState(false)
   const [showGroupInfo, setShowGroupInfo] = useState(false)
+  const [deletingMessageId, setDeletingMessageId] = useState<string | null>(null)
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   function scrollToBottom() {
@@ -149,6 +152,7 @@ export default function ChatPage() {
         .from('messages')
         .select('id, conversation_id, user_id, content, created_at')
         .eq('conversation_id', conversationId)
+        .is('deleted_at', null)
         .order('created_at', { ascending: true })
 
       setMessages(msgs || [])
@@ -179,9 +183,11 @@ export default function ChatPage() {
         table: 'messages',
         filter: `conversation_id=eq.${conversationId}`,
       }, (payload) => {
+        const newMsg = payload.new as Message & { deleted_at?: string }
+        if (newMsg.deleted_at) return
         setMessages(prev => {
-          if (prev.some(m => m.id === (payload.new as Message).id)) return prev
-          return [...prev, payload.new as Message]
+          if (prev.some(m => m.id === newMsg.id)) return prev
+          return [...prev, newMsg]
         })
         supabase
           .from('conversation_participants')
@@ -189,6 +195,17 @@ export default function ChatPage() {
           .eq('conversation_id', conversationId)
           .eq('user_id', currentUserId)
           .then()
+      })
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'messages',
+        filter: `conversation_id=eq.${conversationId}`,
+      }, (payload) => {
+        const updated = payload.new as Message & { deleted_at?: string }
+        if (updated.deleted_at) {
+          setMessages(prev => prev.filter(m => m.id !== updated.id))
+        }
       })
       .subscribe()
 
@@ -211,6 +228,37 @@ export default function ChatPage() {
       setNewMessage('')
     }
     setSending(false)
+  }
+
+  async function handleDeleteMessage(messageId: string) {
+    if (deletingMessageId) return
+    setDeletingMessageId(messageId)
+    const supabase = getSupabase()
+    const { error } = await supabase
+      .from('messages')
+      .update({ deleted_at: new Date().toISOString() })
+      .eq('id', messageId)
+      .eq('user_id', currentUserId)
+
+    if (!error) {
+      setMessages(prev => prev.filter(m => m.id !== messageId))
+    }
+    setDeletingMessageId(null)
+    setConfirmDeleteId(null)
+  }
+
+  function handleLongPressStart(messageId: string, isOwn: boolean) {
+    if (!isOwn) return
+    longPressTimer.current = setTimeout(() => {
+      setConfirmDeleteId(messageId)
+    }, 500)
+  }
+
+  function handleLongPressEnd() {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current)
+      longPressTimer.current = null
+    }
   }
 
   const isGroup = groupMeta?.is_group || false
@@ -290,19 +338,51 @@ export default function ChatPage() {
 
             return (
               <div key={msg.id} className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-[75%] ${isOwn ? 'items-end' : 'items-start'}`}>
+                <div className={`max-w-[75%] ${isOwn ? 'items-end' : 'items-start'} flex flex-col`}>
                   {showSenderName && senderProfile && (
                     <p className="text-[11px] text-primary-700 font-medium mb-0.5 ml-1">
                       {senderProfile.name.split(' ')[0]}
                     </p>
                   )}
-                  <div className={`px-3 py-2 rounded-2xl text-sm ${
-                    isOwn
-                      ? 'bg-primary-700 text-white rounded-br-md'
-                      : 'bg-gray-100 text-gray-900 rounded-bl-md'
-                  }`}>
+                  <div
+                    className={`px-3 py-2 rounded-2xl text-sm select-none ${
+                      isOwn
+                        ? 'bg-primary-700 text-white rounded-br-md'
+                        : 'bg-gray-100 text-gray-900 rounded-bl-md'
+                    }`}
+                    onTouchStart={() => handleLongPressStart(msg.id, isOwn)}
+                    onTouchEnd={handleLongPressEnd}
+                    onTouchMove={handleLongPressEnd}
+                    onContextMenu={(e) => {
+                      if (isOwn) {
+                        e.preventDefault()
+                        setConfirmDeleteId(msg.id)
+                      }
+                    }}
+                  >
                     {msg.content}
                   </div>
+                  {confirmDeleteId === msg.id && (
+                    <div className={`flex gap-2 mt-1 ${isOwn ? 'justify-end' : 'justify-start'}`}>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteMessage(msg.id)}
+                        disabled={deletingMessageId === msg.id}
+                        className="text-[11px] font-medium px-2.5 py-1 rounded-lg disabled:opacity-50"
+                        style={{ background: 'var(--red, #ef4444)', color: 'white' }}
+                      >
+                        {deletingMessageId === msg.id ? 'Se sterge...' : 'Sterge'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setConfirmDeleteId(null)}
+                        className="text-[11px] font-medium px-2.5 py-1 rounded-lg"
+                        style={{ background: 'var(--cream2, #f5f5f0)', color: 'var(--ink3, #888)' }}
+                      >
+                        Anuleaza
+                      </button>
+                    </div>
+                  )}
                   {showTime && (
                     <p className={`text-[10px] text-gray-400 mt-0.5 ${isOwn ? 'text-right' : 'text-left'}`}>
                       {relativeTime(msg.created_at)}
