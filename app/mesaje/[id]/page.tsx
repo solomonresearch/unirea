@@ -196,6 +196,18 @@ export default function ChatPage() {
         if (newMsg.deleted_at) return
         setMessages(prev => {
           if (prev.some(m => m.id === newMsg.id)) return prev
+          // Replace temp message from same user with matching content
+          const tempIdx = prev.findIndex(m =>
+            m.id.startsWith('temp-') &&
+            m.user_id === newMsg.user_id &&
+            m.content === newMsg.content &&
+            Date.now() - parseInt(m.id.split('-')[1]) < 10000
+          )
+          if (tempIdx !== -1) {
+            const updated = [...prev]
+            updated[tempIdx] = newMsg
+            return updated
+          }
           return [...prev, newMsg]
         })
         supabase
@@ -223,7 +235,20 @@ export default function ChatPage() {
 
   async function handleSend(e: React.FormEvent) {
     e.preventDefault()
-    if (!newMessage.trim() || sending) return
+    const content = newMessage.trim()
+    if (!content || sending) return
+
+    const tempId = `temp-${Date.now()}`
+    const tempMsg: Message = {
+      id: tempId,
+      conversation_id: conversationId,
+      user_id: currentUserId,
+      content,
+      created_at: new Date().toISOString(),
+    }
+
+    setMessages(prev => [...prev, tempMsg])
+    setNewMessage('')
     setSending(true)
 
     const res = await fetch('/api/mesaje/send', {
@@ -231,12 +256,13 @@ export default function ChatPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         conversation_id: conversationId,
-        content: newMessage.trim(),
+        content,
       }),
     })
 
-    if (res.ok) {
-      setNewMessage('')
+    if (!res.ok) {
+      setMessages(prev => prev.filter(m => m.id !== tempId))
+      setNewMessage(content)
     }
     setSending(false)
   }
