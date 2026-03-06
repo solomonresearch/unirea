@@ -47,10 +47,10 @@ export function MultiTagInput({ options, selected, onChange, placeholder, icon }
       <div
         onClick={() => { setOpen(true); inputRef.current?.focus() }}
         className={`flex flex-wrap items-center gap-1.5 w-full rounded-lg border px-2 py-1.5 min-h-[42px] cursor-text transition-colors ${
-          open ? 'border-primary-500 ring-1 ring-primary-500' : 'border-gray-300'
+          open ? 'border-primary-500 ring-1 ring-primary-500' : 'border-[var(--border)]'
         }`}
       >
-        <div className="flex-shrink-0 text-gray-400 pl-0.5">
+        <div className="flex-shrink-0 text-[var(--ink3)] pl-0.5">
           {icon}
         </div>
 
@@ -82,10 +82,10 @@ export function MultiTagInput({ options, selected, onChange, placeholder, icon }
       </div>
 
       {open && (
-        <div className="absolute z-50 mt-1 w-full rounded-lg border border-gray-200 bg-white shadow-lg">
+        <div className="absolute z-50 mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--white)] shadow-lg">
           <ul className="max-h-48 overflow-y-auto overscroll-contain">
             {filtered.length === 0 && (
-              <li className="px-3 py-2 text-sm text-gray-400">
+              <li className="px-3 py-2 text-sm text-[var(--ink3)]">
                 {search ? 'Niciun rezultat' : 'Toate selectate'}
               </li>
             )}
@@ -93,13 +93,13 @@ export function MultiTagInput({ options, selected, onChange, placeholder, icon }
               <li
                 key={option}
                 onClick={() => addTag(option)}
-                className="px-3 py-2 text-sm cursor-pointer hover:bg-primary-50 text-gray-700"
+                className="px-3 py-2 text-sm cursor-pointer hover:bg-primary-50 text-[var(--ink2)]"
               >
                 {option}
               </li>
             ))}
             {filtered.length > 50 && (
-              <li className="px-3 py-2 text-xs text-gray-400 text-center">
+              <li className="px-3 py-2 text-xs text-[var(--ink3)] text-center">
                 Scrie pentru a filtra mai multe...
               </li>
             )}

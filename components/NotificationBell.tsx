@@ -180,7 +180,7 @@ export function NotificationBell() {
                   key={n.id}
                   type="button"
                   onClick={() => handleNotificationClick(n)}
-                  className="w-full flex items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-gray-50"
+                  className="w-full flex items-start gap-3 px-4 py-3 text-left transition-colors"
                   style={{ background: n.read_at ? 'transparent' : 'rgba(245, 158, 11, 0.05)' }}
                 >
                   <div

@@ -101,7 +101,7 @@ export default function ColegProfilePage() {
   if (loading) {
     return (
       <main className="flex min-h-screen items-center justify-center">
-        <Loader2 size={24} className="animate-spin text-primary-700" />
+        <Loader2 size={24} className="animate-spin text-[var(--amber)]" />
       </main>
     )
   }
@@ -116,12 +116,12 @@ export default function ColegProfilePage() {
           <button
             type="button"
             onClick={() => router.back()}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            className="text-[var(--ink3)] hover:text-[var(--ink2)] transition-colors"
           >
             <ArrowLeft size={20} />
           </button>
           <Logo size={28} />
-          <span className="text-lg font-bold text-gray-900">Profil</span>
+          <span className="text-lg font-bold text-[var(--ink)]">Profil</span>
         </div>
 
         {/* Profile Hero */}
@@ -130,19 +130,19 @@ export default function ColegProfilePage() {
             {profile.avatar_url ? (
               <img src={profile.avatar_url} alt={profile.name} className="w-full h-full object-cover" />
             ) : (
-              <div className="w-full h-full bg-primary-100 flex items-center justify-center">
-                <span className="text-2xl font-bold text-primary-700">{getInitials(profile.name)}</span>
+              <div className="w-full h-full bg-[var(--amber-soft)] flex items-center justify-center">
+                <span className="text-2xl font-bold text-[var(--amber)]">{getInitials(profile.name)}</span>
               </div>
             )}
           </div>
           <div>
-            <h2 className="text-xl font-bold text-gray-900">{profile.name}</h2>
-            <p className="text-sm text-gray-500">@{profile.username}</p>
-            <p className="text-xs text-gray-400 mt-0.5 flex items-center justify-center gap-1">
+            <h2 className="text-xl font-bold text-[var(--ink)]">{profile.name}</h2>
+            <p className="text-sm text-[var(--ink2)]">@{profile.username}</p>
+            <p className="text-xs text-[var(--ink3)] mt-0.5 flex items-center justify-center gap-1">
               <GraduationCap size={12} />
-              {profile.highschool} &bull; <span className="font-bold text-gray-600">{profile.graduation_year}{profile.class || ''}</span>
+              {profile.highschool} &bull; <span className="font-bold text-[var(--ink2)]">{profile.graduation_year}{profile.class || ''}</span>
             </p>
-            <p className="text-xs text-gray-400 mt-0.5 flex items-center justify-center gap-1">
+            <p className="text-xs text-[var(--ink3)] mt-0.5 flex items-center justify-center gap-1">
               <MapPin size={12} />
               {[profile.city, profile.country].filter(Boolean).join(', ') || 'Nicio locatie'}
             </p>
@@ -155,7 +155,7 @@ export default function ColegProfilePage() {
             type="button"
             onClick={handleStartChat}
             disabled={startingChat}
-            className="w-full flex items-center justify-center gap-2 rounded-xl bg-primary-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-primary-800 disabled:opacity-50 transition-colors"
+            className="w-full flex items-center justify-center gap-2 rounded-xl bg-[var(--amber)] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[var(--amber-dark)] disabled:opacity-50 transition-colors"
           >
             {startingChat ? <Loader2 size={16} className="animate-spin" /> : <MessageCircle size={16} />}
             Trimite mesaj
@@ -164,24 +164,24 @@ export default function ColegProfilePage() {
 
         {/* Bio */}
         {profile.bio && (
-          <Section title="Despre" icon={<Sparkles size={16} className="text-primary-700" />}>
-            <p className="text-sm text-gray-600">{profile.bio}</p>
+          <Section title="Despre" icon={<Sparkles size={16} className="text-[var(--amber)]" />}>
+            <p className="text-sm text-[var(--ink2)]">{profile.bio}</p>
           </Section>
         )}
 
         {/* Profession, Domain & Company */}
         {(profile.profession?.length > 0 || profile.domain?.length > 0 || profile.company) && (
-          <Section title="Profesie si Domeniu" icon={<Briefcase size={16} className="text-primary-700" />}>
+          <Section title="Profesie si Domeniu" icon={<Briefcase size={16} className="text-[var(--amber)]" />}>
             {profile.company && (
-              <p className="text-xs text-gray-500 flex items-center gap-1 mb-1.5">
-                <Building2 size={12} className="text-gray-400" />
+              <p className="text-xs text-[var(--ink2)] flex items-center gap-1 mb-1.5">
+                <Building2 size={12} className="text-[var(--ink3)]" />
                 {profile.company}
               </p>
             )}
             {(profile.profession?.length > 0 || profile.domain?.length > 0) && (
               <div className="flex flex-wrap gap-1.5">
                 {profile.profession?.map(p => (
-                  <span key={p} className="inline-flex items-center rounded-md bg-primary-50 border border-primary-200 px-2 py-0.5 text-xs font-medium text-primary-700">
+                  <span key={p} className="inline-flex items-center rounded-md bg-primary-50 border border-primary-200 px-2 py-0.5 text-xs font-medium text-[var(--amber)]">
                     {p}
                   </span>
                 ))}
@@ -197,13 +197,13 @@ export default function ColegProfilePage() {
 
         {/* Hobbies */}
         {profile.hobbies?.length > 0 && (
-          <Section title="Hobby-uri" icon={<Heart size={16} className="text-primary-700" />}>
+          <Section title="Hobby-uri" icon={<Heart size={16} className="text-[var(--amber)]" />}>
             <div className="flex flex-wrap gap-1.5">
               {profile.hobbies.map(h => {
                 const hobby = HOBBY_OPTIONS.find(o => o.label === h)
                 const Icon = hobby?.icon
                 return (
-                  <span key={h} className="inline-flex items-center gap-1 rounded-md bg-primary-50 border border-primary-200 px-2 py-0.5 text-xs font-medium text-primary-700">
+                  <span key={h} className="inline-flex items-center gap-1 rounded-md bg-primary-50 border border-primary-200 px-2 py-0.5 text-xs font-medium text-[var(--amber)]">
                     {Icon && <Icon size={12} />}
                     {h}
                   </span>
@@ -214,15 +214,15 @@ export default function ColegProfilePage() {
         )}
 
         {/* Contact */}
-        <Section title="Contact" icon={<Mail size={16} className="text-primary-700" />}>
-          <div className="space-y-1.5 text-sm text-gray-600">
+        <Section title="Contact" icon={<Mail size={16} className="text-[var(--amber)]" />}>
+          <div className="space-y-1.5 text-sm text-[var(--ink2)]">
             <p className="flex items-center gap-1.5">
-              <Mail size={14} className="text-gray-400" />
+              <Mail size={14} className="text-[var(--ink3)]" />
               {profile.email}
             </p>
             {profile.phone && (
               <p className="flex items-center gap-1.5">
-                <Phone size={14} className="text-gray-400" />
+                <Phone size={14} className="text-[var(--ink3)]" />
                 {profile.phone}
               </p>
             )}
@@ -239,8 +239,8 @@ export default function ColegProfilePage() {
 
 function Section({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
   return (
-    <div className="rounded-xl border border-gray-200 bg-white px-3 py-2.5">
-      <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2 mb-2">
+    <div className="rounded-xl border border-[var(--border)] bg-[var(--white)] px-3 py-2.5">
+      <h3 className="text-sm font-semibold text-[var(--ink)] flex items-center gap-2 mb-2">
         {icon}
         {title}
       </h3>

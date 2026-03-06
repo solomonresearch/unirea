@@ -44,37 +44,37 @@ export function SearchSelect({ options, value, onChange, placeholder, disabled, 
       {/* Hidden input for form validation */}
       {required && <input type="text" required value={value} className="sr-only" tabIndex={-1} onChange={() => {}} />}
 
-      <div className="absolute left-3 top-2.5 text-gray-400 pointer-events-none z-10">
+      <div className="absolute left-3 top-2.5 text-[var(--ink3)] pointer-events-none z-10">
         {icon}
       </div>
       <button
         type="button"
         disabled={disabled}
         onClick={() => { if (!disabled) setOpen(!open) }}
-        className={`w-full rounded-lg border border-gray-300 pl-9 pr-8 py-2.5 text-sm text-left focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none bg-white ${disabled ? 'opacity-50' : ''} ${!value ? 'text-gray-400' : 'text-gray-900'} ${bold && value ? 'font-bold' : ''}`}
+        className={`w-full rounded-lg border border-[var(--border)] pl-9 pr-8 py-2.5 text-sm text-left focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none bg-[var(--white)] ${disabled ? 'opacity-50' : ''} ${!value ? 'text-[var(--ink3)]' : 'text-[var(--ink)]'} ${bold && value ? 'font-bold' : ''}`}
       >
         {value || placeholder}
       </button>
-      <ChevronDown size={14} className={`absolute right-3 top-3 text-gray-400 pointer-events-none transition-transform ${open ? 'rotate-180' : ''}`} />
+      <ChevronDown size={14} className={`absolute right-3 top-3 text-[var(--ink3)] pointer-events-none transition-transform ${open ? 'rotate-180' : ''}`} />
 
       {open && (
-        <div className="absolute z-50 mt-1 w-full rounded-lg border border-gray-200 bg-white shadow-lg">
+        <div className="absolute z-50 mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--white)] shadow-lg">
           {options.length > 8 && (
-            <div className="relative border-b border-gray-100 p-2">
-              <Search size={14} className="absolute left-4 top-4 text-gray-400" />
+            <div className="relative border-b border-[var(--border)] p-2">
+              <Search size={14} className="absolute left-4 top-4 text-[var(--ink3)]" />
               <input
                 ref={inputRef}
                 type="text"
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 placeholder="Cauta..."
-                className="w-full rounded-md border border-gray-200 pl-8 pr-3 py-1.5 text-sm outline-none focus:border-primary-500"
+                className="w-full rounded-md border border-[var(--border)] pl-8 pr-3 py-1.5 text-sm outline-none focus:border-primary-500"
               />
             </div>
           )}
           <ul className="max-h-48 overflow-y-auto overscroll-contain">
             {filtered.length === 0 && (
-              <li className="px-3 py-2 text-sm text-gray-400">Niciun rezultat</li>
+              <li className="px-3 py-2 text-sm text-[var(--ink3)]">Niciun rezultat</li>
             )}
             {filtered.map(option => (
               <li
@@ -84,7 +84,7 @@ export function SearchSelect({ options, value, onChange, placeholder, disabled, 
                   setOpen(false)
                   setSearch('')
                 }}
-                className={`px-3 py-2 text-sm cursor-pointer hover:bg-primary-50 ${option === value ? 'bg-primary-50 text-primary-700 font-medium' : 'text-gray-700'}`}
+                className={`px-3 py-2 text-sm cursor-pointer hover:bg-primary-50 ${option === value ? 'bg-primary-50 text-primary-700 font-medium' : 'text-[var(--ink2)]'}`}
               >
                 {option}
               </li>

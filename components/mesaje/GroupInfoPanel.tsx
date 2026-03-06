@@ -136,10 +136,10 @@ export function GroupInfoPanel({
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center">
       <div className="absolute inset-0 bg-black/30" onClick={onClose} />
-      <div className="relative w-full max-w-sm bg-white rounded-t-2xl max-h-[85vh] overflow-y-auto">
-        <div className="sticky top-0 bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between">
-          <span className="text-sm font-bold text-gray-900">Info grup</span>
-          <button type="button" onClick={onClose} className="text-gray-400 hover:text-gray-600">
+      <div className="relative w-full max-w-sm rounded-t-2xl max-h-[85vh] overflow-y-auto" style={{ background: 'var(--white)' }}>
+        <div className="sticky top-0 border-b px-6 py-4 flex items-center justify-between" style={{ background: 'var(--white)', borderColor: 'var(--border)' }}>
+          <span className="text-sm font-bold" style={{ color: 'var(--ink)' }}>Info grup</span>
+          <button type="button" onClick={onClose} style={{ color: 'var(--ink3)' }}>
             <X size={20} />
           </button>
         </div>
@@ -155,20 +155,23 @@ export function GroupInfoPanel({
                   onChange={e => setNameInput(e.target.value)}
                   maxLength={100}
                   autoFocus
-                  className="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 focus:border-primary-300 focus:ring-1 focus:ring-primary-300 outline-none"
+                  className="flex-1 rounded-lg border px-3 py-2 text-sm outline-none"
+                  style={{ borderColor: 'var(--border)', color: 'var(--ink)' }}
                 />
                 <button
                   type="button"
                   onClick={handleSaveName}
                   disabled={savingName || !nameInput.trim()}
-                  className="rounded-lg bg-primary-700 px-3 py-2 text-sm font-medium text-white hover:bg-primary-800 disabled:opacity-50"
+                  className="rounded-lg px-3 py-2 text-sm font-medium text-white disabled:opacity-50"
+                  style={{ background: 'var(--amber)' }}
                 >
                   {savingName ? <Loader2 size={14} className="animate-spin" /> : 'OK'}
                 </button>
                 <button
                   type="button"
                   onClick={() => { setEditingName(false); setNameInput(name) }}
-                  className="rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-500 hover:bg-gray-50"
+                  className="rounded-lg border px-3 py-2 text-sm"
+                  style={{ borderColor: 'var(--border)', color: 'var(--ink2)' }}
                 >
                   Anuleaza
                 </button>
@@ -179,21 +182,22 @@ export function GroupInfoPanel({
                 onClick={() => setEditingName(true)}
                 className="text-left w-full"
               >
-                <p className="text-xs text-gray-400 mb-1">Numele grupului</p>
-                <p className="text-sm font-semibold text-gray-900">{name}</p>
+                <p className="text-xs mb-1" style={{ color: 'var(--ink3)' }}>Numele grupului</p>
+                <p className="text-sm font-semibold" style={{ color: 'var(--ink)' }}>{name}</p>
               </button>
             )}
           </div>
 
           {/* Invite link */}
           <div>
-            <p className="text-xs text-gray-400 mb-2">Link de invitatie</p>
+            <p className="text-xs mb-2" style={{ color: 'var(--ink3)' }}>Link de invitatie</p>
             <button
               type="button"
               onClick={handleCopyLink}
-              className="flex items-center gap-2 w-full rounded-lg border border-gray-200 px-3 py-2.5 text-left hover:border-primary-200 transition-colors"
+              className="flex items-center gap-2 w-full rounded-lg border px-3 py-2.5 text-left transition-colors"
+              style={{ borderColor: 'var(--border)' }}
             >
-              <span className="text-xs text-gray-600 truncate flex-1">
+              <span className="text-xs truncate flex-1" style={{ color: 'var(--ink2)' }}>
                 {typeof window !== 'undefined' ? `${window.location.origin}/mesaje/invitatie/${inviteCode}` : `.../${inviteCode}`}
               </span>
               {copied ? (
@@ -207,11 +211,11 @@ export function GroupInfoPanel({
           {/* Members */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <p className="text-xs text-gray-400">Membri ({members.length})</p>
+              <p className="text-xs" style={{ color: 'var(--ink3)' }}>Membri ({members.length})</p>
               <button
                 type="button"
                 onClick={() => setShowAddMember(!showAddMember)}
-                className="text-primary-700 hover:text-primary-800"
+                style={{ color: 'var(--amber)' }}
               >
                 <UserPlus size={16} />
               </button>
@@ -227,7 +231,8 @@ export function GroupInfoPanel({
                     onChange={e => setSearchQuery(e.target.value)}
                     placeholder="Cauta un coleg..."
                     autoFocus
-                    className="w-full rounded-lg border border-gray-200 bg-gray-50 pl-8 pr-3 py-2 text-xs text-gray-900 placeholder-gray-400 focus:border-primary-300 focus:ring-1 focus:ring-primary-300 outline-none"
+                    className="w-full rounded-lg border pl-8 pr-3 py-2 text-xs outline-none"
+                    style={{ borderColor: 'var(--border)', background: 'var(--cream)', color: 'var(--ink)' }}
                   />
                 </div>
                 {searching && (
@@ -241,25 +246,26 @@ export function GroupInfoPanel({
                     type="button"
                     onClick={() => handleAddMember(user.id)}
                     disabled={addingUser === user.id}
-                    className="flex items-center gap-2 w-full rounded-lg border border-gray-200 px-3 py-2 hover:border-primary-200 transition-colors text-left disabled:opacity-50"
+                    className="flex items-center gap-2 w-full rounded-lg border px-3 py-2 transition-colors text-left disabled:opacity-50"
+                    style={{ borderColor: 'var(--border)' }}
                   >
                     <div className="w-7 h-7 rounded-full overflow-hidden flex-shrink-0">
                       {user.avatar_url ? (
                         <img src={user.avatar_url} alt={user.name} className="w-full h-full object-cover" />
                       ) : (
-                        <div className="w-full h-full bg-primary-100 flex items-center justify-center">
-                          <span className="text-[10px] font-bold text-primary-700">{getInitials(user.name)}</span>
+                        <div className="w-full h-full flex items-center justify-center" style={{ background: 'var(--amber-soft)' }}>
+                          <span className="text-[10px] font-bold" style={{ color: 'var(--amber)' }}>{getInitials(user.name)}</span>
                         </div>
                       )}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-xs font-medium text-gray-900 truncate">{user.name}</p>
-                      <p className="text-[10px] text-gray-400">@{user.username}</p>
+                      <p className="text-xs font-medium truncate" style={{ color: 'var(--ink)' }}>{user.name}</p>
+                      <p className="text-[10px]" style={{ color: 'var(--ink3)' }}>@{user.username}</p>
                     </div>
                     {addingUser === user.id ? (
-                      <Loader2 size={12} className="animate-spin text-gray-400" />
+                      <Loader2 size={12} className="animate-spin" style={{ color: 'var(--ink3)' }} />
                     ) : (
-                      <UserPlus size={14} className="text-primary-700" />
+                      <UserPlus size={14} style={{ color: 'var(--amber)' }} />
                     )}
                   </button>
                 ))}
@@ -273,17 +279,17 @@ export function GroupInfoPanel({
                     {member.avatar_url ? (
                       <img src={member.avatar_url} alt={member.name} className="w-full h-full object-cover" />
                     ) : (
-                      <div className="w-full h-full bg-primary-100 flex items-center justify-center">
-                        <span className="text-xs font-bold text-primary-700">{getInitials(member.name)}</span>
+                      <div className="w-full h-full flex items-center justify-center" style={{ background: 'var(--amber-soft)' }}>
+                        <span className="text-xs font-bold" style={{ color: 'var(--amber)' }}>{getInitials(member.name)}</span>
                       </div>
                     )}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-xs font-medium text-gray-900 truncate">
+                    <p className="text-xs font-medium truncate" style={{ color: 'var(--ink)' }}>
                       {member.name}
-                      {member.id === currentUserId && <span className="text-gray-400 font-normal"> (tu)</span>}
+                      {member.id === currentUserId && <span className="font-normal" style={{ color: 'var(--ink3)' }}> (tu)</span>}
                     </p>
-                    <p className="text-[10px] text-gray-400">@{member.username}</p>
+                    <p className="text-[10px]" style={{ color: 'var(--ink3)' }}>@{member.username}</p>
                   </div>
                   {member.id !== currentUserId && (
                     <button

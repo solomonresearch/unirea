@@ -46,18 +46,18 @@ export default function ConfirmResetPage() {
     }
   }
 
-  const inputClass = "w-full rounded-lg border border-gray-300 pl-9 pr-3 py-2.5 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none"
-  const iconClass = "absolute left-3 top-2.5 text-gray-400"
+  const inputClass = "w-full rounded-lg border border-[var(--border)] pl-9 pr-3 py-2.5 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none"
+  const iconClass = "absolute left-3 top-2.5 text-[var(--ink3)]"
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center px-5">
       <div className="w-full max-w-sm space-y-6">
         <div className="flex items-center gap-2">
-          <Link href="/autentificare" className="text-gray-400 hover:text-gray-600">
+          <Link href="/autentificare" className="text-[var(--ink3)] hover:text-gray-600">
             <ArrowLeft size={18} />
           </Link>
           <Logo size={28} />
-          <h1 className="text-lg font-bold text-gray-900">Parola noua</h1>
+          <h1 className="text-lg font-bold text-[var(--ink)]">Parola noua</h1>
         </div>
 
         {error && (
@@ -80,7 +80,7 @@ export default function ConfirmResetPage() {
           <button
             type="submit"
             disabled={loading}
-            className="flex items-center justify-center gap-2 w-full rounded-lg bg-primary-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-primary-800 disabled:opacity-50 transition-colors"
+            className="flex items-center justify-center gap-2 w-full rounded-lg bg-[var(--amber)] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[var(--amber-dark)] disabled:opacity-50 transition-colors"
           >
             {loading ? <Loader2 size={16} className="animate-spin" /> : null}
             {loading ? 'Se actualizeaza...' : 'Actualizeaza parola'}
