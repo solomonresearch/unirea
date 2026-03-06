@@ -90,8 +90,8 @@ export function Avatar({ name, avatarUrl, userId, onUpload }: AvatarProps) {
             className="w-full h-full object-cover"
           />
         ) : (
-          <div className="w-full h-full bg-primary-100 flex items-center justify-center">
-            <span className="text-2xl font-bold text-primary-700">
+          <div className="w-full h-full flex items-center justify-center" style={{ background: 'var(--amber-soft)' }}>
+            <span className="text-2xl font-bold" style={{ color: 'var(--amber)' }}>
               {getInitials(name || '?')}
             </span>
           </div>
