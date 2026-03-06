@@ -76,6 +76,7 @@ export default function ChatPage() {
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
+  const initialLoadDone = useRef(false)
 
   function scrollToBottom() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -175,6 +176,7 @@ export default function ChatPage() {
         .eq('user_id', user.id)
 
       setLoading(false)
+      requestAnimationFrame(() => { initialLoadDone.current = true })
     }
     load()
   }, [router, conversationId])
@@ -411,7 +413,7 @@ export default function ChatPage() {
               : 'rounded-2xl'
 
             return (
-              <div key={msg.id} className={marginTop}>
+              <div key={msg.id} className={`${marginTop}${initialLoadDone.current ? ' chat-msg' : ''}`}>
                 {showDateSeparator && (
                   <div className="flex items-center gap-3 py-2">
                     <div className="flex-1 h-px" style={{ background: 'var(--border)' }} />
