@@ -4,8 +4,8 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
 const TABS = [
-  { href: '/ziar', label: 'Ziar', dotColor: 'bg-gray-400' },
-  { href: '/avizier', label: 'Avizier', dotColor: 'bg-gray-800 ring-1 ring-gray-300' },
+  { href: '/ziar', label: 'Ziar', dotStyle: { background: 'var(--ink3)' } as React.CSSProperties },
+  { href: '/avizier', label: 'Avizier', dotStyle: { background: 'var(--ink)', boxShadow: '0 0 0 1px var(--border)' } as React.CSSProperties },
 ]
 
 export function AvizierTabBar() {
@@ -17,21 +17,21 @@ export function AvizierTabBar() {
   }
 
   return (
-    <div className="fixed top-[16px] left-0 right-0 z-40 bg-white border-b border-gray-200">
+    <div className="fixed top-[16px] left-0 right-0 z-40 border-b" style={{ background: 'var(--white)', borderColor: 'var(--border)' }}>
       <div className="mx-auto max-w-sm flex items-center justify-center gap-1 py-2 px-4">
-        {TABS.map(({ href, label, dotColor }) => {
+        {TABS.map(({ href, label, dotStyle }) => {
           const active = isActive(href)
           return (
             <Link
               key={href}
               href={href}
-              className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-medium transition-colors ${
-                active
-                  ? 'bg-gray-100 text-gray-900'
-                  : 'text-gray-400 hover:text-gray-600'
-              }`}
+              className="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-medium transition-colors"
+              style={active
+                ? { background: 'var(--cream2)', color: 'var(--ink)' }
+                : { color: 'var(--ink3)' }
+              }
             >
-              <span className={`w-2 h-2 rounded-full ${dotColor}`} />
+              <span className="w-2 h-2 rounded-full" style={dotStyle} />
               {label}
             </Link>
           )
