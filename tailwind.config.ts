@@ -8,6 +8,11 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      fontSize: {
+        '3xs': ['9px', { lineHeight: '12px' }],
+        '2xs': ['10px', { lineHeight: '14px' }],
+        'xxs': ['11px', { lineHeight: '15px' }],
+      },
       fontFamily: {
         display: ['"DM Serif Display"', 'serif'],
         sans: ['"Plus Jakarta Sans"', 'sans-serif'],
