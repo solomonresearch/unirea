@@ -7,7 +7,7 @@ import { BottomNav } from '@/components/BottomNav'
 import { MentionInput } from '@/components/MentionInput'
 import { MentionText } from '@/components/MentionText'
 import { GroupInfoPanel } from '@/components/mesaje/GroupInfoPanel'
-import { Loader2, ArrowLeft, Send, Users } from 'lucide-react'
+import { Loader2, ArrowLeft, Send, Users, ChevronDown } from 'lucide-react'
 import { relativeTime, getInitials } from '@/lib/utils'
 
 const DAYS_RO = ['Duminica', 'Luni', 'Marti', 'Miercuri', 'Joi', 'Vineri', 'Sambata']
@@ -64,11 +64,20 @@ export default function ChatPage() {
   const [showGroupInfo, setShowGroupInfo] = useState(false)
   const [deletingMessageId, setDeletingMessageId] = useState<string | null>(null)
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
+  const [showScrollButton, setShowScrollButton] = useState(false)
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const scrollContainerRef = useRef<HTMLDivElement>(null)
 
   function scrollToBottom() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }
+
+  function handleScroll() {
+    const el = scrollContainerRef.current
+    if (!el) return
+    const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight
+    setShowScrollButton(distanceFromBottom > 200)
   }
 
   useEffect(() => {
@@ -314,7 +323,7 @@ export default function ChatPage() {
         </div>
 
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto space-y-2 py-2">
+        <div className="flex-1 overflow-y-auto space-y-2 py-2 relative" ref={scrollContainerRef} onScroll={handleScroll}>
           {messages.length === 0 && (
             <p className="text-center text-sm py-8" style={{ color: 'var(--ink3)' }}>
               {isGroup ? 'Niciun mesaj in grup. Spune salut!' : 'Niciun mesaj inca. Spune salut!'}
@@ -407,6 +416,16 @@ export default function ChatPage() {
             )
           })}
           <div ref={messagesEndRef} />
+          {showScrollButton && (
+            <button
+              type="button"
+              onClick={scrollToBottom}
+              className="sticky bottom-2 left-full -ml-10 w-8 h-8 rounded-full flex items-center justify-center z-10"
+              style={{ background: 'var(--white)', boxShadow: 'var(--shadow-m)', color: 'var(--ink2)' }}
+            >
+              <ChevronDown size={18} />
+            </button>
+          )}
         </div>
 
         {/* Input bar */}
