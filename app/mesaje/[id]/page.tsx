@@ -72,6 +72,7 @@ export default function ChatPage() {
   const [deletingMessageId, setDeletingMessageId] = useState<string | null>(null)
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
   const [showScrollButton, setShowScrollButton] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
@@ -85,6 +86,7 @@ export default function ChatPage() {
     if (!el) return
     const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight
     setShowScrollButton(distanceFromBottom > 200)
+    setScrolled(el.scrollTop > 0)
   }
 
   useEffect(() => {
@@ -312,7 +314,15 @@ export default function ChatPage() {
     <main className="flex min-h-screen flex-col items-center px-6 pb-24">
       <div className="w-full max-w-sm flex flex-col min-h-screen">
         {/* Header */}
-        <div className="flex items-center gap-3 py-4 sticky top-0 z-10" style={{ background: 'var(--white)' }}>
+        <div
+          className="flex items-center gap-3 py-4 sticky top-0 z-10"
+          style={{
+            background: 'var(--white)',
+            borderBottom: scrolled ? '1px solid var(--border)' : '1px solid transparent',
+            boxShadow: scrolled ? 'var(--shadow-s)' : 'none',
+            transition: 'box-shadow 0.2s ease, border-color 0.2s ease',
+          }}
+        >
           <button
             type="button"
             onClick={() => router.push('/mesaje')}
