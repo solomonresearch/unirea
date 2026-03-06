@@ -73,6 +73,7 @@ export default function ChatPage() {
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
   const [showScrollButton, setShowScrollButton] = useState(false)
   const [scrolled, setScrolled] = useState(false)
+  const [newMessageCount, setNewMessageCount] = useState(0)
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
@@ -87,6 +88,7 @@ export default function ChatPage() {
     if (!el) return
     const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight
     setShowScrollButton(distanceFromBottom > 200)
+    if (distanceFromBottom <= 200) setNewMessageCount(0)
     setScrolled(el.scrollTop > 0)
   }
 
@@ -198,6 +200,16 @@ export default function ChatPage() {
       }, (payload) => {
         const newMsg = payload.new as Message & { deleted_at?: string }
         if (newMsg.deleted_at) return
+        // Track unread count when scrolled up and not own message
+        if (newMsg.user_id !== currentUserId) {
+          const el = scrollContainerRef.current
+          if (el) {
+            const distFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight
+            if (distFromBottom > 200) {
+              setNewMessageCount(c => c + 1)
+            }
+          }
+        }
         setMessages(prev => {
           if (prev.some(m => m.id === newMsg.id)) return prev
           // Replace temp message from same user with matching content
@@ -350,14 +362,20 @@ export default function ChatPage() {
             </button>
           ) : otherUser && (
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
-                {otherUser.avatar_url ? (
-                  <img src={otherUser.avatar_url} alt={otherUser.name} className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center" style={{ background: 'var(--amber-soft)' }}>
-                    <span className="text-xs font-bold" style={{ color: 'var(--amber)' }}>{getInitials(otherUser.name)}</span>
-                  </div>
-                )}
+              <div className="relative flex-shrink-0">
+                <div className="w-8 h-8 rounded-full overflow-hidden">
+                  {otherUser.avatar_url ? (
+                    <img src={otherUser.avatar_url} alt={otherUser.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center" style={{ background: 'var(--amber-soft)' }}>
+                      <span className="text-xs font-bold" style={{ color: 'var(--amber)' }}>{getInitials(otherUser.name)}</span>
+                    </div>
+                  )}
+                </div>
+                <span
+                  className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2"
+                  style={{ background: '#34C759', borderColor: 'var(--white)' }}
+                />
               </div>
               <div>
                 <p className="text-sm font-semibold leading-tight" style={{ color: 'var(--ink)' }}>{otherUser.name}</p>
@@ -501,11 +519,19 @@ export default function ChatPage() {
           {showScrollButton && (
             <button
               type="button"
-              onClick={scrollToBottom}
-              className="sticky bottom-2 left-full -ml-10 w-8 h-8 rounded-full flex items-center justify-center z-10"
+              onClick={() => { scrollToBottom(); setNewMessageCount(0) }}
+              className="sticky bottom-2 left-full -ml-10 w-8 h-8 rounded-full flex items-center justify-center z-10 relative"
               style={{ background: 'var(--white)', boxShadow: 'var(--shadow-m)', color: 'var(--ink2)' }}
             >
               <ChevronDown size={18} />
+              {newMessageCount > 0 && (
+                <span
+                  className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] rounded-full flex items-center justify-center text-[10px] font-bold text-white px-1"
+                  style={{ background: 'var(--amber)' }}
+                >
+                  {newMessageCount}
+                </span>
+              )}
             </button>
           )}
         </div>
