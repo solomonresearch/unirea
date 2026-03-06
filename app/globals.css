@@ -223,6 +223,14 @@
   animation: feedItemIn 0.3s ease-out both;
 }
 
+/* ── Chat send button press ── */
+.send-btn {
+  transition: transform 0.1s ease;
+}
+.send-btn:active {
+  transform: scale(0.9);
+}
+
 /* ── Polaroid card hover ── */
 .polaroid-card {
   transition: filter 0.2s ease, box-shadow 0.2s ease;

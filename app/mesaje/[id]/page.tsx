@@ -444,10 +444,10 @@ export default function ChatPage() {
                     </p>
                   )}
                   <div
-                    className={`px-3 py-2 ${bubbleRadius} text-sm select-none relative`}
+                    className={`px-3.5 py-2.5 ${bubbleRadius} text-sm select-none relative`}
                     style={isOwn
-                      ? { background: 'var(--amber)', color: 'white' }
-                      : { background: 'var(--cream2)', color: 'var(--ink)' }
+                      ? { background: 'var(--amber)', color: 'white', boxShadow: '0 1px 2px rgba(0,0,0,0.08)' }
+                      : { background: 'var(--cream2)', color: 'var(--ink)', boxShadow: '0 1px 2px rgba(0,0,0,0.04)' }
                     }
                     onTouchStart={() => handleLongPressStart(msg.id, isOwn)}
                     onTouchEnd={handleLongPressEnd}
@@ -511,19 +511,19 @@ export default function ChatPage() {
         </div>
 
         {/* Input bar */}
-        <div className="sticky bottom-16 pt-2 pb-2 border-t" style={{ background: 'var(--white)', borderColor: 'var(--border)' }}>
+        <div className="sticky bottom-16 pt-2 pb-2" style={{ background: 'var(--cream)', boxShadow: '0 -1px 8px rgba(0,0,0,0.04)' }}>
           <form onSubmit={handleSend} className="flex gap-2">
             <MentionInput
               value={newMessage}
               onChange={setNewMessage}
               placeholder="Scrie un mesaj..."
               className="flex-1 rounded-full border px-4 py-2 text-sm outline-none"
-              style={{ borderColor: 'var(--border)', background: 'var(--cream)', color: 'var(--ink)' }}
+              style={{ borderColor: 'var(--border)', background: 'var(--white)', color: 'var(--ink)' }}
             />
             <button
               type="submit"
               disabled={sending || !newMessage.trim()}
-              className="rounded-full p-2 text-white disabled:opacity-50 transition-colors"
+              className="send-btn rounded-full p-2 text-white disabled:opacity-50 transition-colors"
               style={{ background: 'var(--amber)' }}
             >
               {sending ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
