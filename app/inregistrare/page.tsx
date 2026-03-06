@@ -180,6 +180,13 @@ export default function SignupPage() {
             <input type="tel" value={form.phone} onChange={e => updateField('phone', e.target.value)} placeholder="Telefon (optional)" className={inputClass} style={inputStyle} />
           </div>
 
+          {/* Section divider */}
+          <div className="flex items-center gap-3 py-1">
+            <div className="flex-1 h-px" style={{ background: 'var(--border)' }} />
+            <span className="text-xxs font-semibold uppercase tracking-wider" style={{ color: 'var(--ink3)' }}>Scoala ta</span>
+            <div className="flex-1 h-px" style={{ background: 'var(--border)' }} />
+          </div>
+
           <div className="grid grid-cols-2 gap-2.5">
             <SearchSelect
               options={judete}
