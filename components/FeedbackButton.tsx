@@ -1,10 +1,12 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { usePathname } from 'next/navigation'
 import { X, Loader2 } from 'lucide-react'
 import { getSupabase } from '@/lib/supabase'
 
 export function FeedbackButton() {
+  const pathname = usePathname()
   const [visible, setVisible] = useState(false)
   const [open, setOpen] = useState(false)
   const [message, setMessage] = useState('')
@@ -32,7 +34,7 @@ export function FeedbackButton() {
           'Content-Type': 'application/json',
           ...(session ? { Authorization: `Bearer ${session.access_token}` } : {}),
         },
-        body: JSON.stringify({ message }),
+        body: JSON.stringify({ message, page: pathname }),
       })
       if (res.ok) {
         setDone(true)
@@ -56,7 +58,7 @@ export function FeedbackButton() {
         className="fixed z-40 flex items-center justify-center rounded-full shadow-lg transition-transform active:scale-95 select-none"
         style={{
           bottom: '88px',
-          right: '16px',
+          right: 'max(16px, calc((100vw - 384px) / 2 + 16px))',
           width: '56px',
           height: '56px',
           background: '#DC2626',

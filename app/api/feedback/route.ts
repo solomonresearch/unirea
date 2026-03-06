@@ -5,6 +5,7 @@ interface FeedbackEntry {
   id: number
   msg: string
   at: string
+  page?: string
 }
 
 export async function POST(request: NextRequest) {
@@ -13,7 +14,7 @@ export async function POST(request: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    const { message } = await request.json()
+    const { message, page } = await request.json()
     if (!message || typeof message !== 'string' || !message.trim()) {
       return NextResponse.json({ error: 'Message required' }, { status: 400 })
     }
@@ -30,7 +31,7 @@ export async function POST(request: NextRequest) {
 
     const existing: FeedbackEntry[] = Array.isArray(profile?.feedback) ? profile.feedback : []
     const nextId = existing.length > 0 ? Math.max(...existing.map((e: FeedbackEntry) => e.id)) + 1 : 1
-    const newEntry: FeedbackEntry = { id: nextId, msg: message.trim(), at: new Date().toISOString() }
+    const newEntry: FeedbackEntry = { id: nextId, msg: message.trim(), at: new Date().toISOString(), ...(page && typeof page === 'string' ? { page } : {}) }
     const updated = [...existing, newEntry]
 
     const { error: updateError } = await serviceClient
@@ -82,6 +83,7 @@ export async function GET(request: NextRequest) {
         feedbackId: e.id,
         message: e.msg,
         createdAt: e.at,
+        page: e.page ?? null,
       }))
     }).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
 

@@ -81,6 +81,7 @@ export default function SetariPage() {
     feedbackId: number
     message: string
     createdAt: string
+    page: string | null
   }
   const [feedbackList, setFeedbackList] = useState<FeedbackItem[]>([])
   const [feedbackOpen, setFeedbackOpen] = useState(false)
@@ -811,9 +812,16 @@ export default function SetariPage() {
                                   }
                                 </button>
                               </div>
-                              <p className="text-[0.72rem]" style={{ color: 'var(--ink3)' }}>
-                                {new Date(f.createdAt).toLocaleString('ro-RO', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                              </p>
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <p className="text-[0.72rem]" style={{ color: 'var(--ink3)' }}>
+                                  {new Date(f.createdAt).toLocaleString('ro-RO', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                </p>
+                                {f.page && (
+                                  <span className="text-[0.68rem] font-mono px-1.5 py-0.5 rounded-xs" style={{ background: 'var(--cream2)', color: 'var(--ink2)' }}>
+                                    {f.page}
+                                  </span>
+                                )}
+                              </div>
                               <p className="text-[0.82rem] whitespace-pre-wrap" style={{ color: 'var(--ink2)' }}>
                                 {f.message}
                               </p>
