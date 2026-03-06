@@ -16,11 +16,13 @@ import { DOMAINS } from '@/lib/domains'
 import { SKINS, type SkinId } from '@/lib/skins'
 import { useSkin } from '@/components/SkinProvider'
 import { getSupabase } from '@/lib/supabase'
+import Link from 'next/link'
 import {
   LogOut, Loader2, Sparkles, Briefcase, Layers,
   MapPin, Globe, Building, Heart, Mail, Phone,
   GraduationCap, Pencil, Settings, Shield,
   FlaskConical, Trash2, X, MessageSquare, ChevronDown, ChevronUp,
+  AtSign, ImageIcon, Check, AlertCircle,
 } from 'lucide-react'
 
 interface Profile {
@@ -66,10 +68,16 @@ export default function SetariPage() {
   const [editPhone, setEditPhone] = useState('')
   const [editGradYear, setEditGradYear] = useState<number>(0)
   const [editClass, setEditClass] = useState('')
+  const [editUsername, setEditUsername] = useState('')
+  const [editingUsername, setEditingUsername] = useState(false)
+  const [savingUsername, setSavingUsername] = useState(false)
+  const [usernameError, setUsernameError] = useState('')
   const [editingGraduation, setEditingGraduation] = useState(false)
   const [savingGraduation, setSavingGraduation] = useState(false)
   const [editingLocation, setEditingLocation] = useState(false)
   const [savingLocation, setSavingLocation] = useState(false)
+  const [userPhotos, setUserPhotos] = useState<{ id: string; image_url: string; caption: string | null }[]>([])
+  const [photosLoading, setPhotosLoading] = useState(true)
   const [isAdmin, setIsAdmin] = useState(false)
   const [mockLoading, setMockLoading] = useState<string | null>(null)
   const [mockResult, setMockResult] = useState<string | null>(null)
@@ -128,7 +136,26 @@ export default function SetariPage() {
       setEditPhone(data.phone || '')
       setEditGradYear(data.graduation_year)
       setEditClass(data.class || '')
+      setEditUsername(data.username || '')
       setLoading(false)
+
+      // Load user's carusel photos
+      const supabaseForPhotos = getSupabase()
+      const { data: photos } = await supabaseForPhotos
+        .from('carusel_posts')
+        .select('id, storage_path, caption')
+        .eq('user_id', user.id)
+        .is('deleted_at', null)
+        .order('created_at', { ascending: false })
+
+      if (photos && photos.length > 0) {
+        const withUrls = photos.map(p => {
+          const { data: urlData } = supabaseForPhotos.storage.from('carusel').getPublicUrl(p.storage_path)
+          return { id: p.id, image_url: urlData.publicUrl, caption: p.caption }
+        })
+        setUserPhotos(withUrls)
+      }
+      setPhotosLoading(false)
     }
     loadProfile()
   }, [router])
@@ -143,6 +170,45 @@ export default function SetariPage() {
     if (!error) {
       setProfile(prev => prev ? { ...prev, ...fields } : prev)
     }
+  }
+
+  async function handleSaveUsername() {
+    if (!profile) return
+    const trimmed = editUsername.trim().toLowerCase()
+    if (!trimmed) { setUsernameError('Username-ul nu poate fi gol'); return }
+    if (trimmed.length < 3) { setUsernameError('Minim 3 caractere'); return }
+    if (!/^[a-z0-9._]+$/.test(trimmed)) { setUsernameError('Doar litere mici, cifre, . și _'); return }
+    if (trimmed === profile.username) { setEditingUsername(false); return }
+
+    setSavingUsername(true)
+    setUsernameError('')
+
+    const { data: existing } = await getSupabase()
+      .from('profiles')
+      .select('id')
+      .eq('username', trimmed)
+      .neq('id', profile.id)
+      .limit(1)
+
+    if (existing && existing.length > 0) {
+      setUsernameError('Acest username este deja folosit')
+      setSavingUsername(false)
+      return
+    }
+
+    const { error } = await getSupabase()
+      .from('profiles')
+      .update({ username: trimmed })
+      .eq('id', profile.id)
+
+    if (error) {
+      setUsernameError('Eroare la salvare')
+    } else {
+      setProfile(prev => prev ? { ...prev, username: trimmed } : prev)
+      setEditingUsername(false)
+      setUsernameError('')
+    }
+    setSavingUsername(false)
   }
 
   async function handleLogout() {
@@ -370,9 +436,58 @@ export default function SetariPage() {
             <h1 className="font-display text-[1.3rem] leading-[1.2]" style={{ color: 'var(--ink)' }}>
               {profile.name}
             </h1>
-            <span className="text-[0.65rem] font-semibold px-2 py-1 rounded-xs" style={{ background: 'var(--cream2)', color: 'var(--ink2)' }}>
-              @{profile.username}
-            </span>
+            {editingUsername ? (
+              <div className="flex flex-col items-end gap-1">
+                <div className="flex items-center gap-1">
+                  <AtSign size={12} style={{ color: 'var(--ink3)' }} />
+                  <input
+                    type="text"
+                    value={editUsername}
+                    onChange={e => { setEditUsername(e.target.value.toLowerCase()); setUsernameError('') }}
+                    autoFocus
+                    maxLength={30}
+                    className="w-24 text-[0.72rem] font-semibold px-1.5 py-0.5 rounded-xs outline-none"
+                    style={{ background: 'var(--cream2)', border: '1.5px solid var(--border)', color: 'var(--ink)' }}
+                  />
+                </div>
+                {usernameError && (
+                  <span className="text-[0.62rem] flex items-center gap-0.5" style={{ color: 'var(--rose)' }}>
+                    <AlertCircle size={10} />
+                    {usernameError}
+                  </span>
+                )}
+                <div className="flex gap-1">
+                  <button
+                    type="button"
+                    onClick={handleSaveUsername}
+                    disabled={savingUsername}
+                    className="flex items-center gap-1 rounded-xs px-2 py-0.5 text-[0.65rem] font-bold text-white disabled:opacity-50"
+                    style={{ background: 'var(--ink)' }}
+                  >
+                    {savingUsername ? <Loader2 size={10} className="animate-spin" /> : <Check size={10} />}
+                    Salvează
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setEditUsername(profile.username); setEditingUsername(false); setUsernameError('') }}
+                    className="rounded-xs px-2 py-0.5 text-[0.65rem] font-medium"
+                    style={{ border: '1px solid var(--border)', color: 'var(--ink3)' }}
+                  >
+                    Anulează
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setEditingUsername(true)}
+                className="flex items-center gap-1 text-[0.65rem] font-semibold px-2 py-1 rounded-xs transition-colors"
+                style={{ background: 'var(--cream2)', color: 'var(--ink2)' }}
+              >
+                @{profile.username}
+                <Pencil size={9} style={{ color: 'var(--ink3)' }} />
+              </button>
+            )}
           </div>
 
           {editingGraduation ? (
@@ -670,6 +785,44 @@ export default function SetariPage() {
               )}
             </div>
           </ProfileSection>
+
+          {/* Photos */}
+          <div className="rounded-xl border px-3 py-2.5" style={{ background: 'var(--white)', borderColor: 'var(--border)' }}>
+            <h3 className="text-sm font-semibold flex items-center gap-2 mb-2" style={{ color: 'var(--ink)' }}>
+              <ImageIcon size={16} style={{ color: 'var(--amber)' }} />
+              Fotografiile tale
+            </h3>
+            {photosLoading ? (
+              <div className="flex justify-center py-4">
+                <Loader2 size={16} className="animate-spin" style={{ color: 'var(--ink3)' }} />
+              </div>
+            ) : userPhotos.length === 0 ? (
+              <p className="text-[0.82rem] italic" style={{ color: 'var(--ink3)' }}>
+                Nicio fotografie incarcata. Adauga din <Link href="/carusel" className="underline" style={{ color: 'var(--amber-dark)' }}>Carusel</Link>.
+              </p>
+            ) : (
+              <div className="grid grid-cols-3 gap-1.5">
+                {userPhotos.map(photo => (
+                  <Link
+                    key={photo.id}
+                    href={`/carusel/${photo.id}`}
+                    className="relative aspect-square rounded-lg overflow-hidden group"
+                  >
+                    <img
+                      src={photo.image_url}
+                      alt={photo.caption || 'Fotografie'}
+                      className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                    />
+                    {photo.caption && (
+                      <div className="absolute inset-x-0 bottom-0 px-1.5 py-1 bg-gradient-to-t from-black/60 to-transparent">
+                        <p className="text-[0.6rem] text-white truncate">{photo.caption}</p>
+                      </div>
+                    )}
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </main>
 
