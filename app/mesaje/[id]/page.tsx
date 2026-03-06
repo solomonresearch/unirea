@@ -442,7 +442,7 @@ export default function ChatPage() {
                     </p>
                   )}
                   <div
-                    className={`px-3 py-2 ${bubbleRadius} text-sm select-none`}
+                    className={`px-3 py-2 ${bubbleRadius} text-sm select-none relative`}
                     style={isOwn
                       ? { background: 'var(--amber)', color: 'white' }
                       : { background: 'var(--cream2)', color: 'var(--ink)' }
@@ -458,6 +458,15 @@ export default function ChatPage() {
                     }}
                   >
                     <MentionText text={msg.content} />
+                    {showTime && <span className="inline-block w-[3.25rem]" aria-hidden />}
+                    {showTime && (
+                      <span
+                        className="absolute bottom-1.5 right-2.5 text-[10px] leading-none pointer-events-none"
+                        style={{ color: isOwn ? 'rgba(255,255,255,0.7)' : 'var(--ink3)' }}
+                      >
+                        {new Date(msg.created_at).toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    )}
                   </div>
                   {confirmDeleteId === msg.id && (
                     <div className={`flex gap-2 mt-1 ${isOwn ? 'justify-end' : 'justify-start'}`}>
@@ -479,11 +488,6 @@ export default function ChatPage() {
                         Anuleaza
                       </button>
                     </div>
-                  )}
-                  {showTime && (
-                    <p className={`text-[10px] mt-0.5 ${isOwn ? 'text-right' : 'text-left'}`} style={{ color: 'var(--ink3)' }}>
-                      {new Date(msg.created_at).toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit' })}
-                    </p>
                   )}
                 </div>
               </div>
