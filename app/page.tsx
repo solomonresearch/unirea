@@ -193,30 +193,6 @@ export default function Home() {
       </div>
 
       <style dangerouslySetInnerHTML={{ __html: `
-        @keyframes fadeInDown {
-          from { opacity: 0; transform: translateY(-20px); }
-          to   { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes fadeInUp {
-          from { opacity: 0; transform: translateY(30px); }
-          to   { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes float-item {
-          0%, 100% { transform: translateY(0); }
-          50%      { transform: translateY(-12px); }
-        }
-        @keyframes float-slow {
-          0%, 100% { transform: translate(0, 0); }
-          50%      { transform: translate(30px, -30px); }
-        }
-        @keyframes badge-pulse {
-          0%, 100% { transform: scale(1); opacity: 1; }
-          50%      { transform: scale(1.3); opacity: 0.5; }
-        }
-        @keyframes map-ping {
-          0%   { transform: scale(1); opacity: 0.75; }
-          100% { transform: scale(3); opacity: 0; }
-        }
         .hero-ping {
           width: 8px; height: 8px;
           border-radius: 50%;
