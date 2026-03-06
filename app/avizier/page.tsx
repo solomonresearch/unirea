@@ -468,7 +468,7 @@ export default function AvizierPage() {
             <div>
               <div className="flex items-center gap-2">
                 <Logo size={32} />
-                <span className="font-display text-xl" style={{ color: 'var(--ink)' }}>Informatii din liceu</span>
+                <span className="font-display text-xl" style={{ color: 'var(--ink)' }}>Avizier</span>
               </div>
               <p className="text-[0.72rem] mt-1 ml-10" style={{ color: 'var(--ink3)' }}>
                 {profile.highschool}
