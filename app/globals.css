@@ -42,7 +42,6 @@
     --accent-foreground:   0 0% 100%;
     --destructive:         14 49% 53%;  /* rose */
     --destructive-foreground: 0 0% 100%;
-    --border:              32 24% 88%;  /* border token */
     --input:               32 24% 88%;
     --ring:                31 77% 57%;  /* amber */
     --chart-1:             12 76% 61%;
@@ -120,10 +119,6 @@
     --shadow-l:   0 12px 40px rgba(20,23,26,0.14);
   }
 
-  [data-skin="indigo"] body {
-    background-color: #D4D8E0;
-  }
-
   [data-skin="terracotta"] {
     --cream:      #F5F0EA;
     --cream2:     #EAE2D6;
@@ -144,10 +139,6 @@
     --shadow-l:   0 12px 40px rgba(28,24,22,0.14);
   }
 
-  [data-skin="terracotta"] body {
-    background-color: #DED4C6;
-  }
-
   [data-skin="forest"] {
     --cream:      #F2F5F0;
     --cream2:     #E4E9DE;
@@ -166,10 +157,6 @@
     --shadow-s:   0 1px 4px rgba(22,26,20,0.06);
     --shadow-m:   0 4px 20px rgba(22,26,20,0.09);
     --shadow-l:   0 12px 40px rgba(22,26,20,0.14);
-  }
-
-  [data-skin="forest"] body {
-    background-color: #D4DCC8;
   }
 
   body {
