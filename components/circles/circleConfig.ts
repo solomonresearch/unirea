@@ -84,21 +84,21 @@ export const CIRCLE_CONFIG: Record<CircleKey, CircleConfig> = {
 export const ALL_CIRCLES: CircleKey[] = ['highschool', 'location', 'hobbies', 'profession', 'background']
 
 export const ALL_POSITIONS: CirclePosition[] = [
-  { x: 0.22, y: 0.32, r: 0.30 },
-  { x: 0.46, y: 0.28, r: 0.30 },
-  { x: 0.72, y: 0.34, r: 0.26 },
-  { x: 0.28, y: 0.66, r: 0.30 },
-  { x: 0.66, y: 0.64, r: 0.26 },
+  { x: 0.50, y: 0.22, r: 0.22 },   // highschool  — top
+  { x: 0.77, y: 0.37, r: 0.22 },   // location    — top-right
+  { x: 0.67, y: 0.72, r: 0.22 },   // hobbies     — bottom-right
+  { x: 0.33, y: 0.72, r: 0.22 },   // profession  — bottom-left
+  { x: 0.23, y: 0.37, r: 0.22 },   // background  — top-left
 ]
 
 export const ALL_DOTS: IntersectionDot[] = [
-  { x: 0.34, y: 0.30, circles: ['highschool', 'location'], color: '#FF8F4A', label: 'Colegi din oras', key: 'hs_location' },
-  { x: 0.47, y: 0.33, circles: ['highschool', 'hobbies'], color: '#FF6B4A', label: 'Colegi cu hobby-uri', key: 'hs_hobbies' },
-  { x: 0.59, y: 0.31, circles: ['location', 'hobbies'], color: '#2ECDA7', label: 'Vecini cu hobby-uri', key: 'location_hobbies' },
-  { x: 0.38, y: 0.42, circles: ['highschool', 'location', 'hobbies'], color: '#FFD700', label: 'Cercul interior', key: 'hs_location_hobbies' },
-  { x: 0.38, y: 0.51, circles: ['highschool', 'profession'], color: '#7B61FF', label: 'Colegi in acelasi domeniu', key: 'hs_profession' },
-  { x: 0.50, y: 0.49, circles: ['location', 'profession'], color: '#4A9CFF', label: 'Colegi locali', key: 'location_profession' },
-  { x: 0.63, y: 0.49, circles: ['location', 'background'], color: '#FFB84A', label: 'Vecini cu background', key: 'location_background' },
-  { x: 0.66, y: 0.67, circles: ['profession', 'background'], color: '#9B7BFF', label: 'Aceeasi cariera', key: 'profession_background' },
-  { x: 0.41, y: 0.43, circles: ['highschool', 'location', 'profession'], color: '#FFD700', label: 'Retea puternica', key: 'hs_location_profession' },
+  // Adjacent pairs (edges of pentagon), pulled toward center
+  { x: 0.60, y: 0.27, circles: ['highschool', 'location'], color: '#FF8F4A', label: 'Colegi din oras', key: 'hs_location' },
+  { x: 0.70, y: 0.50, circles: ['location', 'hobbies'], color: '#2ECDA7', label: 'Vecini cu hobby-uri', key: 'location_hobbies' },
+  { x: 0.50, y: 0.70, circles: ['hobbies', 'profession'], color: '#5C94D4', label: 'Hobby-uri & profesie', key: 'hobbies_profession' },
+  { x: 0.30, y: 0.50, circles: ['profession', 'background'], color: '#9B7BFF', label: 'Aceeasi cariera', key: 'profession_background' },
+  { x: 0.40, y: 0.27, circles: ['background', 'highschool'], color: '#FFB84A', label: 'Colegi din domeniu', key: 'background_hs' },
+  // Multi-circle intersections near center
+  { x: 0.55, y: 0.40, circles: ['highschool', 'location', 'hobbies'], color: '#FFD700', label: 'Cercul interior', key: 'hs_location_hobbies' },
+  { x: 0.45, y: 0.40, circles: ['highschool', 'background', 'profession'], color: '#FFD700', label: 'Retea puternica', key: 'hs_background_profession' },
 ]
