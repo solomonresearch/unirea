@@ -7,7 +7,7 @@ import { BottomNav } from '@/components/BottomNav'
 import { MentionInput } from '@/components/MentionInput'
 import { MentionText } from '@/components/MentionText'
 import { GroupInfoPanel } from '@/components/mesaje/GroupInfoPanel'
-import { Loader2, ArrowLeft, Send, Users, ChevronDown, MessageCircle } from 'lucide-react'
+import { Loader2, ArrowLeft, Send, Users, ChevronDown, MessageCircle, Check, Clock } from 'lucide-react'
 import { getInitials } from '@/lib/utils'
 
 const DAYS_RO = ['Duminica', 'Luni', 'Marti', 'Miercuri', 'Joi', 'Vineri', 'Sambata']
@@ -458,13 +458,14 @@ export default function ChatPage() {
                     }}
                   >
                     <MentionText text={msg.content} />
-                    {showTime && <span className="inline-block w-[3.25rem]" aria-hidden />}
+                    {showTime && <span className={`inline-block ${isOwn ? 'w-16' : 'w-[3.25rem]'}`} aria-hidden />}
                     {showTime && (
                       <span
-                        className="absolute bottom-1.5 right-2.5 text-[10px] leading-none pointer-events-none"
+                        className="absolute bottom-1.5 right-2.5 text-[10px] leading-none pointer-events-none flex items-center gap-1"
                         style={{ color: isOwn ? 'rgba(255,255,255,0.7)' : 'var(--ink3)' }}
                       >
                         {new Date(msg.created_at).toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit' })}
+                        {isOwn && (msg.id.startsWith('temp-') ? <Clock size={10} /> : <Check size={10} />)}
                       </span>
                     )}
                   </div>
