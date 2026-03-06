@@ -27,6 +27,13 @@ function getDateLabel(dateStr: string): string {
   return `${date.getDate()} ${MONTHS_RO[date.getMonth()]} ${date.getFullYear()}`
 }
 
+function avatarColor(name: string): string {
+  const colors = ['#5B8E6D', '#7B6D9E', '#4A7B9A', '#C4634A', '#8E6B4A', '#4A8E6B', '#9E5A8A']
+  let hash = 0
+  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash)
+  return colors[Math.abs(hash) % colors.length]
+}
+
 interface Message {
   id: string
   conversation_id: string
@@ -358,6 +365,19 @@ export default function ChatPage() {
                   </div>
                 )}
                 <div className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}>
+                {isGroup && !isOwn && (
+                  <div className="w-6 mr-2 flex-shrink-0 flex items-end">
+                    {showSenderName && senderProfile ? (
+                      senderProfile.avatar_url ? (
+                        <img src={senderProfile.avatar_url} alt={senderProfile.name} className="w-6 h-6 rounded-full object-cover" />
+                      ) : (
+                        <div className="w-6 h-6 rounded-full flex items-center justify-center" style={{ background: avatarColor(senderProfile.name) }}>
+                          <span className="text-[9px] font-bold text-white">{getInitials(senderProfile.name)}</span>
+                        </div>
+                      )
+                    ) : null}
+                  </div>
+                )}
                 <div className={`max-w-[75%] ${isOwn ? 'items-end' : 'items-start'} flex flex-col`}>
                   {showSenderName && senderProfile && (
                     <p className="text-[11px] font-medium mb-0.5 ml-1" style={{ color: 'var(--amber)' }}>
