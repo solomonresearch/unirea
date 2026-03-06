@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { BottomNav } from '@/components/BottomNav'
 import { getSupabase } from '@/lib/supabase'
+import { getInitials } from '@/lib/utils'
 import { Loader2, MessageCircle, ChevronRight, Users, X, Calendar, Search, Check, UsersRound } from 'lucide-react'
 import { Logo } from '@/components/Logo'
 import { NotificationBell } from '@/components/NotificationBell'
@@ -38,10 +39,6 @@ interface Person {
   company: string | null
   bio: string | null
   overlap_score: number
-}
-
-function getInitials(name: string) {
-  return name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()
 }
 
 function avatarColor(name: string): string {

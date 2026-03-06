@@ -3,21 +3,13 @@
 import { useState, useRef } from 'react'
 import { Camera, Loader2 } from 'lucide-react'
 import { getSupabase } from '@/lib/supabase'
+import { getInitials } from '@/lib/utils'
 
 interface AvatarProps {
   name: string
   avatarUrl: string | null
   userId: string
   onUpload: (url: string) => void
-}
-
-function getInitials(name: string) {
-  return name
-    .split(' ')
-    .map(w => w[0])
-    .slice(0, 2)
-    .join('')
-    .toUpperCase()
 }
 
 export function Avatar({ name, avatarUrl, userId, onUpload }: AvatarProps) {

@@ -13,6 +13,7 @@ import { Logo } from '@/components/Logo'
 import { NotificationBell } from '@/components/NotificationBell'
 import { MentionInput } from '@/components/MentionInput'
 import { MentionText } from '@/components/MentionText'
+import { relativeTime, getInitials } from '@/lib/utils'
 
 type Scope = 'clasa' | 'promotie' | 'liceu'
 
@@ -96,29 +97,6 @@ const QUIZ_SCOPE: Record<Scope, string> = {
   liceu: 'school',
 }
 
-function relativeTime(dateStr: string): string {
-  const now = Date.now()
-  const date = new Date(dateStr).getTime()
-  const diff = Math.floor((now - date) / 1000)
-
-  if (diff < 60) return 'acum'
-  if (diff < 3600) {
-    const m = Math.floor(diff / 60)
-    return `${m}m`
-  }
-  if (diff < 86400) {
-    const h = Math.floor(diff / 3600)
-    return `${h}h`
-  }
-  if (diff < 172800) return 'ieri'
-  if (diff < 2592000) {
-    const d = Math.floor(diff / 86400)
-    return `${d}z`
-  }
-  const mo = Math.floor(diff / 2592000)
-  return `${mo}l`
-}
-
 function expiryLabel(expiresAt: string): string {
   const now = Date.now()
   const expires = new Date(expiresAt).getTime()
@@ -158,10 +136,6 @@ function avatarColor(name: string): string {
   let hash = 0
   for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash)
   return colors[Math.abs(hash) % colors.length]
-}
-
-function initials(name: string): string {
-  return name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
 }
 
 export default function AvizierPage() {
@@ -489,7 +463,7 @@ export default function AvizierPage() {
                   <img src={profile.avatar_url} alt={profile.name} className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-[0.7rem] font-bold" style={{ background: 'var(--cream2)', color: 'var(--ink2)' }}>
-                    {initials(profile.name || '')}
+                    {getInitials(profile.name || '')}
                   </div>
                 )}
               </Link>
@@ -725,7 +699,7 @@ export default function AvizierPage() {
               {!postsLoading && posts.map(post => {
                 const name = post.profiles?.name || post.profiles?.username || '?'
                 const bg = avatarColor(name)
-                const ini = initials(name)
+                const ini = getInitials(name)
                 const score = post.upvotes - post.downvotes
 
                 return (
@@ -753,7 +727,7 @@ export default function AvizierPage() {
                         </div>
                         <div className="flex items-center gap-2 flex-shrink-0">
                           <span className="text-[0.6rem]" style={{ color: 'var(--ink3)' }}>
-                            {relativeTime(post.created_at)}
+                            {relativeTime(post.created_at, true)}
                           </span>
                           {post.user_id === profile.id && (
                             <button
@@ -839,7 +813,7 @@ export default function AvizierPage() {
                                   @{comment.profiles?.username}
                                 </span>
                                 <span className="text-[0.6rem]" style={{ color: 'var(--ink3)' }}>
-                                  {relativeTime(comment.created_at)}
+                                  {relativeTime(comment.created_at, true)}
                                 </span>
                                 {comment.user_id === profile.id && (
                                   <button

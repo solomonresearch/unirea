@@ -3,16 +3,13 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { getSupabase } from '@/lib/supabase'
+import { getInitials } from '@/lib/utils'
 
 function avatarColor(name: string): string {
   const colors = ['#5B8E6D', '#7B6D9E', '#4A7B9A', '#C4634A', '#8E6B4A', '#4A8E6B', '#9E5A8A']
   let hash = 0
   for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash)
   return colors[Math.abs(hash) % colors.length]
-}
-
-function initials(name: string): string {
-  return name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
 }
 
 export function AvatarSettingsButton() {
@@ -38,7 +35,7 @@ export function AvatarSettingsButton() {
   }, [])
 
   const bg = name ? avatarColor(name) : 'var(--ink3)'
-  const ini = name ? initials(name) : '?'
+  const ini = name ? getInitials(name) : '?'
 
   return (
     <Link href="/setari" className="flex-shrink-0">

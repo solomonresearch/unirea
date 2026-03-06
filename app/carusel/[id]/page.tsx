@@ -7,6 +7,7 @@ import { Heart, MessageCircle, Send, Share2, ChevronLeft, Loader2, Trash2 } from
 import { BottomNav } from '@/components/BottomNav'
 import { MentionInput } from '@/components/MentionInput'
 import { MentionText } from '@/components/MentionText'
+import { relativeTime, getInitials } from '@/lib/utils'
 
 interface CaruselComment {
   id: string
@@ -27,30 +28,6 @@ interface CaruselPost {
   liked: boolean
   comments: CaruselComment[]
   created_at: string
-}
-
-function relativeTime(dateStr: string): string {
-  const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000)
-  if (diff < 60) return 'acum'
-  if (diff < 3600) {
-    const m = Math.floor(diff / 60)
-    return `acum ${m} ${m === 1 ? 'minut' : 'minute'}`
-  }
-  if (diff < 86400) {
-    const h = Math.floor(diff / 3600)
-    return `acum ${h} ${h === 1 ? 'ora' : 'ore'}`
-  }
-  if (diff < 172800) return 'ieri'
-  if (diff < 2592000) {
-    const d = Math.floor(diff / 86400)
-    return `acum ${d} zile`
-  }
-  const mo = Math.floor(diff / 2592000)
-  return `acum ${mo} ${mo === 1 ? 'luna' : 'luni'}`
-}
-
-function getInitials(name: string): string {
-  return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)
 }
 
 export default function CaruselPostPage() {

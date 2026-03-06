@@ -15,6 +15,7 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog'
 import { Loader2, Plus, Trash2, ExternalLink, MapPin } from 'lucide-react'
+import { relativeTime } from '@/lib/utils'
 
 interface ZiarPost {
   id: string
@@ -28,22 +29,6 @@ interface ZiarPost {
   created_by: string | null
   author_name: string | null
   created_at: string
-}
-
-function relativeTime(dateStr: string): string {
-  const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000)
-  if (diff < 60) return 'acum'
-  if (diff < 3600) {
-    const m = Math.floor(diff / 60)
-    return `acum ${m} ${m === 1 ? 'minut' : 'minute'}`
-  }
-  if (diff < 86400) {
-    const h = Math.floor(diff / 3600)
-    return `acum ${h} ${h === 1 ? 'ora' : 'ore'}`
-  }
-  if (diff < 172800) return 'ieri'
-  const d = Math.floor(diff / 86400)
-  return `acum ${d} zile`
 }
 
 function getCategoryMeta(value: string) {

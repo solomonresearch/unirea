@@ -10,6 +10,7 @@ import { NotificationBell } from '@/components/NotificationBell'
 import { getSupabase } from '@/lib/supabase'
 import { Loader2, MessageCircle, Plus, Search, X, Users } from 'lucide-react'
 import { SwipeableRow } from '@/components/mesaje/SwipeableRow'
+import { relativeTime, getInitials } from '@/lib/utils'
 
 interface Conversation {
   id: string
@@ -35,33 +36,6 @@ interface SearchResult {
   name: string
   username: string
   avatar_url: string | null
-}
-
-function relativeTime(dateStr: string): string {
-  const now = Date.now()
-  const date = new Date(dateStr).getTime()
-  const diff = Math.floor((now - date) / 1000)
-
-  if (diff < 60) return 'acum'
-  if (diff < 3600) {
-    const m = Math.floor(diff / 60)
-    return `acum ${m} ${m === 1 ? 'minut' : 'minute'}`
-  }
-  if (diff < 86400) {
-    const h = Math.floor(diff / 3600)
-    return `acum ${h} ${h === 1 ? 'ora' : 'ore'}`
-  }
-  if (diff < 172800) return 'ieri'
-  if (diff < 2592000) {
-    const d = Math.floor(diff / 86400)
-    return `acum ${d} zile`
-  }
-  const mo = Math.floor(diff / 2592000)
-  return `acum ${mo} ${mo === 1 ? 'luna' : 'luni'}`
-}
-
-function getInitials(name: string) {
-  return name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()
 }
 
 export default function MesajePage() {

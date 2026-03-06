@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { Bell } from 'lucide-react'
 import { getSupabase } from '@/lib/supabase'
+import { relativeTime, getInitials } from '@/lib/utils'
 
 interface Actor {
   id: string
@@ -23,24 +24,11 @@ interface Notification {
   actor: Actor
 }
 
-function relativeTime(dateStr: string): string {
-  const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000)
-  if (diff < 60) return 'acum'
-  if (diff < 3600) return `${Math.floor(diff / 60)}m`
-  if (diff < 86400) return `${Math.floor(diff / 3600)}h`
-  if (diff < 604800) return `${Math.floor(diff / 86400)}z`
-  return new Date(dateStr).toLocaleDateString('ro-RO', { day: 'numeric', month: 'short' })
-}
-
 function avatarColor(name: string): string {
   const colors = ['#5B8E6D', '#7B6D9E', '#4A7B9A', '#C4634A', '#8E6B4A', '#4A8E6B', '#9E5A8A']
   let hash = 0
   for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash)
   return colors[Math.abs(hash) % colors.length]
-}
-
-function getInitials(name: string): string {
-  return name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
 }
 
 const CONTEXT_ROUTES: Record<string, string> = {
@@ -203,7 +191,7 @@ export function NotificationBell() {
                       </p>
                     )}
                     <p className="text-[0.62rem] mt-1" style={{ color: 'var(--ink3)' }}>
-                      {relativeTime(n.created_at)}
+                      {relativeTime(n.created_at, true)}
                     </p>
                   </div>
                   {!n.read_at && (

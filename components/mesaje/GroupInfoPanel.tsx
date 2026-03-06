@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { X, Copy, Check, UserPlus, LogOut, Search, Loader2, Trash2 } from 'lucide-react'
 import { getSupabase } from '@/lib/supabase'
+import { getInitials } from '@/lib/utils'
 
 interface Member {
   id: string
@@ -21,10 +22,6 @@ interface Props {
   onClose: () => void
   onNameUpdated: (name: string) => void
   onMembersUpdated: (members: Member[]) => void
-}
-
-function getInitials(name: string) {
-  return name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()
 }
 
 export function GroupInfoPanel({

@@ -16,6 +16,7 @@ import { DOMAINS } from '@/lib/domains'
 import { SKINS, type SkinId } from '@/lib/skins'
 import { useSkin } from '@/components/SkinProvider'
 import { getSupabase } from '@/lib/supabase'
+import { getInitials } from '@/lib/utils'
 import Link from 'next/link'
 import {
   LogOut, Loader2, Sparkles, Briefcase, Layers,
@@ -44,10 +45,6 @@ interface Profile {
   bio: string
   avatar_url: string | null
   onboarding_completed: boolean
-}
-
-function initials(name: string) {
-  return name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
 }
 
 export default function SetariPage() {

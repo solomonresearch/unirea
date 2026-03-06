@@ -6,6 +6,7 @@ import { Logo } from '@/components/Logo'
 import { BottomNav } from '@/components/BottomNav'
 import { HOBBY_OPTIONS } from '@/lib/hobbies'
 import { getSupabase } from '@/lib/supabase'
+import { getInitials } from '@/lib/utils'
 import {
   Loader2, ArrowLeft, Sparkles, Briefcase, Layers, Building2,
   MapPin, Heart, Mail, Phone, GraduationCap, MessageCircle,
@@ -28,10 +29,6 @@ interface Profile {
   hobbies: string[]
   bio: string
   avatar_url: string | null
-}
-
-function getInitials(name: string) {
-  return name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()
 }
 
 export default function ColegProfilePage() {
