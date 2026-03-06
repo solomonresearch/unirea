@@ -83,22 +83,23 @@ export default function OnboardingPage() {
     setLoading(false)
   }
 
-  const inputClass = "w-full rounded-lg border border-gray-300 pl-9 pr-3 py-2.5 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none"
-  const iconClass = "absolute left-3 top-2.5 text-gray-400 pointer-events-none"
+  const inputClass = "w-full rounded-lg pl-9 pr-3 py-2.5 text-sm outline-none"
+  const iconClass = "absolute left-3 top-2.5 pointer-events-none"
+  const inputStyle = { border: '1px solid var(--border)', background: 'var(--white)', color: 'var(--ink)' }
 
   return (
-    <main className="flex min-h-screen flex-col items-center px-5 py-6">
+    <main className="flex min-h-screen flex-col items-center px-5 py-6" style={{ background: 'var(--cream2)' }}>
       <div className="w-full max-w-sm space-y-5">
         {/* Header */}
         <div className="flex items-center gap-2">
           <Logo size={28} />
-          <h1 className="text-lg font-bold text-gray-900">Spune-ne despre tine</h1>
+          <h1 className="font-display text-xl" style={{ color: 'var(--ink)' }}>Spune-ne despre tine</h1>
         </div>
 
         {/* Progress */}
         <div className="flex gap-1.5">
           {[1, 2, 3].map(s => (
-            <div key={s} className={`h-1.5 flex-1 rounded-full transition-colors ${s <= step ? 'bg-primary-700' : 'bg-gray-200'}`} />
+            <div key={s} className="h-1.5 flex-1 rounded-full transition-colors" style={{ background: s <= step ? 'var(--amber)' : 'var(--border)' }} />
           ))}
         </div>
 
@@ -106,11 +107,11 @@ export default function OnboardingPage() {
         {step === 1 && (
           <div className="space-y-4 animate-in fade-in">
             <div className="space-y-1">
-              <h2 className="text-base font-semibold text-gray-900 flex items-center gap-2">
-                <Briefcase size={18} className="text-primary-700" />
+              <h2 className="text-base font-semibold flex items-center gap-2" style={{ color: 'var(--ink)' }}>
+                <Briefcase size={18} style={{ color: 'var(--amber-dark)' }} />
                 Profesie si locatie
               </h2>
-              <p className="text-xs text-gray-500">Unde lucrezi si unde locuiesti acum?</p>
+              <p className="text-xs" style={{ color: 'var(--ink3)' }}>Unde lucrezi si unde locuiesti acum?</p>
             </div>
 
             <div className="space-y-2.5">
@@ -131,13 +132,14 @@ export default function OnboardingPage() {
               />
 
               <div className="relative">
-                <Building2 size={15} className="absolute left-3 top-2.5 text-gray-400 pointer-events-none" />
+                <Building2 size={15} className={iconClass} style={{ color: 'var(--ink3)' }} />
                 <input
                   type="text"
                   value={company}
                   onChange={e => setCompany(e.target.value)}
                   placeholder="Companie (optional)"
-                  className="w-full rounded-lg border border-gray-300 pl-9 pr-3 py-2.5 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none"
+                  className={inputClass}
+                  style={inputStyle}
                 />
               </div>
 
@@ -159,13 +161,14 @@ export default function OnboardingPage() {
                 />
               ) : (
                 <div className="relative">
-                  <Building size={15} className={iconClass} />
+                  <Building size={15} className={iconClass} style={{ color: 'var(--ink3)' }} />
                   <input
                     type="text"
                     value={city}
                     onChange={e => setCity(e.target.value)}
                     placeholder="Orasul"
                     className={inputClass}
+                    style={inputStyle}
                   />
                 </div>
               )}
@@ -177,11 +180,11 @@ export default function OnboardingPage() {
         {step === 2 && (
           <div className="space-y-3 animate-in fade-in">
             <div className="space-y-1">
-              <h2 className="text-base font-semibold text-gray-900 flex items-center gap-2">
-                <Heart size={18} className="text-primary-700" />
+              <h2 className="text-base font-semibold flex items-center gap-2" style={{ color: 'var(--ink)' }}>
+                <Heart size={18} style={{ color: 'var(--amber-dark)' }} />
                 Hobby-uri
               </h2>
-              <p className="text-xs text-gray-500">Ce iti place sa faci? Selecteaza mai multe.</p>
+              <p className="text-xs" style={{ color: 'var(--ink3)' }}>Ce iti place sa faci? Selecteaza mai multe.</p>
             </div>
 
             <div className="grid grid-cols-4 gap-1">
@@ -192,11 +195,11 @@ export default function OnboardingPage() {
                     key={label}
                     type="button"
                     onClick={() => toggleHobby(label)}
-                    className={`flex flex-col items-center gap-0.5 rounded-md border px-0.5 py-1.5 text-[10px] font-medium transition-all ${
-                      selected
-                        ? 'border-primary-700 bg-primary-50 text-primary-700 shadow-sm'
-                        : 'border-gray-200 text-gray-500 hover:border-gray-300'
-                    }`}
+                    className="flex flex-col items-center gap-0.5 rounded-md px-0.5 py-1.5 text-[10px] font-medium transition-all"
+                    style={selected
+                      ? { border: '1px solid var(--amber)', background: 'var(--amber-soft)', color: 'var(--amber-dark)', boxShadow: 'var(--shadow-s)' }
+                      : { border: '1px solid var(--border)', color: 'var(--ink3)' }
+                    }
                   >
                     <Icon size={14} />
                     {label}
@@ -211,11 +214,11 @@ export default function OnboardingPage() {
         {step === 3 && (
           <div className="space-y-4 animate-in fade-in">
             <div className="space-y-1">
-              <h2 className="text-base font-semibold text-gray-900 flex items-center gap-2">
-                <Sparkles size={18} className="text-primary-700" />
+              <h2 className="text-base font-semibold flex items-center gap-2" style={{ color: 'var(--ink)' }}>
+                <Sparkles size={18} style={{ color: 'var(--amber-dark)' }} />
                 Despre tine
               </h2>
-              <p className="text-xs text-gray-500">Scrie cateva cuvinte despre tine — ce te defineste?</p>
+              <p className="text-xs" style={{ color: 'var(--ink3)' }}>Scrie cateva cuvinte despre tine — ce te defineste?</p>
             </div>
 
             <textarea
@@ -223,38 +226,39 @@ export default function OnboardingPage() {
               onChange={e => setBio(e.target.value)}
               placeholder="Povesteste-ne despre tine, ce te pasioneaza, ce planuri ai..."
               rows={5}
-              className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none resize-none"
+              className="w-full rounded-lg px-4 py-3 text-sm outline-none resize-none"
+              style={{ border: '1px solid var(--border)', background: 'var(--white)', color: 'var(--ink)' }}
             />
 
             {/* Summary */}
-            <div className="rounded-xl bg-gray-50 border border-gray-200 p-4 space-y-2 text-sm">
+            <div className="rounded-xl p-4 space-y-2 text-sm" style={{ background: 'var(--cream)', border: '1px solid var(--border)' }}>
               {profession.length > 0 && (
-                <div className="flex items-center gap-2 text-gray-600">
-                  <Briefcase size={14} className="text-primary-700" />
+                <div className="flex items-center gap-2" style={{ color: 'var(--ink2)' }}>
+                  <Briefcase size={14} style={{ color: 'var(--amber-dark)' }} />
                   {profession.join(', ')}
                 </div>
               )}
               {domain.length > 0 && (
-                <div className="flex items-center gap-2 text-gray-600">
-                  <Layers size={14} className="text-primary-700" />
+                <div className="flex items-center gap-2" style={{ color: 'var(--ink2)' }}>
+                  <Layers size={14} style={{ color: 'var(--amber-dark)' }} />
                   {domain.join(', ')}
                 </div>
               )}
               {company && (
-                <div className="flex items-center gap-2 text-gray-600">
-                  <Building2 size={14} className="text-primary-700" />
+                <div className="flex items-center gap-2" style={{ color: 'var(--ink2)' }}>
+                  <Building2 size={14} style={{ color: 'var(--amber-dark)' }} />
                   {company}
                 </div>
               )}
               {(country || city) && (
-                <div className="flex items-center gap-2 text-gray-600">
-                  <MapPin size={14} className="text-primary-700" />
+                <div className="flex items-center gap-2" style={{ color: 'var(--ink2)' }}>
+                  <MapPin size={14} style={{ color: 'var(--amber-dark)' }} />
                   {[city, country].filter(Boolean).join(', ')}
                 </div>
               )}
               {hobbies.length > 0 && (
-                <div className="flex items-center gap-2 text-gray-600">
-                  <Heart size={14} className="text-primary-700" />
+                <div className="flex items-center gap-2" style={{ color: 'var(--ink2)' }}>
+                  <Heart size={14} style={{ color: 'var(--amber-dark)' }} />
                   {hobbies.join(', ')}
                 </div>
               )}
@@ -268,7 +272,8 @@ export default function OnboardingPage() {
             <button
               type="button"
               onClick={() => setStep(s => s - 1)}
-              className="flex items-center justify-center gap-1 rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors"
+              className="flex items-center justify-center gap-1 rounded-sm px-4 py-2.5 text-sm font-medium transition-colors"
+              style={{ border: '1px solid var(--border)', color: 'var(--ink2)', background: 'var(--white)' }}
             >
               <ArrowLeft size={16} />
               Inapoi
@@ -279,7 +284,8 @@ export default function OnboardingPage() {
             <button
               type="button"
               onClick={() => setStep(s => s + 1)}
-              className="flex-1 flex items-center justify-center gap-1 rounded-lg bg-primary-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-primary-800 transition-colors"
+              className="flex-1 flex items-center justify-center gap-1 rounded-sm px-4 py-2.5 text-sm font-semibold transition-colors"
+              style={{ background: 'var(--ink)', color: 'var(--white)' }}
             >
               Continua
               <ArrowRight size={16} />
@@ -289,7 +295,8 @@ export default function OnboardingPage() {
               type="button"
               onClick={handleFinish}
               disabled={loading}
-              className="flex-1 flex items-center justify-center gap-1 rounded-lg bg-primary-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-primary-800 disabled:opacity-50 transition-colors"
+              className="flex-1 flex items-center justify-center gap-1 rounded-sm px-4 py-2.5 text-sm font-semibold disabled:opacity-50 transition-colors"
+              style={{ background: 'var(--ink)', color: 'var(--white)' }}
             >
               {loading ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
               {loading ? 'Se salveaza...' : 'Finalizeaza'}
@@ -301,7 +308,8 @@ export default function OnboardingPage() {
         <button
           type="button"
           onClick={handleFinish}
-          className="w-full text-center text-xs text-gray-400 hover:text-gray-600 transition-colors"
+          className="w-full text-center text-xs transition-colors"
+          style={{ color: 'var(--ink3)' }}
         >
           Completeaza mai tarziu
         </button>

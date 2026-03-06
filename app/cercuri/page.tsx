@@ -3,8 +3,10 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { BottomNav } from '@/components/BottomNav'
+import { AvatarSettingsButton } from '@/components/AvatarSettingsButton'
 import { getSupabase } from '@/lib/supabase'
-import { Loader2, MessageCircle, ChevronRight, Users, X, GraduationCap } from 'lucide-react'
+import { Loader2, MessageCircle, ChevronRight, Users, X, GraduationCap, Search } from 'lucide-react'
+import { Logo } from '@/components/Logo'
 import Link from 'next/link'
 import { VennCanvas } from '@/components/circles/VennCanvas'
 import { CircleSummary } from '@/components/circles/ModeToggle'
@@ -52,6 +54,13 @@ interface Classmate {
 
 function getInitials(name: string) {
   return name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()
+}
+
+function avatarColor(name: string): string {
+  const colors = ['#5B8E6D', '#7B6D9E', '#4A7B9A', '#C4634A', '#8E6B4A', '#4A8E6B', '#9E5A8A']
+  let hash = 0
+  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash)
+  return colors[Math.abs(hash) % colors.length]
 }
 
 export default function CercuriPage() {
@@ -148,25 +157,25 @@ export default function CercuriPage() {
     const sorted = [...activeFilters].sort()
     const key = sorted.join('+')
     const labels: Record<string, string> = {
-      'highschool+location': 'Colegi din oras',
+      'highschool+location': 'Colegi din oraș',
       'highschool+hobbies': 'Colegi cu hobby-uri comune',
       'hobbies+location': 'Vecini cu hobby-uri comune',
       'interests+location': 'Vecini cu interese comune',
       'hobbies+interests': 'Hobby-uri & interese comune',
       'highschool+hobbies+location': 'Cercul interior ✨',
-      'highschool+profession': 'Colegi in acelasi domeniu',
+      'highschool+profession': 'Colegi în același domeniu',
       'location+profession': 'Colegi locali',
       'background+location': 'Vecini cu background similar',
-      'background+profession': 'Aceeasi cariera',
-      'highschool+location+profession': 'Retea puternica ✨',
+      'background+profession': 'Aceeași carieră',
+      'highschool+location+profession': 'Rețea puternică ✨',
     }
     return labels[key] || `${activeFilters.length} cercuri combinate`
   }
 
   if (loading || !data) {
     return (
-      <main className="flex min-h-screen items-center justify-center" style={{ background: '#0D0F14' }}>
-        <Loader2 size={24} className="animate-spin" style={{ color: '#FF6B4A' }} />
+      <main className="flex min-h-screen items-center justify-center" style={{ background: 'var(--cream)' }}>
+        <Loader2 size={24} className="animate-spin" style={{ color: 'var(--ink3)' }} />
       </main>
     )
   }
@@ -174,54 +183,70 @@ export default function CercuriPage() {
   const intersectionLabel = getIntersectionLabel()
 
   return (
-    <main className="min-h-screen pb-24" style={{ background: '#0D0F14' }}>
-      <style>{`
-        @keyframes chipPulse {
-          0%, 100% { transform: scale(1); }
-          50% { transform: scale(1.04); }
-        }
-      `}</style>
-
-      <div className="max-w-sm mx-auto px-5 py-5 space-y-4">
-        {/* Header */}
-        <div className="flex items-start justify-between">
-          <div>
-            <h1 className="text-2xl font-bold" style={{ color: '#fff' }}>Cercurile mele</h1>
-            <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.35)' }}>
-              Descopera unde se suprapun lumile tale
-            </p>
+    <main className="min-h-screen pb-24" style={{ background: 'var(--cream)' }}>
+      {/* Sticky topbar */}
+      <header
+        className="sticky top-0 z-50 px-5 border-b"
+        style={{
+          background: 'var(--cream)',
+          borderColor: 'var(--border)',
+          paddingTop: '44px',
+          paddingBottom: '14px',
+        }}
+      >
+        <div className="max-w-sm mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Logo size={32} />
+            <span className="font-display text-xl" style={{ color: 'var(--ink)' }}>Descoperă conexiunile tale</span>
           </div>
-          <button
-            type="button"
-            onClick={() => setShowClassmates(prev => !prev)}
-            className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-all"
-            style={{
-              background: showClassmates ? 'rgba(255,107,74,0.15)' : 'rgba(255,255,255,0.05)',
-              border: `1.5px solid ${showClassmates ? 'rgba(255,107,74,0.4)' : 'rgba(255,255,255,0.08)'}`,
-              color: showClassmates ? '#FF6B4A' : 'rgba(255,255,255,0.45)',
-            }}
-          >
-            <GraduationCap size={14} />
-            Clasa
-          </button>
+          <div className="flex items-center gap-2">
+            <Link href="/cauta" className="p-1">
+              <Search size={18} strokeWidth={1.75} style={{ color: 'var(--ink3)' }} />
+            </Link>
+            <AvatarSettingsButton />
+          </div>
         </div>
+      </header>
+
+      <div className="max-w-sm mx-auto px-4 py-4 space-y-3">
+        {/* Clasa toggle */}
+        <button
+          type="button"
+          onClick={() => setShowClassmates(prev => !prev)}
+          className="flex items-center gap-1.5 rounded-sm px-3 py-1.5 text-[0.72rem] font-semibold transition-all"
+          style={showClassmates ? {
+            background: 'var(--amber-soft)',
+            border: '1.5px solid var(--amber)',
+            color: 'var(--amber-dark)',
+          } : {
+            background: 'var(--white)',
+            border: '1.5px solid var(--border)',
+            color: 'var(--ink2)',
+            boxShadow: 'var(--shadow-s)',
+          }}
+        >
+          <GraduationCap size={14} />
+          Clasa
+        </button>
 
         {/* Classmates section */}
         {showClassmates && (
-          <div className="space-y-3 rounded-xl px-4 py-3"
-            style={{ background: 'rgba(255,107,74,0.05)', border: '1px solid rgba(255,107,74,0.1)' }}
+          <div
+            className="rounded-lg p-3 border space-y-2"
+            style={{ background: 'var(--white)', borderColor: 'var(--border)', boxShadow: 'var(--shadow-s)' }}
           >
             {userClass && (
               <>
-                <p className="text-[10px] font-semibold uppercase tracking-wider flex items-center gap-1.5"
-                  style={{ color: 'rgba(255,255,255,0.3)', letterSpacing: '1.2px' }}
+                <p
+                  className="text-[0.62rem] font-bold uppercase tracking-widest flex items-center gap-1.5"
+                  style={{ color: 'var(--ink3)' }}
                 >
                   <Users size={12} />
-                  Clasa {userClass} &bull; {data?.user_info.graduation_year}
+                  Clasa {userClass} · {data?.user_info.graduation_year}
                 </p>
                 {classmates.length === 0 ? (
-                  <p className="text-xs italic py-2 text-center" style={{ color: 'rgba(255,255,255,0.25)' }}>
-                    Niciun coleg din clasa ta inca
+                  <p className="text-[0.78rem] italic py-2 text-center" style={{ color: 'var(--ink3)' }}>
+                    Niciun coleg din clasa ta încă
                   </p>
                 ) : (
                   <div className="space-y-1.5">
@@ -233,15 +258,16 @@ export default function CercuriPage() {
               </>
             )}
 
-            <p className="text-[10px] font-semibold uppercase tracking-wider flex items-center gap-1.5"
-              style={{ color: 'rgba(255,255,255,0.3)', letterSpacing: '1.2px' }}
+            <p
+              className="text-[0.62rem] font-bold uppercase tracking-widest flex items-center gap-1.5"
+              style={{ color: 'var(--ink3)' }}
             >
               <GraduationCap size={12} />
-              Promotia {data?.user_info.graduation_year}
+              Promoția {data?.user_info.graduation_year}
             </p>
             {yearmates.length === 0 ? (
-              <p className="text-xs italic py-2 text-center" style={{ color: 'rgba(255,255,255,0.25)' }}>
-                Niciun coleg din promotie inca
+              <p className="text-[0.78rem] italic py-2 text-center" style={{ color: 'var(--ink3)' }}>
+                Niciun coleg din promoție încă
               </p>
             ) : (
               <div className="space-y-1.5">
@@ -275,20 +301,22 @@ export default function CercuriPage() {
 
         {/* Intersection label */}
         {intersectionLabel && (
-          <div className="flex items-center gap-2 rounded-xl px-3 py-2.5"
-            style={{ background: 'rgba(255,215,0,0.08)', border: '1px solid rgba(255,215,0,0.15)' }}
+          <div
+            className="flex items-center gap-2 rounded-sm px-3 py-2.5"
+            style={{ background: 'var(--amber-soft)', border: '1px solid rgba(232,150,58,0.3)' }}
           >
-            <Users size={14} style={{ color: '#FFD700' }} />
-            <span className="text-xs font-semibold" style={{ color: '#FFD700' }}>{intersectionLabel}</span>
-            <span className="text-xs ml-auto" style={{ color: 'rgba(255,215,0,0.6)' }}>{people.length} persoane</span>
+            <Users size={14} style={{ color: 'var(--amber-dark)' }} />
+            <span className="text-[0.75rem] font-semibold" style={{ color: 'var(--amber-dark)' }}>{intersectionLabel}</span>
+            <span className="text-[0.72rem] ml-auto" style={{ color: 'var(--amber)' }}>{people.length} persoane</span>
           </div>
         )}
 
         {/* Content: circle cards or people list */}
         {activeFilters.length === 0 ? (
           <div className="space-y-2">
-            <p className="text-[10px] font-semibold uppercase tracking-wider"
-              style={{ color: 'rgba(255,255,255,0.2)', letterSpacing: '1.2px' }}
+            <p
+              className="text-[0.64rem] font-bold uppercase tracking-widest"
+              style={{ color: 'var(--ink3)' }}
             >
               Cercurile tale
             </p>
@@ -300,26 +328,28 @@ export default function CercuriPage() {
                   key={key}
                   type="button"
                   onClick={() => toggleFilter(key)}
-                  className="w-full flex items-center gap-3 rounded-xl px-4 py-3 text-left transition-colors"
+                  className="w-full flex items-center gap-3 rounded-lg px-4 py-3 text-left transition-colors"
                   style={{
-                    background: 'rgba(255,255,255,0.02)',
-                    border: '1px solid rgba(255,255,255,0.05)',
+                    background: 'var(--white)',
+                    border: '1px solid var(--border)',
+                    boxShadow: 'var(--shadow-s)',
                   }}
                 >
-                  <div className="flex items-center justify-center w-10 h-10 rounded-lg"
-                    style={{ background: `${cfg.color}18` }}
+                  <div
+                    className="flex items-center justify-center w-10 h-10 rounded-sm"
+                    style={{ background: 'var(--cream2)' }}
                   >
                     <span className="text-lg">{cfg.emoji}</span>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold" style={{ color: '#fff' }}>{cfg.label}</p>
-                    <p className="text-xs truncate" style={{ color: 'rgba(255,255,255,0.35)' }}>
+                    <p className="text-[0.82rem] font-bold" style={{ color: 'var(--ink)' }}>{cfg.label}</p>
+                    <p className="text-[0.68rem] truncate" style={{ color: 'var(--ink2)' }}>
                       {cfg.getDescription(data.user_info)}
                     </p>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <span className="text-sm font-bold" style={{ color: 'rgba(255,255,255,0.7)' }}>{count}</span>
-                    <ChevronRight size={16} style={{ color: 'rgba(255,255,255,0.15)' }} />
+                    <span className="text-[0.82rem] font-bold" style={{ color: 'var(--ink2)' }}>{count}</span>
+                    <ChevronRight size={16} style={{ color: 'var(--ink3)' }} />
                   </div>
                 </button>
               )
@@ -328,8 +358,9 @@ export default function CercuriPage() {
             {/* Intersection preview cards */}
             {ALL_DOTS.filter(d => (intersectionCounts[d.key] || 0) > 0).length > 0 && (
               <>
-                <p className="text-[10px] font-semibold uppercase tracking-wider pt-2"
-                  style={{ color: 'rgba(255,255,255,0.2)', letterSpacing: '1.2px' }}
+                <p
+                  className="text-[0.64rem] font-bold uppercase tracking-widest pt-2"
+                  style={{ color: 'var(--ink3)' }}
                 >
                   Suprapuneri
                 </p>
@@ -341,30 +372,32 @@ export default function CercuriPage() {
                       key={dot.key}
                       type="button"
                       onClick={() => setActiveFilters(dot.circles as CircleKey[])}
-                      className="w-full flex items-center gap-3 rounded-xl px-4 py-3 text-left transition-colors"
+                      className="w-full flex items-center gap-3 rounded-lg px-4 py-3 text-left transition-colors"
                       style={{
-                        background: 'rgba(255,255,255,0.02)',
-                        border: '1px solid rgba(255,255,255,0.05)',
+                        background: 'var(--white)',
+                        border: '1px solid var(--border)',
+                        boxShadow: 'var(--shadow-s)',
                       }}
                     >
-                      <div className="flex items-center justify-center w-10 h-10 rounded-lg"
-                        style={{ background: `${dot.color}18` }}
+                      <div
+                        className="flex items-center justify-center w-10 h-10 rounded-sm"
+                        style={{ background: 'var(--amber-soft)' }}
                       >
                         <span className="text-lg">{is3Plus ? '✨' : '🔗'}</span>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold" style={{ color: '#fff' }}>{dot.label}</p>
+                        <p className="text-[0.82rem] font-bold" style={{ color: 'var(--ink)' }}>{dot.label}</p>
                         <div className="flex items-center gap-1 mt-0.5">
-                          <span className="text-xs" style={{ color: 'rgba(255,255,255,0.35)' }}>
+                          <span className="text-[0.68rem]" style={{ color: 'var(--ink2)' }}>
                             {count} persoane
                           </span>
-                          <span className="text-xs" style={{ color: 'rgba(255,255,255,0.2)' }}>·</span>
+                          <span className="text-[0.68rem]" style={{ color: 'var(--border)' }}>·</span>
                           {dot.circles.map(c => (
-                            <span key={c} className="text-xs">{CIRCLE_CONFIG[c as CircleKey].emoji}</span>
+                            <span key={c} className="text-[0.68rem]">{CIRCLE_CONFIG[c as CircleKey].emoji}</span>
                           ))}
                         </div>
                       </div>
-                      <ChevronRight size={16} style={{ color: 'rgba(255,255,255,0.15)' }} />
+                      <ChevronRight size={16} style={{ color: 'var(--ink3)' }} />
                     </button>
                   )
                 })}
@@ -373,29 +406,30 @@ export default function CercuriPage() {
           </div>
         ) : loadingPeople ? (
           <div className="flex justify-center py-12">
-            <Loader2 size={20} className="animate-spin" style={{ color: '#FF6B4A' }} />
+            <Loader2 size={20} className="animate-spin" style={{ color: 'var(--ink3)' }} />
           </div>
         ) : people.length === 0 ? (
           <div className="text-center py-12">
-            <Users size={32} strokeWidth={1} className="mx-auto mb-2" style={{ color: 'rgba(255,255,255,0.15)' }} />
-            <p className="text-sm" style={{ color: 'rgba(255,255,255,0.35)' }}>Nicio persoana gasita</p>
-            <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.2)' }}>Incearca alte cercuri</p>
+            <Users size={32} strokeWidth={1} className="mx-auto mb-2" style={{ color: 'var(--ink3)' }} />
+            <p className="text-[0.82rem]" style={{ color: 'var(--ink3)' }}>Nicio persoană găsită</p>
+            <p className="text-[0.72rem] mt-1" style={{ color: 'var(--ink3)' }}>Încearcă alte cercuri</p>
           </div>
         ) : (
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <p className="text-[10px] font-semibold uppercase tracking-wider"
-                style={{ color: 'rgba(255,255,255,0.2)', letterSpacing: '1.2px' }}
+              <p
+                className="text-[0.64rem] font-bold uppercase tracking-widest"
+                style={{ color: 'var(--ink3)' }}
               >
                 {activeFilters.length >= 2 ? 'Suprapunere' : CIRCLE_CONFIG[activeFilters[0]].label}
               </p>
               <button
                 type="button"
                 onClick={() => setActiveFilters([])}
-                className="flex items-center gap-1 text-xs transition-colors"
-                style={{ color: 'rgba(255,255,255,0.3)' }}
+                className="flex items-center gap-1 text-[0.72rem] transition-colors"
+                style={{ color: 'var(--ink3)' }}
               >
-                <X size={12} /> Sterge filtrele
+                <X size={12} /> Șterge filtrele
               </button>
             </div>
             {people.map(person => (
@@ -430,9 +464,7 @@ function PersonTags({ person, activeFilters }: { person: Person; activeFilters: 
 
   if (showLocation) {
     const s = tagStyle('location')
-    const loc = person.county
-      ? `${person.city}, ${person.county}`
-      : person.city
+    const loc = person.county ? `${person.city}, ${person.county}` : person.city
     if (loc) tags.push({ label: loc, ...s })
   }
   if (showHobbies) {
@@ -456,7 +488,7 @@ function PersonTags({ person, activeFilters }: { person: Person; activeFilters: 
   if (tags.length === 0 && !showDefault && person.company) {
     return (
       <div className="mt-1">
-        <span className="text-[10px]" style={{ color: 'rgba(255,255,255,0.4)' }}>{person.company}</span>
+        <span className="text-[0.68rem]" style={{ color: 'var(--ink2)' }}>{person.company}</span>
       </div>
     )
   }
@@ -466,10 +498,12 @@ function PersonTags({ person, activeFilters }: { person: Person; activeFilters: 
   return (
     <div className="mt-1 flex flex-wrap gap-1">
       {person.company && showDefault && (
-        <span className="text-[10px]" style={{ color: 'rgba(255,255,255,0.4)' }}>{person.company}</span>
+        <span className="text-[0.68rem]" style={{ color: 'var(--ink2)' }}>{person.company}</span>
       )}
       {tags.map(t => (
-        <span key={t.label} className="inline-flex rounded px-1.5 py-0.5 text-[10px] font-medium"
+        <span
+          key={t.label}
+          className="inline-flex rounded px-1.5 py-0.5 text-[0.62rem] font-medium"
           style={{ background: t.bg, color: t.color }}
         >
           {t.label}
@@ -521,26 +555,27 @@ function PersonCard({ person, currentUserId, activeFilters }: { person: Person; 
     router.push(`/mesaje/${newId}`)
   }
 
+  const bg = avatarColor(person.name)
+
   return (
-    <div className="flex items-center gap-3 rounded-xl transition-colors"
-      style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)' }}
+    <div
+      className="flex items-center gap-0 rounded-lg overflow-hidden"
+      style={{ background: 'var(--white)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-s)' }}
     >
       <Link href={`/cercuri/${person.id}`} className="flex-1 min-w-0 px-4 py-3">
         <div className="flex items-start gap-3">
-          <div className="w-10 h-10 rounded-full overflow-hidden shrink-0">
-            {person.avatar_url ? (
-              <img src={person.avatar_url} alt={person.name} className="w-full h-full object-cover" />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center"
-                style={{ background: 'rgba(255,107,74,0.15)' }}
-              >
-                <span className="text-xs font-bold" style={{ color: '#FF6B4A' }}>{getInitials(person.name)}</span>
-              </div>
-            )}
+          <div
+            className="w-[46px] h-[46px] rounded-md flex items-center justify-center text-white text-[0.82rem] font-bold flex-shrink-0"
+            style={{ background: person.avatar_url ? 'transparent' : bg }}
+          >
+            {person.avatar_url
+              ? <img src={person.avatar_url} alt={person.name} className="w-full h-full object-cover rounded-md" />
+              : getInitials(person.name)
+            }
           </div>
           <div className="min-w-0">
-            <p className="text-sm font-semibold" style={{ color: '#fff' }}>{person.name}</p>
-            <p className="text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>@{person.username}</p>
+            <p className="text-[0.82rem] font-bold" style={{ color: 'var(--ink)' }}>{person.name}</p>
+            <p className="text-[0.66rem]" style={{ color: 'var(--ink2)' }}>@{person.username}</p>
             <PersonTags person={person} activeFilters={activeFilters} />
           </div>
         </div>
@@ -549,12 +584,12 @@ function PersonCard({ person, currentUserId, activeFilters }: { person: Person; 
         type="button"
         onClick={handleMessage}
         disabled={startingChat}
-        className="flex-shrink-0 mr-3 rounded-full p-2.5 transition-colors disabled:opacity-50"
-        style={{ color: 'rgba(255,255,255,0.5)' }}
+        className="flex-shrink-0 mr-3 rounded-sm px-3 py-2 transition-opacity disabled:opacity-50"
+        style={{ background: 'var(--ink)', color: 'var(--white)' }}
       >
         {startingChat
-          ? <Loader2 size={18} strokeWidth={2.5} className="animate-spin" />
-          : <MessageCircle size={18} strokeWidth={2.5} />
+          ? <Loader2 size={15} className="animate-spin" />
+          : <MessageCircle size={15} />
         }
       </button>
     </div>
@@ -604,31 +639,33 @@ function ClassmateRow({ person, currentUserId }: { person: Classmate; currentUse
   }
 
   return (
-    <div className="flex items-center gap-3 rounded-lg px-3 py-2"
-      style={{ background: 'rgba(255,255,255,0.03)' }}
-    >
+    <div className="flex items-center gap-3 rounded-sm px-3 py-2" style={{ background: 'var(--cream2)' }}>
       <Link href={`/cercuri/${person.id}`} className="flex-1 min-w-0">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm font-semibold" style={{ color: '#fff' }}>{person.name}</p>
-            <p className="text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>@{person.username}</p>
+            <p className="text-[0.82rem] font-bold" style={{ color: 'var(--ink)' }}>{person.name}</p>
+            <p className="text-[0.68rem]" style={{ color: 'var(--ink2)' }}>@{person.username}</p>
           </div>
-          <span className="text-xs font-bold" style={{ color: 'rgba(255,255,255,0.4)' }}>
+          <span className="text-[0.72rem] font-bold" style={{ color: 'var(--ink2)' }}>
             {person.graduation_year}{person.class || ''}
           </span>
         </div>
         {(person.profession?.length > 0 || person.domain?.length > 0) && (
           <div className="mt-1 flex flex-wrap gap-1">
             {person.profession?.slice(0, 2).map(p => (
-              <span key={p} className="inline-flex rounded px-1.5 py-0.5 text-[10px] font-medium"
-                style={{ background: 'rgba(123,97,255,0.12)', color: '#7B61FF' }}
+              <span
+                key={p}
+                className="inline-flex rounded px-1.5 py-0.5 text-[0.62rem] font-medium"
+                style={{ background: 'var(--teal-soft)', color: 'var(--teal)' }}
               >
                 {p}
               </span>
             ))}
             {person.domain?.slice(0, 2).map(d => (
-              <span key={d} className="inline-flex rounded px-1.5 py-0.5 text-[10px] font-medium"
-                style={{ background: 'rgba(74,156,255,0.12)', color: '#4A9CFF' }}
+              <span
+                key={d}
+                className="inline-flex rounded px-1.5 py-0.5 text-[0.62rem] font-medium"
+                style={{ background: 'var(--amber-soft)', color: 'var(--amber-dark)' }}
               >
                 {d}
               </span>
@@ -641,11 +678,11 @@ function ClassmateRow({ person, currentUserId }: { person: Classmate; currentUse
         onClick={handleMessage}
         disabled={startingChat}
         className="flex-shrink-0 rounded-full p-2 transition-colors disabled:opacity-50"
-        style={{ color: 'rgba(255,255,255,0.4)' }}
+        style={{ color: 'var(--ink3)' }}
       >
         {startingChat
-          ? <Loader2 size={16} strokeWidth={2.5} className="animate-spin" />
-          : <MessageCircle size={16} strokeWidth={2.5} />
+          ? <Loader2 size={16} className="animate-spin" />
+          : <MessageCircle size={16} />
         }
       </button>
     </div>

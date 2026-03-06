@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import './globals.css'
+import { SkinProvider } from '@/components/SkinProvider'
+import { FeedbackButton } from '@/components/FeedbackButton'
 
 export const metadata: Metadata = {
   title: 'Unirea',
@@ -20,7 +22,10 @@ export default function RootLayout({
   return (
     <html lang="ro">
       <body className="min-h-screen">
-        {children}
+        <SkinProvider>
+          {children}
+          <FeedbackButton />
+        </SkinProvider>
       </body>
     </html>
   )

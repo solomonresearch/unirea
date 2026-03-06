@@ -3,9 +3,10 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { getSupabase } from '@/lib/supabase'
-import { Camera, Heart, MessageCircle, Share2, X, Plus, Image as ImageIcon, Loader2, Trash2 } from 'lucide-react'
+import { Camera, Heart, MessageCircle, Share2, X, Image as ImageIcon, Loader2, Trash2 } from 'lucide-react'
 import { Logo } from '@/components/Logo'
 import { BottomNav } from '@/components/BottomNav'
+import { AvatarSettingsButton } from '@/components/AvatarSettingsButton'
 
 type Scope = 'liceu' | 'promotie' | 'clasa'
 
@@ -102,9 +103,24 @@ export default function CaruselPage() {
       setUserId(user.id)
       await fetchPosts('promotie')
       setLoading(false)
+      if (typeof window !== 'undefined') {
+        const params = new URLSearchParams(window.location.search)
+        if (params.get('open') === 'upload') {
+          setShowUpload(true)
+          window.history.replaceState({}, '', '/carusel')
+        }
+      }
     }
     init()
   }, [router, fetchPosts])
+
+  useEffect(() => {
+    function handler(e: Event) {
+      if ((e as CustomEvent).detail?.action === 'upload') setShowUpload(true)
+    }
+    window.addEventListener('unirea:fab-action', handler)
+    return () => window.removeEventListener('unirea:fab-action', handler)
+  }, [])
 
   async function handleScopeChange(newScope: Scope) {
     setScope(newScope)
@@ -183,15 +199,15 @@ export default function CaruselPage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+      <div className="flex min-h-screen items-center justify-center" style={{ background: 'var(--cream2)' }}>
+        <Loader2 className="h-6 w-6 animate-spin" style={{ color: 'var(--ink3)' }} />
       </div>
     )
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center px-6 py-6 pb-24">
-      <div className="w-full max-w-sm space-y-4">
+    <div className="flex min-h-screen flex-col items-center px-6 py-6 pb-24" style={{ background: 'var(--cream2)' }}>
+      <div className="w-full max-w-sm space-y-3">
         {/* Hidden file input */}
         <input
           ref={fileInputRef}
@@ -204,17 +220,10 @@ export default function CaruselPage() {
         {/* Header */}
         <div className="flex items-center gap-2">
           <Logo size={32} />
-          <div>
-            <h1 className="text-lg font-bold text-gray-900">Carusel</h1>
-            <p className="text-xs text-gray-400">Amintiri din liceu</p>
+          <span className="font-display text-xl" style={{ color: 'var(--ink)' }}>Amintiri din liceu</span>
+          <div className="ml-auto flex items-center gap-2">
+            <AvatarSettingsButton />
           </div>
-          <button
-            onClick={() => setShowUpload(true)}
-            className="ml-auto flex items-center gap-1.5 rounded-lg bg-gray-900 px-3 py-2 text-xs font-semibold text-white hover:bg-gray-700 transition-colors"
-          >
-            <Plus size={14} />
-            Adauga
-          </button>
         </div>
 
         {/* Scope filter toggles */}
@@ -223,11 +232,11 @@ export default function CaruselPage() {
             <button
               key={s}
               onClick={() => handleScopeChange(s)}
-              className={`flex-1 rounded-lg py-2 text-xs font-semibold transition-colors ${
-                scope === s
-                  ? 'bg-gray-900 text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
+              className="flex-1 rounded-sm py-2 text-xs font-semibold transition-colors"
+              style={scope === s
+                ? { background: 'var(--ink)', color: 'var(--white)' }
+                : { background: 'var(--cream)', color: 'var(--ink2)', border: '1px solid var(--border)' }
+              }
             >
               {SCOPE_LABELS[s]}
             </button>
@@ -237,7 +246,7 @@ export default function CaruselPage() {
         {/* Polaroid Carousel */}
         {posts.length > 0 && (
           <section>
-            <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+            <h2 className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: 'var(--ink3)' }}>
               Amintiri recente
             </h2>
             <div className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide -mx-6 px-6">
@@ -245,8 +254,8 @@ export default function CaruselPage() {
                 <button
                   key={photo.id}
                   onClick={() => router.push(`/carusel/${photo.id}`)}
-                  className="snap-center flex-shrink-0 w-44 bg-white rounded-sm p-2 pb-8 shadow-md border border-gray-100 transition-transform hover:scale-105"
-                  style={{ transform: `rotate(${getRotation(photo.id)}deg)` }}
+                  className="snap-center flex-shrink-0 w-44 rounded-sm p-2 pb-8 transition-transform hover:scale-105"
+                  style={{ background: 'var(--white)', boxShadow: 'var(--shadow-m)', border: '1px solid var(--border)', transform: `rotate(${getRotation(photo.id)}deg)` }}
                 >
                   <div className="aspect-square w-full overflow-hidden">
                     <img
@@ -255,10 +264,10 @@ export default function CaruselPage() {
                       className="h-full w-full object-cover sepia-[.3]"
                     />
                   </div>
-                  <p className="mt-2 text-[10px] text-gray-600 truncate text-left">
+                  <p className="mt-2 text-[10px] truncate text-left" style={{ color: 'var(--ink2)' }}>
                     {photo.caption || 'Fara descriere'}
                   </p>
-                  <p className="text-[9px] text-gray-400 mt-0.5 text-left">{relativeTime(photo.created_at)}</p>
+                  <p className="text-[9px] mt-0.5 text-left" style={{ color: 'var(--ink3)' }}>{relativeTime(photo.created_at)}</p>
                 </button>
               ))}
             </div>
@@ -268,14 +277,15 @@ export default function CaruselPage() {
         {/* Activity Feed */}
         {posts.length > 0 ? (
           <section>
-            <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+            <h2 className="text-xs font-semibold uppercase tracking-wider mb-3" style={{ color: 'var(--ink3)' }}>
               Activitate
             </h2>
-            <div className="space-y-3">
+            <div className="space-y-2">
               {posts.map(photo => (
                 <div
                   key={photo.id}
-                  className="flex gap-3 rounded-lg border border-gray-200 bg-white p-3"
+                  className="flex gap-3 rounded-lg p-2.5"
+                  style={{ background: 'var(--white)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-s)' }}
                 >
                   <button
                     onClick={() => router.push(`/carusel/${photo.id}`)}
@@ -289,13 +299,13 @@ export default function CaruselPage() {
                   </button>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary-100 text-[8px] font-bold text-primary-700">
+                      <div className="flex h-5 w-5 items-center justify-center rounded-full text-[8px] font-bold" style={{ background: 'var(--amber-soft)', color: 'var(--amber-dark)' }}>
                         {getInitials(photo.profiles.name)}
                       </div>
-                      <span className="text-xs font-medium text-gray-900">{photo.profiles.name}</span>
-                      <span className="text-[10px] text-gray-400 ml-auto">{relativeTime(photo.created_at)}</span>
+                      <span className="text-xs font-medium" style={{ color: 'var(--ink)' }}>{photo.profiles.name}</span>
+                      <span className="text-[10px] ml-auto" style={{ color: 'var(--ink3)' }}>{relativeTime(photo.created_at)}</span>
                     </div>
-                    <p className="mt-1 text-xs text-gray-600 line-clamp-2">{photo.caption || 'Fara descriere'}</p>
+                    <p className="mt-1 text-xs line-clamp-2" style={{ color: 'var(--ink2)' }}>{photo.caption || 'Fara descriere'}</p>
                     <div className="mt-2 flex items-center gap-4">
                       <button
                         onClick={() => toggleLike(photo.id)}
@@ -303,15 +313,17 @@ export default function CaruselPage() {
                       >
                         <Heart
                           size={13}
-                          className={photo.liked ? 'fill-red-500 text-red-500' : 'text-gray-400'}
+                          className={photo.liked ? 'fill-red-500 text-red-500' : ''}
+                          style={!photo.liked ? { color: 'var(--ink3)' } : undefined}
                         />
-                        <span className={photo.liked ? 'text-red-500' : 'text-gray-400'}>
+                        <span style={{ color: photo.liked ? undefined : 'var(--ink3)' }} className={photo.liked ? 'text-red-500' : ''}>
                           {photo.likes}
                         </span>
                       </button>
                       <button
                         onClick={() => router.push(`/carusel/${photo.id}`)}
-                        className="flex items-center gap-1 text-[11px] text-gray-400"
+                        className="flex items-center gap-1 text-[11px]"
+                        style={{ color: 'var(--ink3)' }}
                       >
                         <MessageCircle size={13} />
                         <span>{photo.comments.length}</span>
@@ -319,14 +331,16 @@ export default function CaruselPage() {
                       {photo.user_id === userId && (
                         <button
                           onClick={() => deletePost(photo.id)}
-                          className="flex items-center gap-1 text-[11px] text-gray-400 hover:text-red-500 transition-colors"
+                          className="flex items-center gap-1 text-[11px] hover:text-red-500 transition-colors"
+                          style={{ color: 'var(--ink3)' }}
                         >
                           <Trash2 size={13} />
                         </button>
                       )}
                       <button
                         onClick={e => { e.stopPropagation(); navigator.share?.({ title: photo.caption || 'Amintire', url: `${window.location.origin}/carusel/${photo.id}` }).catch(() => {}) }}
-                        className="flex items-center gap-1 text-[11px] text-gray-400 ml-auto"
+                        className="flex items-center gap-1 text-[11px] ml-auto"
+                        style={{ color: 'var(--ink3)' }}
                       >
                         <Share2 size={13} />
                       </button>
@@ -337,37 +351,23 @@ export default function CaruselPage() {
             </div>
           </section>
         ) : (
-          <div className="text-center py-8 text-gray-400 text-sm">
+          <div className="text-center py-8 text-sm" style={{ color: 'var(--ink3)' }}>
             Inca nu exista amintiri. Fii primul care distribuie o fotografie!
           </div>
         )}
 
-        {/* Add memory prompt */}
-        <button
-          onClick={() => setShowUpload(true)}
-          className="w-full rounded-xl border-2 border-dashed border-gray-200 bg-gray-50 p-6 flex flex-col items-center gap-3 hover:border-primary-300 hover:bg-primary-50/30 transition-colors"
-        >
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary-100">
-            <Camera size={24} className="text-primary-700" />
-          </div>
-          <div className="text-center">
-            <p className="text-sm font-medium text-gray-900">Distribuie o amintire</p>
-            <p className="text-xs text-gray-400 mt-1">
-              Incarca o fotografie din anii de liceu
-            </p>
-          </div>
-        </button>
       </div>
 
       {/* Upload Modal */}
       {showUpload && (
         <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-6">
-          <div className="w-full max-w-sm rounded-xl border border-gray-200 bg-white p-6">
+          <div className="w-full max-w-sm rounded-xl p-6" style={{ background: 'var(--white)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-m)' }}>
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-bold text-gray-900">Amintire noua</h2>
+              <h2 className="font-display text-xl" style={{ color: 'var(--ink)' }}>Amintire noua</h2>
               <button
                 onClick={clearUpload}
-                className="p-1 text-gray-400 hover:text-gray-600"
+                className="p-1"
+                style={{ color: 'var(--ink3)' }}
               >
                 <X size={20} />
               </button>
@@ -391,11 +391,12 @@ export default function CaruselPage() {
             ) : (
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="w-full aspect-[4/3] rounded-xl border-2 border-dashed border-gray-200 bg-gray-50 flex flex-col items-center justify-center gap-3 hover:border-primary-300 hover:bg-primary-50/30 transition-colors"
+                className="w-full aspect-[4/3] rounded-xl flex flex-col items-center justify-center gap-3 transition-colors"
+                style={{ border: '2px dashed var(--border)', background: 'var(--cream2)' }}
               >
-                <ImageIcon size={32} className="text-gray-400" />
-                <p className="text-sm text-gray-500">Alege o fotografie</p>
-                <p className="text-[11px] text-gray-400">JPEG, PNG sau WebP (max 4MB)</p>
+                <ImageIcon size={32} style={{ color: 'var(--ink3)' }} />
+                <p className="text-sm" style={{ color: 'var(--ink2)' }}>Alege o fotografie</p>
+                <p className="text-[11px]" style={{ color: 'var(--ink3)' }}>JPEG, PNG sau WebP (max 4MB)</p>
               </button>
             )}
 
@@ -406,24 +407,25 @@ export default function CaruselPage() {
                 placeholder="Povesteste despre aceasta amintire..."
                 rows={3}
                 maxLength={500}
-                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 resize-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none"
+                className="w-full rounded-lg px-3 py-2.5 text-sm resize-none outline-none"
+                style={{ border: '1px solid var(--border)', background: 'var(--white)', color: 'var(--ink)' }}
               />
-              <p className="text-right text-[10px] text-gray-400 mt-1">{uploadCaption.length}/500</p>
+              <p className="text-right text-[10px] mt-1" style={{ color: 'var(--ink3)' }}>{uploadCaption.length}/500</p>
             </div>
 
             {/* Scope selector */}
             <div className="mt-3">
-              <p className="text-xs font-medium text-gray-600 mb-2">Cine poate vedea?</p>
+              <p className="text-xs font-medium mb-2" style={{ color: 'var(--ink2)' }}>Cine poate vedea?</p>
               <div className="flex gap-2">
                 {(['liceu', 'promotie', 'clasa'] as Scope[]).map(s => (
                   <button
                     key={s}
                     onClick={() => setUploadScope(s)}
-                    className={`flex-1 rounded-lg py-2 text-xs font-semibold transition-colors ${
-                      uploadScope === s
-                        ? 'bg-gray-900 text-white'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                    }`}
+                    className="flex-1 rounded-sm py-2 text-xs font-semibold transition-colors"
+                    style={uploadScope === s
+                      ? { background: 'var(--ink)', color: 'var(--white)' }
+                      : { background: 'var(--cream2)', color: 'var(--ink2)', border: '1px solid var(--border)' }
+                    }
                   >
                     {SCOPE_LABELS[s]}
                   </button>
@@ -438,7 +440,8 @@ export default function CaruselPage() {
             <button
               onClick={handleUpload}
               disabled={!uploadFile || uploading}
-              className="mt-4 w-full rounded-lg bg-gray-900 py-2.5 text-sm font-semibold text-white hover:bg-gray-700 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
+              className="mt-4 w-full rounded-sm py-2.5 text-sm font-semibold disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
+              style={{ background: 'var(--ink)', color: 'var(--white)' }}
             >
               {uploading && <Loader2 size={16} className="animate-spin" />}
               {uploading ? 'Se incarca...' : 'Distribuie amintirea'}

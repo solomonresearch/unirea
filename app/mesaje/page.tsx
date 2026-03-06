@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Logo } from '@/components/Logo'
 import { BottomNav } from '@/components/BottomNav'
+import { AvatarSettingsButton } from '@/components/AvatarSettingsButton'
 import { getSupabase } from '@/lib/supabase'
 import { Loader2, MessageCircle, Plus, Search, X, Users } from 'lucide-react'
 
@@ -343,21 +344,22 @@ export default function MesajePage() {
 
   if (loading) {
     return (
-      <main className="flex min-h-screen items-center justify-center">
-        <Loader2 size={24} className="animate-spin text-primary-700" />
+      <main className="flex min-h-screen items-center justify-center" style={{ background: 'var(--cream2)' }}>
+        <Loader2 size={24} className="animate-spin" style={{ color: 'var(--ink3)' }} />
       </main>
     )
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center px-6 py-6 pb-24">
-      <div className="w-full max-w-sm space-y-4">
+    <main className="flex min-h-screen flex-col items-center px-6 py-6 pb-24" style={{ background: 'var(--cream2)' }}>
+      <div className="w-full max-w-sm space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Logo size={28} />
-            <span className="text-sm font-bold text-gray-900">Mesaje</span>
+            <Logo size={32} />
+            <span className="font-display text-xl" style={{ color: 'var(--ink)' }}>Mesajele tale</span>
           </div>
-          <div className="relative">
+          <div className="flex items-center gap-1">
+            <div className="relative">
             <button
               type="button"
               onClick={() => {
@@ -367,18 +369,20 @@ export default function MesajePage() {
                   setShowMenu(!showMenu)
                 }
               }}
-              className="rounded-full p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+              className="rounded-full p-2 transition-colors"
+              style={{ color: 'var(--ink3)' }}
             >
               {showSearch || showGroupCreate ? <X size={20} /> : <Plus size={20} />}
             </button>
             {showMenu && (
               <>
                 <div className="fixed inset-0 z-10" onClick={() => setShowMenu(false)} />
-                <div className="absolute right-0 top-full mt-1 z-20 bg-white rounded-xl border border-gray-200 shadow-lg py-1 w-44">
+                <div className="absolute right-0 top-full mt-1 z-20 rounded-xl py-1 w-44" style={{ background: 'var(--white)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-m)' }}>
                   <button
                     type="button"
                     onClick={() => { setShowMenu(false); setShowSearch(true) }}
-                    className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 text-left"
+                    className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-left transition-colors"
+                    style={{ color: 'var(--ink2)' }}
                   >
                     <MessageCircle size={16} />
                     Mesaj nou
@@ -386,7 +390,8 @@ export default function MesajePage() {
                   <button
                     type="button"
                     onClick={() => { setShowMenu(false); setShowGroupCreate(true) }}
-                    className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 text-left"
+                    className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-left transition-colors"
+                    style={{ color: 'var(--ink2)' }}
                   >
                     <Users size={16} />
                     Grup nou
@@ -394,6 +399,8 @@ export default function MesajePage() {
                 </div>
               </>
             )}
+            </div>
+            <AvatarSettingsButton />
           </div>
         </div>
 
@@ -401,23 +408,24 @@ export default function MesajePage() {
         {showSearch && (
           <div className="space-y-2">
             <div className="relative">
-              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'var(--ink3)' }} />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 placeholder="Cauta un coleg..."
                 autoFocus
-                className="w-full rounded-xl border border-gray-200 bg-gray-50 pl-9 pr-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-primary-300 focus:ring-1 focus:ring-primary-300 outline-none"
+                className="w-full rounded-xl pl-9 pr-4 py-2.5 text-sm outline-none"
+                style={{ border: '1px solid var(--border)', background: 'var(--cream2)', color: 'var(--ink)' }}
               />
             </div>
             {searching && (
               <div className="flex justify-center py-4">
-                <Loader2 size={16} className="animate-spin text-gray-400" />
+                <Loader2 size={16} className="animate-spin" style={{ color: 'var(--ink3)' }} />
               </div>
             )}
             {!searching && searchQuery.trim() && searchResults.length === 0 && (
-              <p className="text-center text-xs text-gray-400 py-4">Niciun rezultat</p>
+              <p className="text-center text-xs py-4" style={{ color: 'var(--ink3)' }}>Niciun rezultat</p>
             )}
             {searchResults.length > 0 && (
               <div className="space-y-1">
@@ -427,22 +435,23 @@ export default function MesajePage() {
                     type="button"
                     onClick={() => handleStartChat(user.id)}
                     disabled={startingChat === user.id}
-                    className="flex items-center gap-3 w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 hover:border-primary-200 transition-colors text-left disabled:opacity-50"
+                    className="flex items-center gap-3 w-full rounded-xl px-4 py-2.5 transition-colors text-left disabled:opacity-50"
+                    style={{ background: 'var(--white)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-s)' }}
                   >
                     <div className="w-9 h-9 rounded-full overflow-hidden flex-shrink-0">
                       {user.avatar_url ? (
                         <img src={user.avatar_url} alt={user.name} className="w-full h-full object-cover" />
                       ) : (
-                        <div className="w-full h-full bg-primary-100 flex items-center justify-center">
-                          <span className="text-xs font-bold text-primary-700">{getInitials(user.name)}</span>
+                        <div className="w-full h-full flex items-center justify-center" style={{ background: 'var(--amber-soft)' }}>
+                          <span className="text-xs font-bold" style={{ color: 'var(--amber-dark)' }}>{getInitials(user.name)}</span>
                         </div>
                       )}
                     </div>
                     <div className="min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate">{user.name}</p>
-                      <p className="text-xs text-gray-400">@{user.username}</p>
+                      <p className="text-sm font-medium truncate" style={{ color: 'var(--ink)' }}>{user.name}</p>
+                      <p className="text-xs" style={{ color: 'var(--ink3)' }}>@{user.username}</p>
                     </div>
-                    {startingChat === user.id && <Loader2 size={14} className="animate-spin text-gray-400 ml-auto" />}
+                    {startingChat === user.id && <Loader2 size={14} className="animate-spin ml-auto" style={{ color: 'var(--ink3)' }} />}
                   </button>
                 ))}
               </div>
@@ -460,7 +469,8 @@ export default function MesajePage() {
               placeholder="Numele grupului..."
               maxLength={100}
               autoFocus
-              className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-primary-300 focus:ring-1 focus:ring-primary-300 outline-none"
+              className="w-full rounded-xl px-4 py-2.5 text-sm outline-none"
+              style={{ border: '1px solid var(--border)', background: 'var(--cream2)', color: 'var(--ink)' }}
             />
 
             {selectedMembers.length > 0 && (
@@ -468,7 +478,8 @@ export default function MesajePage() {
                 {selectedMembers.map(member => (
                   <span
                     key={member.id}
-                    className="inline-flex items-center gap-1 rounded-full bg-primary-50 border border-primary-200 px-2.5 py-1 text-xs text-primary-700"
+                    className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs"
+                    style={{ background: 'var(--amber-soft)', border: '1px solid var(--border)', color: 'var(--amber-dark)' }}
                   >
                     {member.name.split(' ')[0]}
                     <button type="button" onClick={() => setSelectedMembers(prev => prev.filter(m => m.id !== member.id))}>
@@ -480,19 +491,20 @@ export default function MesajePage() {
             )}
 
             <div className="relative">
-              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'var(--ink3)' }} />
               <input
                 type="text"
                 value={groupMemberQuery}
                 onChange={e => setGroupMemberQuery(e.target.value)}
                 placeholder="Adauga membri..."
-                className="w-full rounded-xl border border-gray-200 bg-gray-50 pl-9 pr-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-primary-300 focus:ring-1 focus:ring-primary-300 outline-none"
+                className="w-full rounded-xl pl-9 pr-4 py-2.5 text-sm outline-none"
+                style={{ border: '1px solid var(--border)', background: 'var(--cream2)', color: 'var(--ink)' }}
               />
             </div>
 
             {searchingMembers && (
               <div className="flex justify-center py-2">
-                <Loader2 size={14} className="animate-spin text-gray-400" />
+                <Loader2 size={14} className="animate-spin" style={{ color: 'var(--ink3)' }} />
               </div>
             )}
 
@@ -507,20 +519,21 @@ export default function MesajePage() {
                       setGroupMemberResults(prev => prev.filter(u => u.id !== user.id))
                       setGroupMemberQuery('')
                     }}
-                    className="flex items-center gap-3 w-full rounded-xl border border-gray-200 bg-white px-4 py-2 hover:border-primary-200 transition-colors text-left"
+                    className="flex items-center gap-3 w-full rounded-xl px-4 py-2 transition-colors text-left"
+                    style={{ background: 'var(--white)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-s)' }}
                   >
                     <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
                       {user.avatar_url ? (
                         <img src={user.avatar_url} alt={user.name} className="w-full h-full object-cover" />
                       ) : (
-                        <div className="w-full h-full bg-primary-100 flex items-center justify-center">
-                          <span className="text-[10px] font-bold text-primary-700">{getInitials(user.name)}</span>
+                        <div className="w-full h-full flex items-center justify-center" style={{ background: 'var(--amber-soft)' }}>
+                          <span className="text-[10px] font-bold" style={{ color: 'var(--amber-dark)' }}>{getInitials(user.name)}</span>
                         </div>
                       )}
                     </div>
                     <div className="min-w-0">
-                      <p className="text-xs font-medium text-gray-900 truncate">{user.name}</p>
-                      <p className="text-[10px] text-gray-400">@{user.username}</p>
+                      <p className="text-xs font-medium truncate" style={{ color: 'var(--ink)' }}>{user.name}</p>
+                      <p className="text-[10px]" style={{ color: 'var(--ink3)' }}>@{user.username}</p>
                     </div>
                   </button>
                 ))}
@@ -531,7 +544,8 @@ export default function MesajePage() {
               type="button"
               onClick={handleCreateGroup}
               disabled={creatingGroup || !groupName.trim()}
-              className="w-full rounded-xl bg-primary-700 py-2.5 text-sm font-semibold text-white hover:bg-primary-800 disabled:opacity-50 transition-colors"
+              className="w-full rounded-sm py-2.5 text-sm font-semibold disabled:opacity-50 transition-colors"
+              style={{ background: 'var(--ink)', color: 'var(--white)' }}
             >
               {creatingGroup ? (
                 <Loader2 size={16} className="animate-spin mx-auto" />
@@ -545,9 +559,9 @@ export default function MesajePage() {
         {/* Conversation list */}
         {conversations.length === 0 && !showSearch && !showGroupCreate ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
-            <MessageCircle size={40} className="text-gray-300 mb-3" />
-            <p className="text-sm text-gray-400">Niciun mesaj inca</p>
-            <p className="text-xs text-gray-300 mt-1">Apasa + pentru a incepe o conversatie</p>
+            <MessageCircle size={40} className="mb-3" style={{ color: 'var(--border)' }} />
+            <p className="text-sm" style={{ color: 'var(--ink3)' }}>Niciun mesaj inca</p>
+            <p className="text-xs mt-1" style={{ color: 'var(--border)' }}>Apasa + pentru a incepe o conversatie</p>
           </div>
         ) : (
           <div className="space-y-2">
@@ -560,45 +574,48 @@ export default function MesajePage() {
                 <Link
                   key={convo.id}
                   href={`/mesaje/${convo.id}`}
-                  className={`flex items-center gap-3 rounded-xl border bg-white px-4 py-3 transition-colors ${
-                    hasUnread ? 'border-primary-200' : 'border-gray-200 hover:border-primary-200'
-                  }`}
+                  className="flex items-center gap-3 rounded-xl px-4 py-3 transition-colors"
+                  style={{
+                    background: 'var(--white)',
+                    border: hasUnread ? '1px solid var(--amber)' : '1px solid var(--border)',
+                    boxShadow: 'var(--shadow-s)',
+                  }}
                 >
                   <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
                     {convo.is_group ? (
-                      <div className="w-full h-full bg-primary-100 flex items-center justify-center">
-                        <Users size={18} className="text-primary-700" />
+                      <div className="w-full h-full flex items-center justify-center" style={{ background: 'var(--amber-soft)' }}>
+                        <Users size={18} style={{ color: 'var(--amber-dark)' }} />
                       </div>
                     ) : convo.other_user?.avatar_url ? (
                       <img src={convo.other_user.avatar_url} alt={displayName} className="w-full h-full object-cover" />
                     ) : (
-                      <div className="w-full h-full bg-primary-100 flex items-center justify-center">
-                        <span className="text-sm font-bold text-primary-700">{getInitials(displayName)}</span>
+                      <div className="w-full h-full flex items-center justify-center" style={{ background: 'var(--amber-soft)' }}>
+                        <span className="text-sm font-bold" style={{ color: 'var(--amber-dark)' }}>{getInitials(displayName)}</span>
                       </div>
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-1.5 min-w-0">
-                        <p className={`text-sm truncate ${hasUnread ? 'font-bold text-gray-900' : 'font-semibold text-gray-900'}`}>
+                        <p className="text-sm truncate font-semibold" style={{ color: 'var(--ink)' }}>
                           {displayName}
                         </p>
                         {convo.is_group && (
-                          <span className="text-[10px] text-gray-400 flex-shrink-0">{convo.members.length}</span>
+                          <span className="text-[10px] flex-shrink-0" style={{ color: 'var(--ink3)' }}>{convo.members.length}</span>
                         )}
                       </div>
                       {convo.last_message && (
-                        <span className={`text-[10px] flex-shrink-0 ml-2 ${hasUnread ? 'text-primary-700 font-semibold' : 'text-gray-400'}`}>
+                        <span className="text-[10px] flex-shrink-0 ml-2" style={{ color: hasUnread ? 'var(--amber-dark)' : 'var(--ink3)', fontWeight: hasUnread ? 600 : 400 }}>
                           {relativeTime(convo.last_message.created_at)}
                         </span>
                       )}
                     </div>
                     <div className="flex items-center justify-between">
-                      <p className={`text-xs truncate ${hasUnread ? 'text-gray-700 font-medium' : 'text-gray-400'}`}>
+                      <p className="text-xs truncate" style={{ color: hasUnread ? 'var(--ink2)' : 'var(--ink3)', fontWeight: hasUnread ? 500 : 400 }}>
                         {preview}
                       </p>
                       {hasUnread && (
-                        <span className="ml-2 flex-shrink-0 min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-primary-700 px-1 text-[9px] font-bold text-white">
+                        <span className="ml-2 flex-shrink-0 min-w-[18px] h-[18px] flex items-center justify-center rounded-full px-1 text-[9px] font-bold" style={{ background: 'var(--ink)', color: 'var(--white)' }}>
                           {convo.unread_count > 99 ? '99+' : convo.unread_count}
                         </span>
                       )}
