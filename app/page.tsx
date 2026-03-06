@@ -70,7 +70,7 @@ export default function Home() {
 
           {/* Card A — Photo */}
           <div
-            className="hero-float rounded-[18px] flex items-center justify-center"
+            className="hero-float rounded-xl flex items-center justify-center"
             style={{
               height: 130,
               background: 'linear-gradient(135deg, #d4cee8, #9b8ec4)',
@@ -83,7 +83,7 @@ export default function Home() {
 
           {/* Card C — Nearby Hangout map */}
           <div
-            className="hero-float rounded-[18px] p-3 flex flex-col"
+            className="hero-float rounded-xl p-3 flex flex-col"
             style={{
               height: 130,
               background: 'var(--white)',
@@ -117,7 +117,7 @@ export default function Home() {
 
           {/* Card E — Stats (full width) */}
           <div
-            className="hero-float col-span-2 rounded-[18px] p-4 flex items-center gap-3"
+            className="hero-float col-span-2 rounded-xl p-4 flex items-center gap-3"
             style={{
               background: '#1a1f3a',
               boxShadow: '0 8px 32px rgba(26,31,58,0.08)',
@@ -135,7 +135,7 @@ export default function Home() {
 
           {/* Card B — Mentor */}
           <div
-            className="hero-float rounded-[18px] p-3"
+            className="hero-float rounded-xl p-3"
             style={{
               background: 'var(--white)',
               boxShadow: '0 8px 32px rgba(26,31,58,0.08)',
@@ -162,7 +162,7 @@ export default function Home() {
 
           {/* Card F — Event */}
           <div
-            className="hero-float rounded-[18px] p-3"
+            className="hero-float rounded-xl p-3"
             style={{
               background: 'var(--white)',
               boxShadow: '0 8px 32px rgba(26,31,58,0.08)',
