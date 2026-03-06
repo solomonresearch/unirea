@@ -192,7 +192,7 @@ export default function Home() {
         </p>
       </div>
 
-      <style>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         @keyframes fadeInDown {
           from { opacity: 0; transform: translateY(-20px); }
           to   { opacity: 1; transform: translateY(0); }
@@ -281,7 +281,7 @@ export default function Home() {
           background: var(--ink);
           color: var(--cream);
         }
-      `}</style>
+      ` }} />
     </main>
   )
 }
