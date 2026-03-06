@@ -222,7 +222,7 @@ export default function CercuriPage() {
           <div>
             <div className="flex items-center gap-2">
               <Logo size={32} />
-              <span className="font-display text-xl" style={{ color: 'var(--ink)' }}>Conecteaza-te</span>
+              <span className="font-display text-xl" style={{ color: 'var(--ink)' }}>Cercuri</span>
             </div>
             {data?.user_info.highschool && (
               <p className="text-[0.72rem] mt-1 ml-10" style={{ color: 'var(--ink3)' }}>
