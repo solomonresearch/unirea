@@ -55,7 +55,7 @@ export function FeedbackButton() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="fixed z-40 flex items-center justify-center rounded-full shadow-lg transition-transform active:scale-95 select-none"
+        className="fixed z-[150] flex items-center justify-center rounded-full shadow-lg transition-transform active:scale-95 select-none"
         style={{
           bottom: '88px',
           right: 'max(16px, calc((100vw - 384px) / 2 + 16px))',
@@ -76,7 +76,7 @@ export function FeedbackButton() {
       {/* Modal overlay */}
       {open && (
         <div
-          className="fixed inset-0 z-[200] flex items-center justify-center px-4"
+          className="fixed inset-0 z-[250] flex items-center justify-center px-4"
           style={{ background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(4px)' }}
           onClick={e => { if (e.target === e.currentTarget) setOpen(false) }}
         >
