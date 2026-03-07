@@ -30,6 +30,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Nu esti participant in aceasta conversatie' }, { status: 403 })
     }
 
+    // Auto-unarchive if sender had archived this conversation
+    await supabase
+      .from('conversation_participants')
+      .update({ archived_at: null })
+      .eq('conversation_id', conversation_id)
+      .eq('user_id', user.id)
+      .not('archived_at', 'is', null)
+
     // Check if this is the first message in the conversation
     const { count } = await supabase
       .from('messages')
