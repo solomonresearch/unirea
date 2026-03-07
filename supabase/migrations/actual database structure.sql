@@ -116,6 +116,7 @@ CREATE TABLE public.conversation_participants (
   conversation_id uuid NOT NULL,
   user_id uuid NOT NULL,
   last_read_at timestamp with time zone DEFAULT now(),
+  archived_at timestamp with time zone,
   CONSTRAINT conversation_participants_pkey PRIMARY KEY (conversation_id, user_id),
   CONSTRAINT conversation_participants_conversation_id_fkey FOREIGN KEY (conversation_id) REFERENCES public.conversations(id),
   CONSTRAINT conversation_participants_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id)
@@ -151,9 +152,24 @@ CREATE TABLE public.messages (
   user_id uuid NOT NULL,
   content text NOT NULL,
   created_at timestamp with time zone DEFAULT now(),
+  deleted_at timestamp with time zone,
   CONSTRAINT messages_pkey PRIMARY KEY (id),
   CONSTRAINT messages_conversation_id_fkey FOREIGN KEY (conversation_id) REFERENCES public.conversations(id),
   CONSTRAINT messages_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id)
+);
+CREATE TABLE public.notifications (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL,
+  actor_id uuid NOT NULL,
+  type text NOT NULL CHECK (type = ANY (ARRAY['mention'::text, 'message'::text])),
+  context text CHECK (context = ANY (ARRAY['avizier'::text, 'tabla'::text, 'carusel'::text, 'mesaje'::text, 'ziar'::text])),
+  reference_id text,
+  content_preview text,
+  read_at timestamp with time zone,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT notifications_pkey PRIMARY KEY (id),
+  CONSTRAINT notifications_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id),
+  CONSTRAINT notifications_actor_id_fkey FOREIGN KEY (actor_id) REFERENCES public.profiles(id)
 );
 CREATE TABLE public.post_votes (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -197,6 +213,7 @@ CREATE TABLE public.profiles (
   county text,
   latitude double precision,
   longitude double precision,
+  feedback jsonb DEFAULT '[]'::jsonb,
   CONSTRAINT profiles_pkey PRIMARY KEY (id),
   CONSTRAINT profiles_id_fkey FOREIGN KEY (id) REFERENCES auth.users(id)
 );
