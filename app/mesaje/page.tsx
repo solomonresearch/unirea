@@ -295,19 +295,34 @@ export default function MesajePage() {
     if (creatingGroup || !groupName.trim()) return
     setCreatingGroup(true)
 
-    const res = await fetch('/api/mesaje/grupuri', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        name: groupName.trim(),
-        member_ids: selectedMembers.map(m => m.id),
-      }),
-    })
+    const supabase = getSupabase()
+    const inviteCode = crypto.randomUUID().slice(0, 8)
 
-    if (res.ok) {
-      const data = await res.json()
-      router.push(`/mesaje/${data.id}`)
+    const { data: conversation, error: convError } = await supabase
+      .from('conversations')
+      .insert({
+        name: groupName.trim(),
+        is_group: true,
+        invite_code: inviteCode,
+        created_by: currentUserId,
+      })
+      .select('id')
+      .single()
+
+    if (convError || !conversation) {
+      setCreatingGroup(false)
+      return
     }
+
+    const participants = [
+      { conversation_id: conversation.id, user_id: currentUserId },
+      ...selectedMembers
+        .filter(m => m.id !== currentUserId)
+        .map(m => ({ conversation_id: conversation.id, user_id: m.id })),
+    ]
+
+    await supabase.from('conversation_participants').insert(participants)
+    router.push(`/mesaje/${conversation.id}`)
 
     setCreatingGroup(false)
   }

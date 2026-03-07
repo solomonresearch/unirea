@@ -176,21 +176,30 @@ export default function CautaPage() {
 
   async function handleCreateGroup() {
     setCreatingGroup(true)
+    const supabase = getSupabase()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) { setCreatingGroup(false); return }
+
     const members = results.filter(p => selectedPeople.has(p.id))
     const nameParts = members.slice(0, 3).map(m => m.name.split(' ')[0])
     const suffix = members.length > 3 ? `, +${members.length - 3}` : ''
     const groupName = nameParts.join(', ') + suffix
 
-    const res = await fetch('/api/mesaje/grupuri', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: groupName, member_ids: [...selectedPeople] }),
+    const newId = crypto.randomUUID()
+    const inviteCode = crypto.randomUUID().slice(0, 8)
+    const { error } = await supabase.from('conversations').insert({
+      id: newId,
+      is_group: true,
+      name: groupName,
+      invite_code: inviteCode,
     })
+    if (error) { setCreatingGroup(false); return }
 
-    if (res.ok) {
-      const data = await res.json()
-      router.push(`/mesaje/${data.id}`)
-    }
+    await supabase.from('conversation_participants').insert(
+      [user.id, ...selectedPeople].map(uid => ({ conversation_id: newId, user_id: uid }))
+    )
+
+    router.push(`/mesaje/${newId}`)
     setCreatingGroup(false)
     setShowGroupConfirm(false)
   }

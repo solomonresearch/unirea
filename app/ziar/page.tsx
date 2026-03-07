@@ -64,16 +64,34 @@ export default function ZiarPage() {
   const [submitError, setSubmitError] = useState('')
 
   const loadPosts = useCallback(async (categoryFilter?: string | null) => {
-    const params = new URLSearchParams()
+    const supabase = getSupabase()
     const cat = categoryFilter !== undefined ? categoryFilter : activeCategory
-    if (cat) params.set('category', cat)
+    const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString()
 
-    const res = await fetch(`/api/ziar${params.toString() ? '?' + params.toString() : ''}`)
-    if (res.ok) {
-      const data = await res.json()
-      setPosts(data.posts)
-      setCanPost(data.canPost)
+    let query = supabase
+      .from('ziar_posts')
+      .select('*')
+      .is('deleted_at', null)
+      .gte('created_at', threeDaysAgo)
+      .order('created_at', { ascending: false })
+
+    if (cat) query = query.eq('category', cat)
+
+    const { data: fetchedPosts } = await query
+    if (fetchedPosts) setPosts(fetchedPosts)
+
+    const { data: { user } } = await supabase.auth.getUser()
+    let canPostNow = true
+    if (user) {
+      const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+      const { count } = await supabase
+        .from('ziar_posts')
+        .select('id', { count: 'exact', head: true })
+        .eq('created_by', user.id)
+        .gte('created_at', oneWeekAgo)
+      if (count && count >= 1) canPostNow = false
     }
+    setCanPost(canPostNow)
   }, [activeCategory])
 
   useEffect(() => {
@@ -114,23 +132,34 @@ export default function ZiarPage() {
     setSubmitting(true)
     setSubmitError('')
 
+    const supabase = getSupabase()
     const filteredLinks = links.filter(l => l.trim())
 
-    const res = await fetch('/api/ziar', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        title: title.trim(),
-        body: body.trim(),
-        category,
-        city: city.trim() || undefined,
-        county: county.trim() || undefined,
-        country: country.trim() || undefined,
-        links: filteredLinks.length > 0 ? filteredLinks : undefined,
-      }),
+    const { data: { user } } = await supabase.auth.getUser()
+
+    let authorName = 'Anonim'
+    if (user) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('name')
+        .eq('id', user.id)
+        .single()
+      if (profile?.name) authorName = profile.name
+    }
+
+    const { error } = await supabase.from('ziar_posts').insert({
+      title: title.trim(),
+      body: body.trim(),
+      category,
+      links: filteredLinks.length > 0 ? filteredLinks : [],
+      city: city.trim() || null,
+      county: county.trim() || null,
+      country: country.trim() || null,
+      created_by: user?.id ?? null,
+      author_name: authorName,
     })
 
-    if (res.ok) {
+    if (!error) {
       setDialogOpen(false)
       setTitle('')
       setBody('')
@@ -138,15 +167,18 @@ export default function ZiarPage() {
       setLinks([''])
       await loadPosts()
     } else {
-      const data = await res.json()
-      setSubmitError(data.error || 'Eroare la publicare')
+      setSubmitError(error.message || 'Eroare la publicare')
     }
     setSubmitting(false)
   }
 
   async function handleDelete(postId: string) {
-    const res = await fetch(`/api/ziar/${postId}`, { method: 'DELETE' })
-    if (res.ok) {
+    const supabase = getSupabase()
+    const { error } = await supabase
+      .from('ziar_posts')
+      .update({ deleted_at: new Date().toISOString() })
+      .eq('id', postId)
+    if (!error) {
       setPosts(prev => prev.filter(p => p.id !== postId))
     }
   }

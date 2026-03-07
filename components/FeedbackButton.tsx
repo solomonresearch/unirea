@@ -27,16 +27,32 @@ export function FeedbackButton() {
     if (!message.trim()) return
     setSaving(true)
     try {
-      const { data: { session } } = await getSupabase().auth.getSession()
-      const res = await fetch('/api/feedback', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(session ? { Authorization: `Bearer ${session.access_token}` } : {}),
-        },
-        body: JSON.stringify({ message, page: pathname }),
-      })
-      if (res.ok) {
+      const supabase = getSupabase()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('feedback')
+        .eq('id', user.id)
+        .single()
+
+      const existing: { id: number; msg: string; at: string; page?: string }[] =
+        Array.isArray(profile?.feedback) ? profile.feedback : []
+      const nextId = existing.length > 0 ? Math.max(...existing.map(e => e.id)) + 1 : 1
+      const newEntry = {
+        id: nextId,
+        msg: message.trim(),
+        at: new Date().toISOString(),
+        ...(pathname ? { page: pathname } : {}),
+      }
+
+      const { error } = await supabase
+        .from('profiles')
+        .update({ feedback: [...existing, newEntry] })
+        .eq('id', user.id)
+
+      if (!error) {
         setDone(true)
         setMessage('')
         setTimeout(() => {

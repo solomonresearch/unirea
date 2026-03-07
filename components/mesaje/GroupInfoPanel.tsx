@@ -44,12 +44,11 @@ export function GroupInfoPanel({
   async function handleSaveName() {
     if (!nameInput.trim() || savingName) return
     setSavingName(true)
-    const res = await fetch(`/api/mesaje/grupuri/${conversationId}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: nameInput.trim() }),
-    })
-    if (res.ok) {
+    const { error } = await getSupabase()
+      .from('conversations')
+      .update({ name: nameInput.trim() })
+      .eq('id', conversationId)
+    if (!error) {
       onNameUpdated(nameInput.trim())
       setEditingName(false)
     }
@@ -91,12 +90,10 @@ export function GroupInfoPanel({
   async function handleAddMember(userId: string) {
     if (addingUser) return
     setAddingUser(userId)
-    const res = await fetch(`/api/mesaje/grupuri/${conversationId}/membri`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ user_ids: [userId] }),
-    })
-    if (res.ok) {
+    const { error } = await getSupabase()
+      .from('conversation_participants')
+      .insert({ conversation_id: conversationId, user_id: userId })
+    if (!error) {
       const added = searchResults.find(u => u.id === userId)
       if (added) {
         onMembersUpdated([...members, added])
@@ -109,12 +106,12 @@ export function GroupInfoPanel({
   async function handleRemoveMember(userId: string) {
     if (removingUser) return
     setRemovingUser(userId)
-    const res = await fetch(`/api/mesaje/grupuri/${conversationId}/membri`, {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ user_id: userId }),
-    })
-    if (res.ok) {
+    const { error } = await getSupabase()
+      .from('conversation_participants')
+      .delete()
+      .eq('conversation_id', conversationId)
+      .eq('user_id', userId)
+    if (!error) {
       onMembersUpdated(members.filter(m => m.id !== userId))
     }
     setRemovingUser(null)
@@ -123,8 +120,12 @@ export function GroupInfoPanel({
   async function handleLeave() {
     if (leaving) return
     setLeaving(true)
-    const res = await fetch(`/api/mesaje/grupuri/${conversationId}`, { method: 'DELETE' })
-    if (res.ok) {
+    const { error } = await getSupabase()
+      .from('conversation_participants')
+      .delete()
+      .eq('conversation_id', conversationId)
+      .eq('user_id', currentUserId)
+    if (!error) {
       router.push('/mesaje')
     }
     setLeaving(false)

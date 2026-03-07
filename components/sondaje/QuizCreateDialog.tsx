@@ -8,6 +8,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { ChevronLeft, ChevronRight, Plus, X } from 'lucide-react'
+import { getSupabase } from '@/lib/supabase'
 
 interface OptionData {
   option_text: string
@@ -128,39 +129,52 @@ export function QuizCreateDialog({ open, onOpenChange, userProfile, onCreated }:
     setLoading(true)
     setError('')
     try {
-      const payload = {
+      const supabase = getSupabase()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error('Nu ești autentificat')
+
+      const clampedThreshold = Math.min(100, Math.max(2, revealThreshold))
+
+      const { data: quizRow, error: quizErr } = await supabase.from('quizzes').insert({
         title: title.trim(),
-        description: description.trim() || undefined,
+        description: description.trim() || null,
         target_scope: targetScope,
-        target_highschool: ['school', 'year', 'class'].includes(targetScope) ? targetHighschool : undefined,
-        target_year: ['year', 'class'].includes(targetScope) ? parseInt(targetYear) : undefined,
-        target_class: targetScope === 'class' ? targetClass : undefined,
-        expires_at: expiresAt || undefined,
+        target_highschool: ['school', 'year', 'class'].includes(targetScope) ? targetHighschool : null,
+        target_year: ['year', 'class'].includes(targetScope) ? parseInt(targetYear) : null,
+        target_class: targetScope === 'class' ? targetClass : null,
+        expires_at: expiresAt || null,
         active,
-        reveal_threshold: revealThreshold,
+        reveal_threshold: clampedThreshold,
         anonymous_mode: anonymousMode,
-        questions: questions.map((q, qi) => ({
-          question_text: q.question_text.trim(),
-          order_index: qi,
-          // Strip empty optional options (3-6)
-          options: q.options
-            .filter(o => o.option_text.trim())
-            .map((o, oi) => ({
-              option_text: o.option_text.trim(),
-              order_index: oi,
-            })),
-        })),
-      }
+        created_by: user.id,
+      }).select().single()
+      if (quizErr) throw new Error(quizErr.message)
 
-      const res = await fetch('/api/sondaje', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      })
+      const preparedQuestions = questions.map((q, qi) => ({
+        question_text: q.question_text.trim(),
+        order_index: qi,
+        options: q.options
+          .filter(o => o.option_text.trim())
+          .map((o, oi) => ({ option_text: o.option_text.trim(), order_index: oi })),
+      }))
 
-      if (!res.ok) {
-        const data = await res.json()
-        throw new Error(data.error || 'Eroare la publicare')
+      for (const q of preparedQuestions) {
+        const { data: questionRow, error: qErr } = await supabase.from('quiz_questions').insert({
+          quiz_id: quizRow.id,
+          question_text: q.question_text,
+          order_index: q.order_index,
+        }).select().single()
+        if (qErr) throw new Error(qErr.message)
+
+        const optRows = q.options.map(o => ({
+          question_id: questionRow.id,
+          option_text: o.option_text,
+          order_index: o.order_index,
+        }))
+        if (optRows.length) {
+          const { error: optErr } = await supabase.from('quiz_options').insert(optRows)
+          if (optErr) throw new Error(optErr.message)
+        }
       }
 
       onCreated()

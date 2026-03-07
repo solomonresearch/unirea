@@ -43,15 +43,41 @@ export default function CaruselPostPage() {
   const [commentSubmitting, setCommentSubmitting] = useState(false)
 
   const fetchPost = useCallback(async () => {
-    const res = await fetch(`/api/carusel/${postId}`)
-    if (res.status === 404) {
+    const supabase = getSupabase()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+
+    const { data: rawPost } = await supabase
+      .from('carusel_posts')
+      .select('id, caption, storage_path, user_id, created_at, profiles!user_id(name, username)')
+      .eq('id', postId)
+      .is('deleted_at', null)
+      .single()
+
+    if (!rawPost) {
       setNotFound(true)
       return
     }
-    if (res.ok) {
-      const data = await res.json()
-      setPost(data)
-    }
+
+    const [{ data: likes }, { data: userLike }, { data: comments }] = await Promise.all([
+      supabase.from('carusel_likes').select('post_id').eq('post_id', postId),
+      supabase.from('carusel_likes').select('post_id').eq('post_id', postId).eq('user_id', user.id).maybeSingle(),
+      supabase.from('carusel_comments').select('id, post_id, content, created_at, user_id, profiles!user_id(name, username)').eq('post_id', postId).is('deleted_at', null).order('created_at', { ascending: true }),
+    ])
+
+    const { data: { publicUrl } } = supabase.storage.from('carusel').getPublicUrl(rawPost.storage_path)
+
+    setPost({
+      id: rawPost.id,
+      caption: rawPost.caption,
+      image_url: publicUrl,
+      user_id: rawPost.user_id,
+      profiles: rawPost.profiles as unknown as { name: string; username: string },
+      likes: likes?.length || 0,
+      liked: !!userLike,
+      comments: (comments || []) as unknown as CaruselComment[],
+      created_at: rawPost.created_at,
+    })
   }, [postId])
 
   useEffect(() => {
@@ -67,30 +93,45 @@ export default function CaruselPostPage() {
   }, [router, fetchPost])
 
   async function toggleLike() {
-    if (!post) return
+    if (!post || !userId) return
     const newLiked = !post.liked
     const newLikes = newLiked ? post.likes + 1 : post.likes - 1
     setPost(prev => prev ? { ...prev, liked: newLiked, likes: newLikes } : prev)
 
-    const res = await fetch(`/api/carusel/${post.id}/like`, { method: 'POST' })
-    if (!res.ok) {
+    try {
+      const supabase = getSupabase()
+      const { data: existing } = await supabase
+        .from('carusel_likes')
+        .select('post_id')
+        .eq('post_id', post.id)
+        .eq('user_id', userId)
+        .maybeSingle()
+
+      if (existing) {
+        const { error } = await supabase.from('carusel_likes').delete().eq('post_id', post.id).eq('user_id', userId)
+        if (error) throw error
+      } else {
+        const { error } = await supabase.from('carusel_likes').insert({ post_id: post.id, user_id: userId })
+        if (error) throw error
+      }
+    } catch {
       setPost(prev => prev ? { ...prev, liked: post.liked, likes: post.likes } : prev)
     }
   }
 
   async function addComment() {
-    if (!post || !commentText.trim() || commentSubmitting) return
+    if (!post || !commentText.trim() || commentSubmitting || !userId) return
     setCommentSubmitting(true)
 
-    const res = await fetch(`/api/carusel/${post.id}/comment`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ content: commentText.trim() }),
-    })
+    const supabase = getSupabase()
+    const { data: newComment, error } = await supabase
+      .from('carusel_comments')
+      .insert({ post_id: post.id, user_id: userId, content: commentText.trim() })
+      .select('id, post_id, content, created_at, user_id, profiles!user_id(name, username)')
+      .single()
 
-    if (res.ok) {
-      const newComment = await res.json()
-      setPost(prev => prev ? { ...prev, comments: [...prev.comments, newComment] } : prev)
+    if (!error && newComment) {
+      setPost(prev => prev ? { ...prev, comments: [...prev.comments, newComment as unknown as CaruselComment] } : prev)
       setCommentText('')
     }
     setCommentSubmitting(false)
@@ -98,16 +139,36 @@ export default function CaruselPostPage() {
 
   async function deleteComment(commentId: string) {
     if (!post) return
-    const res = await fetch(`/api/carusel/${post.id}/comment/${commentId}`, { method: 'DELETE' })
-    if (res.ok) {
+    const supabase = getSupabase()
+    const { error } = await supabase
+      .from('carusel_comments')
+      .update({ deleted_at: new Date().toISOString() })
+      .eq('id', commentId)
+
+    if (!error) {
       setPost(prev => prev ? { ...prev, comments: prev.comments.filter(c => c.id !== commentId) } : prev)
     }
   }
 
   async function deletePost() {
     if (!post) return
-    const res = await fetch(`/api/carusel/${post.id}`, { method: 'DELETE' })
-    if (res.ok) {
+    const supabase = getSupabase()
+
+    const { data: postData } = await supabase
+      .from('carusel_posts')
+      .select('storage_path')
+      .eq('id', post.id)
+      .single()
+
+    const { error } = await supabase
+      .from('carusel_posts')
+      .update({ deleted_at: new Date().toISOString() })
+      .eq('id', post.id)
+
+    if (!error) {
+      if (postData?.storage_path) {
+        await supabase.storage.from('carusel').remove([postData.storage_path])
+      }
       router.push('/carusel')
     }
   }

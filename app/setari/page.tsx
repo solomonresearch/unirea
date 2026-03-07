@@ -216,56 +216,47 @@ export default function SetariPage() {
   async function handleMock(scope: string) {
     setMockLoading(scope)
     setMockResult(null)
-    try {
-      const { data: { session } } = await getSupabase().auth.getSession()
-      const res = await fetch('/api/admin/mock', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(session ? { Authorization: `Bearer ${session.access_token}` } : {}),
-        },
-        body: JSON.stringify({ scope }),
-      })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error)
-      setMockResult(`${data.created} boti creati`)
-    } catch (err: unknown) {
-      setMockResult(err instanceof Error ? err.message : 'Eroare')
-    } finally {
-      setMockLoading(null)
-    }
+    // Mock user creation requires service role (auth.admin.createUser) — not available client-side.
+    // This feature needs a Supabase Edge Function to work in the Capacitor build.
+    setMockResult('Indisponibil in modul static (necesita Edge Function)')
+    setMockLoading(null)
   }
 
   async function handleDeleteMock() {
     setMockLoading('delete')
     setMockResult(null)
-    try {
-      const { data: { session } } = await getSupabase().auth.getSession()
-      const res = await fetch('/api/admin/mock', {
-        method: 'DELETE',
-        headers: session ? { Authorization: `Bearer ${session.access_token}` } : {},
-      })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error)
-      setMockResult(`${data.deleted} boti stersi`)
-    } catch (err: unknown) {
-      setMockResult(err instanceof Error ? err.message : 'Eroare')
-    } finally {
-      setMockLoading(null)
-    }
+    // Mock user deletion requires service role (auth.admin.deleteUser) — not available client-side.
+    setMockResult('Indisponibil in modul static (necesita Edge Function)')
+    setMockLoading(null)
   }
 
   async function loadFeedback(): Promise<FeedbackItem[]> {
     setFeedbackLoading(true)
     try {
-      const { data: { session } } = await getSupabase().auth.getSession()
-      const res = await fetch('/api/feedback', {
-        headers: session ? { Authorization: `Bearer ${session.access_token}` } : {},
-      })
-      const data = await res.json()
-      const items: FeedbackItem[] = res.ok ? (data.feedback || []) : []
-      setFeedbackList(items)
-      return items
+      const supabase = getSupabase()
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, name, username, feedback')
+        .not('feedback', 'eq', '[]')
+        .not('feedback', 'is', null)
+
+      const allFeedback: FeedbackItem[] = (profiles || []).flatMap(p => {
+        const entries: { id: number; msg: string; at: string; page?: string; category?: string }[] =
+          Array.isArray(p.feedback) ? p.feedback : []
+        return entries.map(e => ({
+          userId: p.id,
+          userName: p.name,
+          userUsername: p.username,
+          feedbackId: e.id,
+          message: e.msg,
+          createdAt: e.at,
+          page: e.page ?? null,
+          category: (e.category as FeedbackItem['category']) ?? null,
+        }))
+      }).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+
+      setFeedbackList(allFeedback)
+      return allFeedback
     } finally {
       setFeedbackLoading(false)
     }
@@ -275,16 +266,23 @@ export default function SetariPage() {
     const key = `${userId}-${feedbackId}`
     setDeletingFeedback(key)
     try {
-      const { data: { session } } = await getSupabase().auth.getSession()
-      const res = await fetch('/api/feedback', {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(session ? { Authorization: `Bearer ${session.access_token}` } : {}),
-        },
-        body: JSON.stringify({ userId, feedbackId }),
-      })
-      if (res.ok) {
+      const supabase = getSupabase()
+      const { data: targetProfile } = await supabase
+        .from('profiles')
+        .select('feedback')
+        .eq('id', userId)
+        .single()
+
+      const existing: { id: number; msg: string; at: string; page?: string; category?: string }[] =
+        Array.isArray(targetProfile?.feedback) ? targetProfile.feedback : []
+      const updated = existing.filter(e => e.id !== feedbackId)
+
+      const { error } = await supabase
+        .from('profiles')
+        .update({ feedback: updated })
+        .eq('id', userId)
+
+      if (!error) {
         setFeedbackList(prev => prev.filter(f => !(f.userId === userId && f.feedbackId === feedbackId)))
       }
     } finally {
@@ -352,15 +350,21 @@ export default function SetariPage() {
       f.userId === item.userId && f.feedbackId === item.feedbackId ? { ...f, category: to } : f
     ))
     // Persist to DB
-    const { data: { session } } = await getSupabase().auth.getSession()
-    await fetch('/api/feedback', {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(session ? { Authorization: `Bearer ${session.access_token}` } : {}),
-      },
-      body: JSON.stringify({ userId: item.userId, feedbackId: item.feedbackId, category: to }),
-    })
+    const supabase = getSupabase()
+    const { data: targetProfile } = await supabase
+      .from('profiles')
+      .select('feedback')
+      .eq('id', item.userId)
+      .single()
+
+    const entries: { id: number; msg: string; at: string; page?: string; category?: string }[] =
+      Array.isArray(targetProfile?.feedback) ? targetProfile.feedback : []
+    const updatedEntries = entries.map(e => e.id === item.feedbackId ? { ...e, category: to } : e)
+
+    await supabase
+      .from('profiles')
+      .update({ feedback: updatedEntries })
+      .eq('id', item.userId)
   }
 
   function toggleEditHobby(hobby: string) {

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { Logo } from '@/components/Logo'
 import { Loader2, Users } from 'lucide-react'
+import { getSupabase } from '@/lib/supabase'
 import { AuthGuard } from '@/components/AuthGuard'
 
 interface InviteInfo {
@@ -32,18 +33,46 @@ function InviteContent() {
 
   useEffect(() => {
     async function load() {
-      const res = await fetch(`/api/mesaje/invitatie/${code}`)
-      if (!res.ok) {
+      const supabase = getSupabase()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+
+      const { data: conversation } = await supabase
+        .from('conversations')
+        .select('id, name')
+        .eq('invite_code', code)
+        .eq('is_group', true)
+        .single()
+
+      if (!conversation) {
         setError('Link invalid sau expirat')
         setLoading(false)
         return
       }
-      const data = await res.json()
-      if (data.already_member) {
-        router.replace(`/mesaje/${data.conversation_id}`)
+
+      const { count } = await supabase
+        .from('conversation_participants')
+        .select('user_id', { count: 'exact', head: true })
+        .eq('conversation_id', conversation.id)
+
+      const { data: existing } = await supabase
+        .from('conversation_participants')
+        .select('user_id')
+        .eq('conversation_id', conversation.id)
+        .eq('user_id', user.id)
+        .maybeSingle()
+
+      if (existing) {
+        router.replace(`/mesaje/${conversation.id}`)
         return
       }
-      setInfo(data)
+
+      setInfo({
+        conversation_id: conversation.id,
+        name: conversation.name!,
+        member_count: count || 0,
+        already_member: false,
+      })
       setLoading(false)
     }
     load()
@@ -53,14 +82,19 @@ function InviteContent() {
     if (joining || !info) return
     setJoining(true)
 
-    const res = await fetch(`/api/mesaje/invitatie/${code}`, { method: 'POST' })
-    const data = await res.json()
+    const supabase = getSupabase()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
 
-    if (res.ok && data.conversation_id) {
-      router.replace(`/mesaje/${data.conversation_id}`)
-    } else {
-      setError(data.error || 'Eroare la alaturare')
+    const { error } = await supabase
+      .from('conversation_participants')
+      .insert({ conversation_id: info.conversation_id, user_id: user.id })
+
+    if (error) {
+      setError('Eroare la alaturare')
       setJoining(false)
+    } else {
+      router.replace(`/mesaje/${info.conversation_id}`)
     }
   }
 

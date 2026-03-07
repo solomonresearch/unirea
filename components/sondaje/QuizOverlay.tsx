@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { X, ArrowLeft } from 'lucide-react'
+import { getSupabase } from '@/lib/supabase'
 
 interface QuizOption {
   id: string
@@ -141,25 +142,78 @@ export function QuizOverlay({ quiz, mode, onClose, onCompleted, onPeeked }: Prop
     if (mode === 'peek') fetchPeek()
   }, [])
 
+  async function buildStats(): Promise<Stats | null> {
+    const supabase = getSupabase()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    const { data: responses } = await supabase
+      .from('quiz_responses')
+      .select('question_id, option_id, user_id')
+      .eq('quiz_id', quiz.id)
+    if (!responses) return null
+
+    const questionMap: Record<string, Record<string, number>> = {}
+    for (const r of responses) {
+      if (!questionMap[r.question_id]) questionMap[r.question_id] = {}
+      questionMap[r.question_id][r.option_id] = (questionMap[r.question_id][r.option_id] || 0) + 1
+    }
+
+    const userAnswers: Record<string, string> = {}
+    if (user) {
+      for (const r of responses) {
+        if (r.user_id === user.id) userAnswers[r.question_id] = r.option_id
+      }
+    }
+
+    const statsQuestions: StatsQuestion[] = quiz.questions.map(q => {
+      const optCounts = questionMap[q.id] || {}
+      const totalForQuestion = Object.values(optCounts).reduce((s, c) => s + c, 0)
+      return {
+        id: q.id,
+        question_text: q.question_text,
+        options: q.quiz_options.map(opt => ({
+          id: opt.id,
+          option_text: opt.option_text,
+          count: optCounts[opt.id] || 0,
+          percentage: totalForQuestion > 0
+            ? Math.round(((optCounts[opt.id] || 0) / totalForQuestion) * 100)
+            : 0,
+        })),
+      }
+    })
+
+    return {
+      questions: statsQuestions,
+      user_answers: Object.keys(userAnswers).length ? userAnswers : null,
+    }
+  }
+
   async function fetchStats() {
-    const res = await fetch(`/api/sondaje/${quiz.id}/statistici`)
-    if (res.ok) {
-      const data = await res.json()
+    const data = await buildStats()
+    if (data) {
       setStats(data)
       setPhase('results')
     }
   }
 
   async function fetchPeek() {
-    const res = await fetch(`/api/sondaje/${quiz.id}/peek`, { method: 'POST' })
-    if (res.ok) {
-      const data = await res.json()
-      onPeeked?.()
-      setStats(data)
-      setPhase('results')
-    } else {
-      const data = await res.json().catch(() => ({}))
-      setPeekError(data.error || 'Nu s-au putut încărca rezultatele.')
+    try {
+      const supabase = getSupabase()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { setPeekError('Nu ești autentificat'); return }
+
+      await supabase.from('quiz_peeks').insert({ quiz_id: quiz.id, user_id: user.id })
+
+      const data = await buildStats()
+      if (data) {
+        onPeeked?.()
+        setStats(data)
+        setPhase('results')
+      } else {
+        setPeekError('Nu s-au putut încărca rezultatele.')
+      }
+    } catch {
+      setPeekError('Nu s-au putut încărca rezultatele.')
     }
   }
 
@@ -182,24 +236,59 @@ export function QuizOverlay({ quiz, mode, onClose, onCompleted, onPeeked }: Prop
 
   async function submitAnswers(finalAnswers: Record<string, string>) {
     setPhase('submitting')
-    const res = await fetch(`/api/sondaje/${quiz.id}/raspuns`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ answers: finalAnswers }),
-    })
-    if (res.ok) {
-      const data = await res.json()
+    try {
+      const supabase = getSupabase()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+
+      const { data: existing } = await supabase
+        .from('quiz_responses')
+        .select('id')
+        .eq('quiz_id', quiz.id)
+        .eq('user_id', user.id)
+        .limit(1)
+      if (existing?.length) return
+
+      const answerRows = Object.entries(finalAnswers).map(([question_id, option_id]) => ({
+        quiz_id: quiz.id,
+        user_id: user.id,
+        question_id,
+        option_id,
+      }))
+      await supabase.from('quiz_responses').insert(answerRows)
+
+      await supabase.rpc('increment_quiz_response_count', { quiz_id_input: quiz.id })
+
+      const { data: quizRow } = await supabase
+        .from('quizzes')
+        .select('response_count, reveal_threshold, results_unlocked_at')
+        .eq('id', quiz.id)
+        .single()
+
+      const unlocked = !!quizRow?.results_unlocked_at ||
+        (quizRow ? quizRow.response_count >= quizRow.reveal_threshold : false)
+
+      if (quizRow && quizRow.response_count >= quizRow.reveal_threshold && !quizRow.results_unlocked_at) {
+        await supabase
+          .from('quizzes')
+          .update({ results_unlocked_at: new Date().toISOString() })
+          .eq('id', quiz.id)
+      }
+
       const unlockData: UnlockData = {
-        unlocked: data.unlocked,
-        response_count: data.response_count,
-        reveal_threshold: data.reveal_threshold,
+        unlocked,
+        response_count: quizRow?.response_count ?? 0,
+        reveal_threshold: quizRow?.reveal_threshold ?? 0,
       }
       onCompleted(unlockData)
-      if (data.unlocked) {
+
+      if (unlocked) {
         await fetchStats()
       } else {
         onClose()
       }
+    } catch {
+      onClose()
     }
   }
 

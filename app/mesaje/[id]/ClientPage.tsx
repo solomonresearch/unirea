@@ -267,16 +267,25 @@ export default function ChatPage() {
     setNewMessage('')
     setSending(true)
 
-    const res = await fetch('/api/mesaje/send', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        conversation_id: conversationId,
-        content,
-      }),
-    })
+    const supabase = getSupabase()
 
-    if (!res.ok) {
+    // Auto-unarchive if archived
+    await supabase
+      .from('conversation_participants')
+      .update({ archived_at: null })
+      .eq('conversation_id', conversationId)
+      .eq('user_id', currentUserId)
+      .not('archived_at', 'is', null)
+
+    const { error } = await supabase
+      .from('messages')
+      .insert({
+        conversation_id: conversationId,
+        user_id: currentUserId,
+        content,
+      })
+
+    if (error) {
       setMessages(prev => prev.filter(m => m.id !== tempId))
       setNewMessage(content)
     }

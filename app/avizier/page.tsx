@@ -14,6 +14,7 @@ import { NotificationBell } from '@/components/NotificationBell'
 import { MentionInput } from '@/components/MentionInput'
 import { MentionText } from '@/components/MentionText'
 import { relativeTime, getInitials } from '@/lib/utils'
+import { processMentions } from '@/lib/mentions'
 
 type Scope = 'clasa' | 'promotie' | 'liceu'
 
@@ -263,16 +264,61 @@ export default function AvizierPage() {
   }, [])
 
   const loadQuizzes = useCallback(async (s: Scope) => {
+    if (!profile) return
     setQuizzesLoading(true)
-    const res = await fetch(`/api/sondaje?scope=${QUIZ_SCOPE[s]}`)
-    if (res.ok) {
-      const data = await res.json()
-      setQuizzes(data.quizzes || [])
-    } else {
+    const supabase = getSupabase()
+    const scopeFilter = QUIZ_SCOPE[s]
+
+    const { data: allQuizzes } = await supabase
+      .from('quizzes')
+      .select('*, quiz_questions(*, quiz_options(*))')
+      .eq('active', true)
+      .order('created_at', { ascending: false })
+
+    const now = new Date()
+    const scopedQuizzes = (allQuizzes || []).filter((quiz: any) => {
+      if (quiz.expires_at && new Date(quiz.expires_at) < now) return false
+      if (scopeFilter && quiz.target_scope !== scopeFilter) return false
+      if (quiz.target_scope === 'all') return true
+      if (quiz.target_scope === 'school') return quiz.target_highschool === profile.highschool
+      if (quiz.target_scope === 'year') return quiz.target_highschool === profile.highschool && quiz.target_year === profile.graduation_year
+      if (quiz.target_scope === 'class') return quiz.target_highschool === profile.highschool && quiz.target_year === profile.graduation_year && quiz.target_class === profile.class
+      return false
+    })
+
+    if (scopedQuizzes.length === 0) {
       setQuizzes([])
+      setQuizzesLoading(false)
+      return
     }
+
+    const quizIds = scopedQuizzes.map((q: any) => q.id)
+    const [{ data: userResponses }, { data: userPeeks }] = await Promise.all([
+      supabase.from('quiz_responses').select('quiz_id').eq('user_id', profile.id).in('quiz_id', quizIds),
+      supabase.from('quiz_peeks').select('quiz_id').eq('user_id', profile.id).in('quiz_id', quizIds),
+    ])
+
+    const completedIds = new Set((userResponses || []).map((r: any) => r.quiz_id))
+    const peekedIds = new Set((userPeeks || []).map((r: any) => r.quiz_id))
+
+    setQuizzes(scopedQuizzes.map((quiz: any) => {
+      const questions = (quiz.quiz_questions || [])
+        .sort((a: any, b: any) => a.order_index - b.order_index)
+        .map((q: any) => ({
+          ...q,
+          quiz_options: (q.quiz_options || []).sort((a: any, b: any) => a.order_index - b.order_index),
+        }))
+      return {
+        id: quiz.id, title: quiz.title, description: quiz.description,
+        target_scope: quiz.target_scope, active: quiz.active, expires_at: quiz.expires_at,
+        created_by: quiz.created_by, created_at: quiz.created_at, questions,
+        completed: completedIds.has(quiz.id), has_peeked: peekedIds.has(quiz.id),
+        response_count: quiz.response_count ?? 0, reveal_threshold: quiz.reveal_threshold ?? 10,
+        results_unlocked_at: quiz.results_unlocked_at ?? null, anonymous_mode: quiz.anonymous_mode ?? false,
+      }
+    }))
     setQuizzesLoading(false)
-  }, [])
+  }, [profile])
 
   useEffect(() => {
     if (!profile) return
@@ -306,19 +352,34 @@ export default function AvizierPage() {
     setSubmitting(true)
     setSubmitError(null)
 
-    const body: Record<string, unknown> = { content: newContent.trim(), scope }
-    if (scope === 'liceu') body.expiry_days = expiryDays
+    const supabase = getSupabase()
+    const dbScope = DB_SCOPE[scope]
 
-    const res = await fetch('/api/avizier', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    })
+    let expiresAt: string | null = null
+    if (dbScope === 'school') {
+      const d = new Date()
+      d.setDate(d.getDate() + expiryDays)
+      expiresAt = d.toISOString()
+    }
 
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}))
-      setSubmitError(data.error ?? `Eroare ${res.status}`)
+    const { data: created, error } = await supabase
+      .from('avizier_posts')
+      .insert({
+        user_id: profile.id,
+        scope: dbScope,
+        highschool: profile.highschool,
+        graduation_year: dbScope !== 'school' ? profile.graduation_year : null,
+        class: dbScope === 'class' ? profile.class : null,
+        content: newContent.trim(),
+        expires_at: expiresAt,
+      })
+      .select('id')
+      .single()
+
+    if (error) {
+      setSubmitError(error.message)
     } else {
+      await processMentions(supabase, profile.id, newContent.trim(), 'avizier', created.id)
       setNewContent('')
       await loadPosts(profile, scope)
     }
@@ -891,17 +952,31 @@ export default function AvizierPage() {
                 if (modalScope === 'promotie' && !profile.graduation_year) return
                 setSubmitting(true)
                 setSubmitError(null)
-                const body: Record<string, unknown> = { content: newContent.trim(), scope: modalScope }
-                if (modalScope === 'liceu') body.expiry_days = modalExpiryDays
-                const res = await fetch('/api/avizier', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify(body),
-                })
-                if (!res.ok) {
-                  const data = await res.json().catch(() => ({}))
-                  setSubmitError(data.error ?? `Eroare ${res.status}`)
+                const supabase = getSupabase()
+                const mDbScope = DB_SCOPE[modalScope]
+                let mExpiresAt: string | null = null
+                if (mDbScope === 'school') {
+                  const d = new Date()
+                  d.setDate(d.getDate() + modalExpiryDays)
+                  mExpiresAt = d.toISOString()
+                }
+                const { data: created, error } = await supabase
+                  .from('avizier_posts')
+                  .insert({
+                    user_id: profile.id,
+                    scope: mDbScope,
+                    highschool: profile.highschool,
+                    graduation_year: mDbScope !== 'school' ? profile.graduation_year : null,
+                    class: mDbScope === 'class' ? profile.class : null,
+                    content: newContent.trim(),
+                    expires_at: mExpiresAt,
+                  })
+                  .select('id')
+                  .single()
+                if (error) {
+                  setSubmitError(error.message)
                 } else {
+                  await processMentions(supabase, profile.id, newContent.trim(), 'avizier', created.id)
                   setNewContent('')
                   setShowPostModal(false)
                   await loadPosts(profile, scope)

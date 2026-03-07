@@ -70,11 +70,76 @@ export default function CaruselPage() {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const fetchPosts = useCallback(async (s: Scope) => {
-    const res = await fetch(`/api/carusel?scope=${s}`)
-    if (res.ok) {
-      const data = await res.json()
-      setPosts(data.posts)
+    const supabase = getSupabase()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('highschool, graduation_year, class')
+      .eq('id', user.id)
+      .single()
+    if (!profile) return
+
+    const scopeMap: Record<Scope, string> = { clasa: 'class', promotie: 'promotion', liceu: 'school' }
+    const dbScope = scopeMap[s]
+
+    let query = supabase
+      .from('carusel_posts')
+      .select('id, caption, storage_path, user_id, created_at, scope, highschool, graduation_year, class, profiles!user_id(name, username)')
+      .is('deleted_at', null)
+      .order('created_at', { ascending: false })
+
+    if (dbScope === 'school') {
+      query = query.eq('highschool', profile.highschool)
+        .in('scope', ['school', 'promotion', 'class'])
+    } else if (dbScope === 'promotion') {
+      query = query.eq('highschool', profile.highschool)
+        .eq('graduation_year', profile.graduation_year)
+        .in('scope', ['promotion', 'class'])
+    } else {
+      query = query.eq('highschool', profile.highschool)
+        .eq('graduation_year', profile.graduation_year)
+        .eq('class', profile.class)
+        .eq('scope', 'class')
     }
+
+    const { data: rawPosts } = await query
+    if (!rawPosts) { setPosts([]); return }
+
+    const postIds = rawPosts.map(p => p.id)
+
+    const [{ data: allLikes }, { data: userLikes }, { data: allComments }] = await Promise.all([
+      supabase.from('carusel_likes').select('post_id').in('post_id', postIds),
+      supabase.from('carusel_likes').select('post_id').in('post_id', postIds).eq('user_id', user.id),
+      supabase.from('carusel_comments').select('id, post_id, content, created_at, user_id, profiles!user_id(name, username)').in('post_id', postIds).is('deleted_at', null).order('created_at', { ascending: true }),
+    ])
+
+    const likeCounts: Record<string, number> = {}
+    allLikes?.forEach(l => { likeCounts[l.post_id] = (likeCounts[l.post_id] || 0) + 1 })
+    const userLikedSet = new Set(userLikes?.map(l => l.post_id))
+    const commentsByPost: Record<string, CaruselComment[]> = {}
+    allComments?.forEach(c => {
+      if (!commentsByPost[c.post_id]) commentsByPost[c.post_id] = []
+      commentsByPost[c.post_id].push(c as unknown as CaruselComment)
+    })
+
+    const posts: CaruselPost[] = rawPosts.map(p => {
+      const { data: { publicUrl } } = supabase.storage.from('carusel').getPublicUrl(p.storage_path)
+      return {
+        id: p.id,
+        caption: p.caption,
+        image_url: publicUrl,
+        user_id: p.user_id,
+        profiles: p.profiles as unknown as { name: string; username: string },
+        likes: likeCounts[p.id] || 0,
+        liked: userLikedSet.has(p.id),
+        comments: commentsByPost[p.id] || [],
+        created_at: p.created_at,
+      }
+    })
+
+    setPosts(posts)
   }, [])
 
   useEffect(() => {
@@ -147,46 +212,124 @@ export default function CaruselPage() {
     setUploading(true)
     setUploadError(null)
 
-    const formData = new FormData()
-    formData.append('file', uploadFile)
-    formData.append('caption', uploadCaption)
-    formData.append('scope', uploadScope)
+    try {
+      const supabase = getSupabase()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { setUploadError('Nu esti autentificat'); setUploading(false); return }
 
-    const res = await fetch('/api/carusel', { method: 'POST', body: formData })
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('name, username, highschool, graduation_year, class')
+        .eq('id', user.id)
+        .single()
+      if (!profile) { setUploadError('Profil negasit'); setUploading(false); return }
 
-    if (!res.ok) {
-      const err = await res.json()
-      setUploadError(err.error || 'Eroare la incarcare')
-      setUploading(false)
-      return
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/webp']
+      if (!allowedTypes.includes(uploadFile.type)) { setUploadError('Format invalid. Doar JPEG, PNG sau WebP.'); setUploading(false); return }
+      if (uploadFile.size > 4 * 1024 * 1024) { setUploadError('Fisierul depaseste 4MB.'); setUploading(false); return }
+
+      const storagePath = `${user.id}/${Date.now()}-${uploadFile.name}`
+      const { error: uploadErr } = await supabase.storage.from('carusel').upload(storagePath, uploadFile)
+      if (uploadErr) { setUploadError(uploadErr.message || 'Eroare la incarcare'); setUploading(false); return }
+
+      const scopeMap: Record<Scope, string> = { clasa: 'class', promotie: 'promotion', liceu: 'school' }
+      const dbScope = scopeMap[uploadScope]
+
+      const { data: inserted, error: insertErr } = await supabase
+        .from('carusel_posts')
+        .insert({
+          user_id: user.id,
+          caption: uploadCaption.trim() || null,
+          storage_path: storagePath,
+          original_filename: uploadFile.name,
+          mime_type: uploadFile.type,
+          file_size: uploadFile.size,
+          scope: dbScope,
+          highschool: profile.highschool,
+          graduation_year: profile.graduation_year,
+          class: profile.class,
+        })
+        .select('id, caption, storage_path, user_id, created_at')
+        .single()
+
+      if (insertErr || !inserted) {
+        await supabase.storage.from('carusel').remove([storagePath])
+        setUploadError(insertErr?.message || 'Eroare la salvare')
+        setUploading(false)
+        return
+      }
+
+      const { data: { publicUrl } } = supabase.storage.from('carusel').getPublicUrl(storagePath)
+
+      const newPost: CaruselPost = {
+        id: inserted.id,
+        caption: inserted.caption,
+        image_url: publicUrl,
+        user_id: inserted.user_id,
+        profiles: { name: profile.name, username: profile.username },
+        likes: 0,
+        liked: false,
+        comments: [],
+        created_at: inserted.created_at,
+      }
+
+      if (uploadScope === scope) {
+        setPosts(prev => [newPost, ...prev])
+      }
+      clearUpload()
+    } catch {
+      setUploadError('Eroare la incarcare')
     }
-
-    const newPost = await res.json()
-    if (uploadScope === scope) {
-      setPosts(prev => [newPost, ...prev])
-    }
-    clearUpload()
     setUploading(false)
   }
 
   async function toggleLike(postId: string) {
     const post = posts.find(p => p.id === postId)
-    if (!post) return
+    if (!post || !userId) return
 
     const newLiked = !post.liked
     const newLikes = newLiked ? post.likes + 1 : post.likes - 1
 
     setPosts(prev => prev.map(p => p.id === postId ? { ...p, liked: newLiked, likes: newLikes } : p))
 
-    const res = await fetch(`/api/carusel/${postId}/like`, { method: 'POST' })
-    if (!res.ok) {
+    try {
+      const supabase = getSupabase()
+      const { data: existing } = await supabase
+        .from('carusel_likes')
+        .select('post_id')
+        .eq('post_id', postId)
+        .eq('user_id', userId)
+        .maybeSingle()
+
+      if (existing) {
+        const { error } = await supabase.from('carusel_likes').delete().eq('post_id', postId).eq('user_id', userId)
+        if (error) throw error
+      } else {
+        const { error } = await supabase.from('carusel_likes').insert({ post_id: postId, user_id: userId })
+        if (error) throw error
+      }
+    } catch {
       setPosts(prev => prev.map(p => p.id === postId ? { ...p, liked: post.liked, likes: post.likes } : p))
     }
   }
 
   async function deletePost(postId: string) {
-    const res = await fetch(`/api/carusel/${postId}`, { method: 'DELETE' })
-    if (res.ok) {
+    const supabase = getSupabase()
+    const { data: postData } = await supabase
+      .from('carusel_posts')
+      .select('storage_path')
+      .eq('id', postId)
+      .single()
+
+    const { error } = await supabase
+      .from('carusel_posts')
+      .update({ deleted_at: new Date().toISOString() })
+      .eq('id', postId)
+
+    if (!error) {
+      if (postData?.storage_path) {
+        await supabase.storage.from('carusel').remove([postData.storage_path])
+      }
       setPosts(prev => prev.filter(p => p.id !== postId))
     }
   }

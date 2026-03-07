@@ -38,20 +38,28 @@ export default function AdminPage() {
   useEffect(() => {
     let cancelled = false
     async function init() {
-      const { data: { session } } = await getSupabase().auth.getSession()
+      const supabase = getSupabase()
+      const { data: { user } } = await supabase.auth.getUser()
       if (cancelled) return
-      if (!session) { router.push('/autentificare'); return }
-      setCurrentUserId(session.user.id)
+      if (!user) { router.push('/autentificare'); return }
+      setCurrentUserId(user.id)
 
-      const res = await fetch('/api/admin/users', {
-        headers: { Authorization: `Bearer ${session.access_token}` },
-      })
+      // Check admin role
+      const { data: callerProfile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single()
       if (cancelled) return
-      if (res.status === 401) { router.push('/avizier'); return }
+      if (!callerProfile || callerProfile.role !== 'admin') { router.push('/avizier'); return }
 
-      const data = await res.json()
+      // Load all users
+      const { data: allUsers } = await supabase
+        .from('profiles')
+        .select('id, name, username, email, role, created_at')
+        .order('created_at', { ascending: false })
       if (cancelled) return
-      setUsers(data.users || [])
+      setUsers((allUsers || []) as User[])
       setLoading(false)
     }
     init()
@@ -60,18 +68,14 @@ export default function AdminPage() {
   }, [])
 
   async function changeRole(userId: string, newRole: string) {
+    if (userId === currentUserId) return // prevent self-demotion
     setUpdatingId(userId)
-    const { data: { session } } = await getSupabase().auth.getSession()
-    const res = await fetch('/api/admin/users', {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(session ? { Authorization: `Bearer ${session.access_token}` } : {}),
-      },
-      body: JSON.stringify({ userId, role: newRole }),
-    })
+    const { error } = await getSupabase()
+      .from('profiles')
+      .update({ role: newRole })
+      .eq('id', userId)
 
-    if (res.ok) {
+    if (!error) {
       setUsers(prev => prev.map(u => u.id === userId ? { ...u, role: newRole } : u))
     }
     setUpdatingId(null)

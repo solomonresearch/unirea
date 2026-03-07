@@ -76,16 +76,32 @@ function KanbanContent() {
   )
 
   const loadCards = useCallback(async () => {
-    const res = await fetch('/api/kanban')
-    if (!res.ok) {
-      console.error('Error loading cards')
+    const { data, error } = await supabase
+      .from('kanban_cards')
+      .select('*, profiles:created_by(name)')
+      .eq('archived', false)
+      .order('position', { ascending: true })
+
+    if (error) {
+      console.error('Error loading cards', error.message)
       setLoading(false)
       return
     }
-    const data: KanbanCardData[] = await res.json()
-    setCards(data)
+
+    setCards((data || []).map((row: any) => ({
+      id: row.id,
+      title: row.title,
+      description: row.description,
+      status: row.status,
+      position: row.position,
+      card_number: row.card_number,
+      created_by: row.created_by,
+      creator_name: row.profiles?.name ?? null,
+      created_at: row.created_at,
+      updated_at: row.updated_at,
+    })))
     setLoading(false)
-  }, [])
+  }, [supabase])
 
   useEffect(() => {
     loadCards()
@@ -204,17 +220,16 @@ function KanbanContent() {
       return [...others, ...updated]
     })
 
-    const res = await fetch(`/api/kanban/${activeId}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
+    const { error } = await supabase
+      .from('kanban_cards')
+      .update({
         status: targetStatus,
         position: reordered.findIndex(c => c.id === activeId),
-      }),
-    })
+      })
+      .eq('id', activeId)
 
-    if (!res.ok) {
-      console.error('Error updating card')
+    if (error) {
+      console.error('Error updating card', error.message)
       loadCards()
     }
   }
@@ -222,18 +237,29 @@ function KanbanContent() {
   const createCard = async () => {
     if (!newCard.title.trim()) return
 
-    const res = await fetch('/api/kanban', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
+    const { data: existing } = await supabase
+      .from('kanban_cards')
+      .select('position')
+      .eq('status', newCard.status)
+      .order('position', { ascending: false })
+      .limit(1)
+
+    const nextPosition = existing && existing.length > 0 ? existing[0].position + 1 : 0
+
+    const { data: { user } } = await supabase.auth.getUser()
+
+    const { error } = await supabase
+      .from('kanban_cards')
+      .insert({
         title: newCard.title.trim(),
         description: newCard.description.trim() || null,
         status: newCard.status,
-      }),
-    })
+        position: nextPosition,
+        created_by: user?.id ?? null,
+      })
 
-    if (!res.ok) {
-      console.error('Error creating card')
+    if (error) {
+      console.error('Error creating card', error.message)
       return
     }
 
@@ -245,9 +271,13 @@ function KanbanContent() {
   const deleteCard = async (cardId: string) => {
     setCards(prev => prev.filter(c => c.id !== cardId))
 
-    const res = await fetch(`/api/kanban/${cardId}`, { method: 'DELETE' })
-    if (!res.ok) {
-      console.error('Error deleting card')
+    const { error } = await supabase
+      .from('kanban_cards')
+      .update({ archived: true })
+      .eq('id', cardId)
+
+    if (error) {
+      console.error('Error deleting card', error.message)
       loadCards()
     }
   }
@@ -270,14 +300,13 @@ function KanbanContent() {
     )
     setEditCard(null)
 
-    const res = await fetch(`/api/kanban/${editCard.id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(updates),
-    })
+    const { error } = await supabase
+      .from('kanban_cards')
+      .update(updates)
+      .eq('id', editCard.id)
 
-    if (!res.ok) {
-      console.error('Error updating card')
+    if (error) {
+      console.error('Error updating card', error.message)
       loadCards()
     }
   }

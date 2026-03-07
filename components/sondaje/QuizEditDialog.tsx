@@ -7,6 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { getSupabase } from '@/lib/supabase'
 
 interface Quiz {
   id: string
@@ -44,11 +45,12 @@ export function QuizEditDialog({ quiz, open, onOpenChange, onSaved, onDeleted }:
     setDeleting(true)
     setError('')
     try {
-      const res = await fetch(`/api/sondaje/${quiz.id}`, { method: 'DELETE' })
-      if (!res.ok) {
-        const data = await res.json()
-        throw new Error(data.error || 'Eroare la stergere')
-      }
+      const supabase = getSupabase()
+      const { error: delErr } = await supabase
+        .from('quizzes')
+        .update({ active: false })
+        .eq('id', quiz.id)
+      if (delErr) throw new Error(delErr.message)
       onDeleted()
       onOpenChange(false)
     } catch (err: any) {
@@ -64,21 +66,18 @@ export function QuizEditDialog({ quiz, open, onOpenChange, onSaved, onDeleted }:
     setLoading(true)
     setError('')
     try {
-      const res = await fetch(`/api/sondaje/${quiz.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      const supabase = getSupabase()
+      const { error: saveErr } = await supabase
+        .from('quizzes')
+        .update({
           title: title.trim(),
           description: description.trim() || null,
           expires_at: expiresAt || null,
           reveal_threshold: Math.min(100, Math.max(2, revealThreshold)),
           active,
-        }),
-      })
-      if (!res.ok) {
-        const data = await res.json()
-        throw new Error(data.error || 'Eroare la salvare')
-      }
+        })
+        .eq('id', quiz.id)
+      if (saveErr) throw new Error(saveErr.message)
       onSaved()
       onOpenChange(false)
     } catch (err: any) {

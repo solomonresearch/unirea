@@ -54,11 +54,16 @@ export function NotificationBell() {
       if (!user) return
       setUserId(user.id)
 
-      const res = await fetch('/api/notifications')
-      if (res.ok) {
-        const data = await res.json()
-        setNotifications(data.notifications || [])
-        setUnreadCount((data.notifications || []).filter((n: Notification) => !n.read_at).length)
+      const { data, error } = await supabase
+        .from('notifications')
+        .select('id, type, context, reference_id, content_preview, read_at, created_at, actor:profiles!actor_id(id, name, username, avatar_url)')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(50)
+
+      if (!error && data) {
+        setNotifications(data as unknown as Notification[])
+        setUnreadCount(data.filter((n: any) => !n.read_at).length)
       }
     }
     load()
@@ -112,7 +117,12 @@ export function NotificationBell() {
     if (!open && unreadCount > 0) {
       setUnreadCount(0)
       setNotifications(prev => prev.map(n => ({ ...n, read_at: n.read_at || new Date().toISOString() })))
-      await fetch('/api/notifications', { method: 'PATCH' })
+      const supabase = getSupabase()
+      await supabase
+        .from('notifications')
+        .update({ read_at: new Date().toISOString() })
+        .eq('user_id', userId!)
+        .is('read_at', null)
     }
   }
 
