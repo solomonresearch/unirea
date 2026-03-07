@@ -19,6 +19,7 @@ import {
 import { arrayMove, sortableKeyboardCoordinates } from '@dnd-kit/sortable'
 import { Plus, Volume2, VolumeX } from 'lucide-react'
 import { getSupabase } from '@/lib/supabase'
+import { AuthGuard } from '@/components/AuthGuard'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -43,6 +44,14 @@ const customCollisionDetection: CollisionDetection = (args) => {
 }
 
 export default function KanbanPage() {
+  return (
+    <AuthGuard>
+      <KanbanContent />
+    </AuthGuard>
+  )
+}
+
+function KanbanContent() {
   const supabase = getSupabase()
 
   const [cards, setCards] = useState<KanbanCardData[]>([])

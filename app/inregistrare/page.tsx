@@ -2,12 +2,15 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { getSupabase } from '@/lib/supabase'
 import { SearchSelect } from '@/components/SearchSelect'
 import { User, Mail, Phone, GraduationCap, Calendar, AtSign, Loader2, ArrowLeft, Lock, MapPin, Building } from 'lucide-react'
 
 export default function SignupPage() {
+  const router = useRouter()
   const [loading, setLoading] = useState(false)
+  const [checking, setChecking] = useState(true)
   const [error, setError] = useState('')
   const [form, setForm] = useState({
     name: '',
@@ -28,12 +31,23 @@ export default function SignupPage() {
   const [loadingScoli, setLoadingScoli] = useState(false)
 
   useEffect(() => {
+    getSupabase().auth.getUser().then(({ data: { user } }) => {
+      if (user) {
+        router.replace('/avizier')
+      } else {
+        setChecking(false)
+      }
+    })
+  }, [router])
+
+  useEffect(() => {
+    if (checking) return
     async function loadJudete() {
       const { data } = await getSupabase().rpc('get_judete')
       if (data) setJudete(data.map((r: { judet: string }) => r.judet))
     }
     loadJudete()
-  }, [])
+  }, [checking])
 
   useEffect(() => {
     if (!form.judet) { setLocalitati([]); return }
@@ -101,6 +115,8 @@ export default function SignupPage() {
       setLoading(false)
     }
   }
+
+  if (checking) return null
 
   const currentYear = new Date().getFullYear()
 

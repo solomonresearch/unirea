@@ -1,16 +1,31 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { getSupabase } from '@/lib/supabase'
 import { Mail, Lock, Loader2, ArrowLeft } from 'lucide-react'
 import { Logo } from '@/components/Logo'
 
 export default function LoginPage() {
+  const router = useRouter()
   const [loading, setLoading] = useState(false)
+  const [checking, setChecking] = useState(true)
   const [error, setError] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+
+  useEffect(() => {
+    getSupabase().auth.getUser().then(({ data: { user } }) => {
+      if (user) {
+        router.replace('/avizier')
+      } else {
+        setChecking(false)
+      }
+    })
+  }, [router])
+
+  if (checking) return null
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()

@@ -1,5 +1,14 @@
-import { redirect } from 'next/navigation'
+'use client'
+
+import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 
 export default function HartaPage() {
-  redirect('/cauta')
+  const router = useRouter()
+
+  useEffect(() => {
+    router.replace('/cauta')
+  }, [router])
+
+  return null
 }
