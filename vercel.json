@@ -1,0 +1,12 @@
+{
+  "rewrites": [
+    { "source": "/carusel/:id/", "destination": "/carusel/_/index.html" },
+    { "source": "/carusel/:id", "destination": "/carusel/_/index.html" },
+    { "source": "/mesaje/:id/", "destination": "/mesaje/_/index.html" },
+    { "source": "/mesaje/:id", "destination": "/mesaje/_/index.html" },
+    { "source": "/mesaje/invitatie/:code/", "destination": "/mesaje/invitatie/_/index.html" },
+    { "source": "/mesaje/invitatie/:code", "destination": "/mesaje/invitatie/_/index.html" },
+    { "source": "/cercuri/:id/", "destination": "/cercuri/_/index.html" },
+    { "source": "/cercuri/:id", "destination": "/cercuri/_/index.html" }
+  ]
+}
