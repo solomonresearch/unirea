@@ -147,11 +147,11 @@ export function TutorialModal({ profile, onDismiss }: Props) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center backdrop-blur-sm"
-      style={{ background: 'rgba(26,23,20,0.45)' }}
+      className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm"
+      style={{ background: 'rgba(26,23,20,0.45)', paddingTop: '92px', paddingBottom: '68px' }}
     >
       <div
-        className="w-full max-w-xs mx-auto rounded-t-2xl sm:rounded-2xl overflow-hidden shadow-2xl flex flex-col"
+        className="w-full max-w-xs mx-auto rounded-2xl overflow-hidden shadow-2xl flex flex-col"
         style={{ background: 'var(--cream)' }}
       >
         {/* Header */}
