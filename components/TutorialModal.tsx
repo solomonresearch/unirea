@@ -210,7 +210,6 @@ export function TutorialModal({ profile, onDismiss }: Props) {
             disabled={step === 0}
             className="flex items-center justify-center px-3 py-2 rounded-xl border text-sm transition-colors"
             style={{
-              borderColor: 'var(--border)',
               background: step === 0 ? 'transparent' : 'white',
               color: step === 0 ? 'transparent' : 'var(--ink)',
               borderColor: step === 0 ? 'transparent' : 'var(--border)',
