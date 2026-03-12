@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { getSupabase } from '@/lib/supabase'
 import { Loader2, Send, Trash2, ChevronUp, ChevronDown, MessageCircle, Clock, Plus, Users, Lock, Eye, CheckCircle2, Pencil, Search } from 'lucide-react'
+import { TutorialModal } from '@/components/TutorialModal'
 import { QuizOverlay } from '@/components/sondaje/QuizOverlay'
 import { QuizCreateDialog } from '@/components/sondaje/QuizCreateDialog'
 import { QuizEditDialog } from '@/components/sondaje/QuizEditDialog'
@@ -47,6 +48,7 @@ interface UserProfile {
   class: string | null
   role: string
   avatar_url: string | null
+  tutorial_completed: boolean
 }
 
 interface QuizOption {
@@ -153,6 +155,7 @@ export default function AvizierPage() {
   const [expandedComments, setExpandedComments] = useState<Set<string>>(new Set())
   const [commentTexts, setCommentTexts] = useState<Record<string, string>>({})
 
+  const [showTutorial, setShowTutorial] = useState(false)
   const [showPostModal, setShowPostModal] = useState(false)
   const [modalScope, setModalScope] = useState<Scope>('liceu')
   const [modalExpiryDays, setModalExpiryDays] = useState(7)
@@ -172,7 +175,7 @@ export default function AvizierPage() {
 
       const { data: profileData } = await supabase
         .from('profiles')
-        .select('id, name, highschool, graduation_year, class, role, avatar_url')
+        .select('id, name, highschool, graduation_year, class, role, avatar_url, tutorial_completed')
         .eq('id', user.id)
         .single()
 
@@ -183,6 +186,7 @@ export default function AvizierPage() {
 
       setProfile(profileData as UserProfile)
       setLoading(false)
+      if (!profileData.tutorial_completed) setShowTutorial(true)
 
       if (typeof window !== 'undefined') {
         const params = new URLSearchParams(window.location.search)
@@ -199,6 +203,16 @@ export default function AvizierPage() {
     }
     load()
   }, [router])
+
+  const handleTutorialDismiss = async () => {
+    setShowTutorial(false)
+    const supabase = getSupabase()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user) {
+      await supabase.from('profiles').update({ tutorial_completed: true }).eq('id', user.id)
+    }
+    router.push('/onboarding')
+  }
 
   const loadPosts = useCallback(async (p: UserProfile, s: Scope) => {
     setPostsLoading(true)
@@ -488,6 +502,9 @@ export default function AvizierPage() {
 
   return (
     <>
+      {showTutorial && profile && (
+        <TutorialModal profile={profile} onDismiss={handleTutorialDismiss} />
+      )}
       <main className="flex flex-col min-h-screen pb-24" style={{ background: 'var(--cream2)' }}>
         {/* Sticky topbar */}
         <header
