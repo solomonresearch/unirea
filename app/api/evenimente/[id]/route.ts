@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient, createServiceRoleClient } from '@/lib/supabase-server'
-import { v4 as uuidv4 } from 'uuid'
-
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
 
 function publicImageUrl(storagePath: string): string {
@@ -118,7 +116,7 @@ export async function PATCH(
     }
 
     const ext = file.type === 'image/png' ? 'png' : file.type === 'image/webp' ? 'webp' : 'jpg'
-    const storagePath = `${user.id}/${uuidv4()}.${ext}`
+    const storagePath = `${user.id}/${crypto.randomUUID()}.${ext}`
     const arrayBuffer = await file.arrayBuffer()
 
     const serviceClient = createServiceRoleClient()
