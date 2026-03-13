@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { X, Calendar, MapPin, Pencil, Trash2, Loader2 } from 'lucide-react'
+import { X, Calendar, MapPin, Pencil, Trash2, Loader2, ExternalLink } from 'lucide-react'
 import { getInitials } from '@/lib/utils'
 import type { EvenimentDetail } from './types'
 
@@ -33,6 +33,60 @@ function avatarColor(name: string): string {
   let hash = 0
   for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash)
   return colors[Math.abs(hash) % colors.length]
+}
+
+function downloadIcs(title: string, dateStr: string, timeStr: string | null, location: string | null, description: string | null) {
+  // Build start/end datetime strings in iCal format
+  const dateParts = dateStr.replace(/-/g, '')
+  let dtStart: string
+  let dtEnd: string
+
+  if (timeStr) {
+    const timeParts = timeStr.replace(/:/g, '').slice(0, 6).padEnd(6, '0')
+    dtStart = `${dateParts}T${timeParts}`
+    // Default duration: 2 hours
+    const [h, m] = timeStr.split(':').map(Number)
+    const endH = String((h + 2) % 24).padStart(2, '0')
+    dtEnd = `${dateParts}T${endH}${String(m).padStart(2, '0')}00`
+  } else {
+    dtStart = `${dateParts}`
+    dtEnd = `${dateParts}`
+  }
+
+  const isAllDay = !timeStr
+  const dtStartLine = isAllDay ? `DTSTART;VALUE=DATE:${dtStart}` : `DTSTART:${dtStart}`
+  const dtEndLine = isAllDay ? `DTEND;VALUE=DATE:${dtEnd}` : `DTEND:${dtEnd}`
+
+  const uid = `${Date.now()}@unirea.app`
+  const now = new Date().toISOString().replace(/[-:.]/g, '').slice(0, 15) + 'Z'
+
+  const lines = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//Unirea//Unirea App//RO',
+    'BEGIN:VEVENT',
+    `UID:${uid}`,
+    `DTSTAMP:${now}`,
+    dtStartLine,
+    dtEndLine,
+    `SUMMARY:${title}`,
+    location ? `LOCATION:${location}` : '',
+    description ? `DESCRIPTION:${description.replace(/\n/g, '\\n')}` : '',
+    'END:VEVENT',
+    'END:VCALENDAR',
+  ].filter(Boolean).join('\r\n')
+
+  const blob = new Blob([lines], { type: 'text/calendar;charset=utf-8' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `${title.replace(/[^a-z0-9]/gi, '_')}.ics`
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
+function mapsUrl(location: string): string {
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location)}`
 }
 
 function formatEventDate(dateStr: string, timeStr: string | null): string {
@@ -167,27 +221,36 @@ export function EvenimentDetailModal({
             {event.title}
           </h2>
 
-          {/* Date pill */}
+          {/* Date pill — click to download ICS */}
           <div className="flex items-center gap-2">
-            <span
-              className="flex items-center gap-1.5 rounded-full px-3 py-1"
+            <button
+              type="button"
+              onClick={() => downloadIcs(event.title, event.event_date, event.event_time, event.location, event.description)}
+              className="flex items-center gap-1.5 rounded-full px-3 py-1 transition-opacity hover:opacity-70 active:opacity-50"
               style={{ background: 'var(--cream2)', border: '1px solid var(--border)', fontSize: '11px', color: 'var(--ink2)', fontWeight: 500 }}
+              title="Adaugă în calendar"
             >
               <Calendar size={12} style={{ color: 'var(--ink3)' }} />
               {formatEventDate(event.event_date, event.event_time)}
-            </span>
+              <ExternalLink size={10} style={{ color: 'var(--ink3)', marginLeft: '2px' }} />
+            </button>
           </div>
 
-          {/* Location pill */}
+          {/* Location pill — click to open Google Maps */}
           {event.location && (
             <div className="flex items-center gap-2">
-              <span
-                className="flex items-center gap-1.5 rounded-full px-3 py-1"
-                style={{ background: 'var(--cream2)', border: '1px solid var(--border)', fontSize: '11px', color: 'var(--ink2)', fontWeight: 500 }}
+              <a
+                href={mapsUrl(event.location)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 rounded-full px-3 py-1 transition-opacity hover:opacity-70 active:opacity-50"
+                style={{ background: 'var(--cream2)', border: '1px solid var(--border)', fontSize: '11px', color: 'var(--ink2)', fontWeight: 500, textDecoration: 'none' }}
+                title="Deschide în Maps"
               >
                 <MapPin size={12} style={{ color: 'var(--ink3)' }} />
                 {event.location}
-              </span>
+                <ExternalLink size={10} style={{ color: 'var(--ink3)', marginLeft: '2px' }} />
+              </a>
             </div>
           )}
 
