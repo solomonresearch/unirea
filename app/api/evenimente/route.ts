@@ -63,7 +63,7 @@ export async function GET(request: NextRequest) {
   const events = rows.map(row => {
     const eventParts = participants.filter(p => p.eveniment_id === row.id)
     const attending = eventParts.some(p => p.user_id === user.id)
-    const topParticipants = eventParts.slice(0, 3).map((p: any) => ({
+    const topParticipants = eventParts.slice(0, 4).map((p: any) => ({
       id: p.profiles.id,
       name: p.profiles.name,
       avatar_url: p.profiles.avatar_url,

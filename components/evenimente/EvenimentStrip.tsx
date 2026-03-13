@@ -34,7 +34,8 @@ export function EvenimentStrip({ events, loading, onAddClick, onCardClick }: Pro
         </Link>
       </div>
 
-      {/* Scrollable row — edge-to-edge */}
+      {/* Scrollable row — constrained to max-w-sm */}
+      <div className="max-w-sm mx-auto">
       <div
         className="flex gap-3 overflow-x-auto pb-2"
         style={{ paddingLeft: '16px', paddingRight: '16px', scrollbarWidth: 'none', msOverflowStyle: 'none' }}
@@ -60,6 +61,7 @@ export function EvenimentStrip({ events, loading, onAddClick, onCardClick }: Pro
             <span style={{ fontSize: '11px', color: 'var(--ink3)' }}>Niciun eveniment viitor.</span>
           </div>
         )}
+      </div>
       </div>
     </div>
   )

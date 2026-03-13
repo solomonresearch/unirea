@@ -113,32 +113,33 @@ export function EvenimentCard({ event, onClick }: Props) {
 
         {/* Participants */}
         <div className="flex items-center gap-1 mt-1">
-          {event.top_participants.length > 0 && (
-            <div className="flex -space-x-1.5">
-              {event.top_participants.map(p => (
-                <div
-                  key={p.id}
-                  className="w-5 h-5 rounded-full border-2 border-white flex items-center justify-center overflow-hidden flex-shrink-0"
-                  style={{ background: p.avatar_url ? undefined : avatarColor(p.name) }}
-                >
-                  {p.avatar_url ? (
-                    <img src={p.avatar_url} alt={p.name} className="w-full h-full object-cover" />
-                  ) : (
-                    <span style={{ fontSize: '7px', fontWeight: 700, color: 'white' }}>
-                      {getInitials(p.name)}
-                    </span>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-          {event.participant_count > 0 && (
-            <span style={{ fontSize: '9px', color: 'var(--ink3)', fontWeight: 600 }}>
-              {event.participant_count} {event.participant_count === 1 ? 'participant' : 'participanți'}
-            </span>
-          )}
-          {event.participant_count === 0 && (
+          {event.participant_count === 0 ? (
             <span style={{ fontSize: '9px', color: 'var(--ink3)' }}>Fii primul!</span>
+          ) : (
+            <>
+              <div className="flex -space-x-1.5">
+                {event.top_participants.slice(0, 4).map(p => (
+                  <div
+                    key={p.id}
+                    className="w-5 h-5 rounded-full border-2 border-white flex items-center justify-center overflow-hidden flex-shrink-0"
+                    style={{ background: p.avatar_url ? undefined : avatarColor(p.name) }}
+                  >
+                    {p.avatar_url ? (
+                      <img src={p.avatar_url} alt={p.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <span style={{ fontSize: '7px', fontWeight: 700, color: 'white' }}>
+                        {getInitials(p.name)}
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+              {event.participant_count > 4 && (
+                <span style={{ fontSize: '9px', color: 'var(--ink3)', fontWeight: 600 }}>
+                  +{event.participant_count - 4}
+                </span>
+              )}
+            </>
           )}
         </div>
       </div>
