@@ -16,6 +16,10 @@ import { MentionInput } from '@/components/MentionInput'
 import { MentionText } from '@/components/MentionText'
 import { relativeTime, getInitials } from '@/lib/utils'
 import { processMentions } from '@/lib/mentions'
+import { EvenimentStrip } from '@/components/evenimente/EvenimentStrip'
+import { EvenimentCreateModal } from '@/components/evenimente/EvenimentCreateModal'
+import { EvenimentDetailModal } from '@/components/evenimente/EvenimentDetailModal'
+import type { Eveniment, EvenimentDetail } from '@/components/evenimente/types'
 
 type Scope = 'clasa' | 'promotie' | 'liceu'
 
@@ -167,6 +171,12 @@ export default function AvizierPage() {
   const [createQuizOpen, setCreateQuizOpen] = useState(false)
   const [editingQuiz, setEditingQuiz] = useState<Quiz | null>(null)
 
+  const [events, setEvents] = useState<Eveniment[]>([])
+  const [eventsLoading, setEventsLoading] = useState(false)
+  const [showEventCreate, setShowEventCreate] = useState(false)
+  const [selectedEvent, setSelectedEvent] = useState<EvenimentDetail | null>(null)
+  const [editingEvent, setEditingEvent] = useState<EvenimentDetail | null>(null)
+
   useEffect(() => {
     async function load() {
       const supabase = getSupabase()
@@ -198,6 +208,9 @@ export default function AvizierPage() {
           window.history.replaceState({}, '', '/avizier')
           setModalScope(scope)
           setShowPostModal(true)
+        } else if (open === 'eveniment') {
+          window.history.replaceState({}, '', '/avizier')
+          setShowEventCreate(true)
         }
       }
     }
@@ -334,17 +347,26 @@ export default function AvizierPage() {
     setQuizzesLoading(false)
   }, [profile])
 
+  const loadEvents = useCallback(async (p: UserProfile, s: Scope) => {
+    setEventsLoading(true)
+    const res = await fetch(`/api/evenimente?scope=${s}`)
+    if (res.ok) setEvents((await res.json()).events)
+    setEventsLoading(false)
+  }, [])
+
   useEffect(() => {
     if (!profile) return
     loadPosts(profile, scope)
     loadQuizzes(scope)
-  }, [profile, scope, loadPosts, loadQuizzes])
+    loadEvents(profile, scope)
+  }, [profile, scope, loadPosts, loadQuizzes, loadEvents])
 
   useEffect(() => {
     function handler(e: Event) {
       const action = (e as CustomEvent).detail?.action
       if (action === 'post') { setModalScope(scope); setShowPostModal(true) }
       if (action === 'quiz' && profile?.role === 'admin') setCreateQuizOpen(true)
+      if (action === 'eveniment') setShowEventCreate(true)
     }
     window.addEventListener('unirea:fab-action', handler)
     return () => window.removeEventListener('unirea:fab-action', handler)
@@ -574,6 +596,20 @@ export default function AvizierPage() {
             </div>
           </div>
         </header>
+
+        {/* Events strip */}
+        <div className="pt-3 pb-1 border-b" style={{ borderColor: 'var(--border)' }}>
+          <EvenimentStrip
+            events={events}
+            loading={eventsLoading}
+            onAddClick={() => setShowEventCreate(true)}
+            onCardClick={async (event) => {
+              const res = await fetch(`/api/evenimente/${event.id}`)
+              if (res.ok) setSelectedEvent((await res.json()).event)
+            }}
+            currentUserId={profile.id}
+          />
+        </div>
 
         <div className="max-w-sm mx-auto w-full px-4 pt-4 space-y-2">
           {(missingClassData || missingPromotieData) && (
@@ -1100,6 +1136,39 @@ export default function AvizierPage() {
           onOpenChange={(v) => { if (!v) setEditingQuiz(null) }}
           onSaved={() => { setEditingQuiz(null); loadQuizzes(scope) }}
           onDeleted={() => { setQuizzes(prev => prev.filter(q => q.id !== editingQuiz.id)); setEditingQuiz(null) }}
+        />
+      )}
+
+      <EvenimentCreateModal
+        open={showEventCreate || !!editingEvent}
+        onClose={() => { setShowEventCreate(false); setEditingEvent(null) }}
+        initialEvent={editingEvent}
+        onCreated={(ev) => setEvents(prev => [ev, ...prev])}
+        onUpdated={(ev) => {
+          setEvents(prev => prev.map(e => e.id === ev.id ? ev : e))
+          setSelectedEvent(prev => prev?.id === ev.id ? { ...prev, ...ev } : prev)
+          setEditingEvent(null)
+        }}
+      />
+
+      {selectedEvent && profile && (
+        <EvenimentDetailModal
+          event={selectedEvent}
+          currentUserId={profile.id}
+          isAdmin={profile.role === 'admin'}
+          onClose={() => setSelectedEvent(null)}
+          onEdit={() => { setEditingEvent(selectedEvent); setSelectedEvent(null) }}
+          onDelete={() => {
+            setEvents(prev => prev.filter(e => e.id !== selectedEvent.id))
+            setSelectedEvent(null)
+          }}
+          onRsvpToggle={(attending) => {
+            setEvents(prev => prev.map(e =>
+              e.id === selectedEvent.id
+                ? { ...e, attending, participant_count: attending ? e.participant_count + 1 : Math.max(0, e.participant_count - 1) }
+                : e
+            ))
+          }}
         />
       )}
     </>
