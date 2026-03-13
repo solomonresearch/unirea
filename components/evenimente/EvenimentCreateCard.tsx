@@ -14,7 +14,7 @@ export function EvenimentCreateCard({ onClick }: Props) {
       className="flex-shrink-0 rounded-xl flex flex-col items-center justify-center gap-2 transition-opacity hover:opacity-70 active:scale-95"
       style={{
         width: '95px',
-        height: '235px',
+        height: '141px',
         border: '2px dashed var(--border)',
         background: 'var(--cream2)',
       }}

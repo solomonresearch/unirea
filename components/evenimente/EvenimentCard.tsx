@@ -54,7 +54,7 @@ export function EvenimentCard({ event, onClick }: Props) {
       className="flex-shrink-0 rounded-xl overflow-hidden text-left transition-transform active:scale-95 flex flex-col"
       style={{
         width: '165px',
-        height: '235px',
+        height: '141px',
         boxShadow: '0 2px 12px rgba(0,0,0,0.10)',
         background: 'var(--white)',
       }}
@@ -63,7 +63,7 @@ export function EvenimentCard({ event, onClick }: Props) {
       <div
         className="relative flex-shrink-0"
         style={{
-          height: '135px',
+          height: '81px',
           background: event.image_url ? undefined : gradientFromTitle(event.title),
         }}
       >
@@ -109,17 +109,17 @@ export function EvenimentCard({ event, onClick }: Props) {
       </div>
 
       {/* White bottom section */}
-      <div className="flex flex-col flex-1 px-3 pt-2.5 pb-2">
+      <div className="flex flex-col flex-1 px-2.5 pt-2 pb-1.5">
         {/* Title */}
         <p
-          className="font-bold leading-snug line-clamp-2 mb-auto"
-          style={{ fontSize: '13px', color: 'var(--ink)' }}
+          className="font-bold leading-snug line-clamp-1 mb-auto"
+          style={{ fontSize: '12px', color: 'var(--ink)' }}
         >
           {event.title}
         </p>
 
         {/* Participants — always pinned to bottom */}
-        <div className="flex items-center gap-1.5 mt-2">
+        <div className="flex items-center gap-1 mt-1.5">
           {event.participant_count === 0 ? (
             <span style={{ fontSize: '10px', color: 'var(--ink3)' }}>Fii primul!</span>
           ) : (
