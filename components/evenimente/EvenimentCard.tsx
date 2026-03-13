@@ -54,7 +54,7 @@ export function EvenimentCard({ event, onClick }: Props) {
       className="flex-shrink-0 rounded-xl overflow-hidden text-left transition-transform active:scale-95 flex flex-col"
       style={{
         width: '165px',
-        height: '215px',
+        height: '235px',
         boxShadow: '0 2px 12px rgba(0,0,0,0.10)',
         background: 'var(--white)',
       }}
@@ -109,17 +109,17 @@ export function EvenimentCard({ event, onClick }: Props) {
       </div>
 
       {/* White bottom section */}
-      <div className="flex flex-col justify-between flex-1 px-3 py-2.5">
+      <div className="flex flex-col flex-1 px-3 pt-2.5 pb-2">
         {/* Title */}
         <p
-          className="font-bold leading-snug line-clamp-2"
+          className="font-bold leading-snug line-clamp-2 mb-auto"
           style={{ fontSize: '13px', color: 'var(--ink)' }}
         >
           {event.title}
         </p>
 
-        {/* Participants */}
-        <div className="flex items-center gap-1.5 mt-1">
+        {/* Participants — always pinned to bottom */}
+        <div className="flex items-center gap-1.5 mt-2">
           {event.participant_count === 0 ? (
             <span style={{ fontSize: '10px', color: 'var(--ink3)' }}>Fii primul!</span>
           ) : (
