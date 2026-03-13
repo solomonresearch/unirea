@@ -1,6 +1,5 @@
 'use client'
 
-import { CheckCircle2 } from 'lucide-react'
 import { getInitials } from '@/lib/utils'
 import type { Eveniment } from './types'
 
@@ -34,9 +33,18 @@ function avatarColor(name: string): string {
   return colors[Math.abs(hash) % colors.length]
 }
 
-function formatDay(dateStr: string): string {
-  return String(new Date(dateStr + 'T00:00:00').getDate()).padStart(2, '0')
+function formatDateParts(dateStr: string): { day: string; month: string } {
+  const d = new Date(dateStr + 'T00:00:00')
+  const day = String(d.getDate()).padStart(2, '0')
+  const month = d.toLocaleString('ro-RO', { month: 'short' }).replace('.', '')
+  return { day, month: month.charAt(0).toUpperCase() + month.slice(1) }
 }
+
+// Layout constants
+const CARD_W = 148
+const CARD_H = 210
+const IMAGE_H = 118
+const BADGE_H = 34
 
 interface Props {
   event: Eveniment
@@ -44,26 +52,33 @@ interface Props {
 }
 
 export function EvenimentCard({ event, onClick }: Props) {
-  const visibleParticipants = event.top_participants.slice(0, 4)
-  const overflow = event.participant_count - 4
+  const visibleParticipants = event.top_participants.slice(0, 3)
+  const overflow = event.participant_count - 3
+  const { day, month } = formatDateParts(event.event_date)
 
   return (
     <button
       type="button"
       onClick={onClick}
-      className="flex-shrink-0 rounded-xl overflow-hidden text-left transition-transform active:scale-95 flex flex-col"
+      className="flex-shrink-0 text-left active:scale-95 transition-transform flex flex-col relative"
       style={{
-        width: '165px',
-        height: '141px',
-        boxShadow: '0 2px 12px rgba(0,0,0,0.10)',
+        width: `${CARD_W}px`,
+        height: `${CARD_H}px`,
+        borderRadius: '14px',
         background: 'var(--white)',
+        boxShadow: '0 2px 12px rgba(0,0,0,0.12)',
+        border: '1px solid rgba(0,0,0,0.06)',
+        overflow: 'visible', // lets date badge straddle the divider
       }}
     >
-      {/* Image / gradient section */}
+      {/* Image / gradient — clips its own corners */}
       <div
-        className="relative flex-shrink-0"
         style={{
-          height: '81px',
+          height: `${IMAGE_H}px`,
+          flexShrink: 0,
+          borderRadius: '13px 13px 0 0',
+          overflow: 'hidden',
+          position: 'relative',
           background: event.image_url ? undefined : gradientFromTitle(event.title),
         }}
       >
@@ -73,12 +88,17 @@ export function EvenimentCard({ event, onClick }: Props) {
 
         {/* Scope badge — top left */}
         <span
-          className="absolute top-2 left-2 text-white rounded-full px-2 py-0.5"
           style={{
+            position: 'absolute',
+            top: '8px',
+            left: '8px',
             fontSize: '9px',
             fontWeight: 800,
+            letterSpacing: '0.05em',
+            color: 'white',
             background: 'rgba(0,0,0,0.55)',
-            letterSpacing: '0.04em',
+            borderRadius: '20px',
+            padding: '2px 7px',
           }}
         >
           {SCOPE_LABELS[event.scope] || event.scope}
@@ -86,53 +106,115 @@ export function EvenimentCard({ event, onClick }: Props) {
 
         {/* Attending checkmark — top right */}
         {event.attending && (
-          <div className="absolute top-2 right-2">
-            <CheckCircle2 size={20} strokeWidth={2.5} style={{ color: '#4ade80', filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.4))' }} />
+          <div
+            style={{
+              position: 'absolute',
+              top: '8px',
+              right: '8px',
+              width: '22px',
+              height: '22px',
+              borderRadius: '50%',
+              background: '#16a34a',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 1px 4px rgba(0,0,0,0.25)',
+            }}
+          >
+            <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
+              <path d="M2 6l3 3 5-5" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
           </div>
         )}
-
-        {/* Day badge — bottom right of image */}
-        <div
-          className="absolute bottom-2 right-2 flex items-center justify-center rounded-lg"
-          style={{
-            background: 'rgba(255,255,255,0.95)',
-            minWidth: '34px',
-            height: '34px',
-            padding: '0 6px',
-            boxShadow: '0 1px 4px rgba(0,0,0,0.15)',
-          }}
-        >
-          <span style={{ fontSize: '17px', fontWeight: 800, lineHeight: 1, color: 'var(--ink)' }}>
-            {formatDay(event.event_date)}
-          </span>
-        </div>
       </div>
 
-      {/* White bottom section */}
-      <div className="flex flex-col flex-1 px-2.5 pt-2 pb-1.5">
+      {/* Date badge — straddles the dotted divider, left side */}
+      <div
+        style={{
+          position: 'absolute',
+          top: `${IMAGE_H - BADGE_H / 2}px`,
+          left: '10px',
+          zIndex: 10,
+          background: 'var(--white)',
+          borderRadius: '8px',
+          padding: '3px 9px',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.18)',
+          border: '1px solid rgba(0,0,0,0.07)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          minWidth: '38px',
+        }}
+      >
+        <span style={{ fontSize: '15px', fontWeight: 800, lineHeight: 1.1, color: 'var(--ink)' }}>
+          {day}
+        </span>
+        <span style={{ fontSize: '8px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--ink3)', letterSpacing: '0.04em' }}>
+          {month}
+        </span>
+      </div>
+
+      {/* Dotted divider */}
+      <div style={{ borderTop: '1.5px dashed var(--border)' }} />
+
+      {/* Content section */}
+      <div
+        style={{
+          flex: 1,
+          padding: `${BADGE_H / 2 + 6}px 10px 10px 10px`,
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+          borderRadius: '0 0 13px 13px',
+          background: 'var(--white)',
+          overflow: 'hidden',
+        }}
+      >
         {/* Title */}
         <p
-          className="font-bold leading-snug line-clamp-1 mb-auto"
-          style={{ fontSize: '12px', color: 'var(--ink)' }}
+          style={{
+            fontSize: '12px',
+            fontWeight: 700,
+            color: 'var(--ink)',
+            lineHeight: 1.3,
+            display: '-webkit-box',
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical',
+            overflow: 'hidden',
+            margin: 0,
+          }}
         >
           {event.title}
         </p>
 
-        {/* Participants — always pinned to bottom */}
-        <div className="flex items-center gap-1 mt-1.5">
+        {/* Participants */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
           {event.participant_count === 0 ? (
             <span style={{ fontSize: '10px', color: 'var(--ink3)' }}>Fii primul!</span>
           ) : (
             <>
-              <div className="flex -space-x-1.5">
-                {visibleParticipants.map(p => (
+              <div style={{ display: 'flex', alignItems: 'center' }}>
+                {visibleParticipants.map((p, i) => (
                   <div
                     key={p.id}
-                    className="w-5 h-5 rounded-full border-2 border-white flex items-center justify-center overflow-hidden flex-shrink-0"
-                    style={{ background: p.avatar_url ? undefined : avatarColor(p.name) }}
+                    style={{
+                      width: '22px',
+                      height: '22px',
+                      borderRadius: '50%',
+                      border: '2px solid var(--white)',
+                      background: p.avatar_url ? undefined : avatarColor(p.name),
+                      marginLeft: i > 0 ? '-7px' : 0,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      overflow: 'hidden',
+                      flexShrink: 0,
+                      position: 'relative',
+                      zIndex: 3 - i,
+                    }}
                   >
                     {p.avatar_url ? (
-                      <img src={p.avatar_url} alt={p.name} className="w-full h-full object-cover" />
+                      <img src={p.avatar_url} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     ) : (
                       <span style={{ fontSize: '7px', fontWeight: 700, color: 'white' }}>
                         {getInitials(p.name)}
