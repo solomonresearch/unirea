@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { Newspaper, CircleDot, MessageCircle, Bell, Plus, Camera, Send, BarChart2 } from 'lucide-react'
+import { Newspaper, CircleDot, MessageCircle, Bell, Plus, Camera, Send, BarChart2, Calendar } from 'lucide-react'
 import { getSupabase } from '@/lib/supabase'
 
 const LEFT_NAV = [
@@ -20,6 +20,7 @@ const POST_OPTIONS = [
   { label: 'Distribuie o amintire', icon: Camera, action: 'upload', pagePath: '/carusel', href: '/carusel?open=upload' },
   { label: 'Scrie un anunț', icon: Send, action: 'post', pagePath: '/avizier', href: '/avizier?open=post' },
   { label: 'Creează un sondaj', icon: BarChart2, action: 'quiz', pagePath: '/avizier', href: '/avizier?open=quiz' },
+  { label: 'Adaugă un eveniment', icon: Calendar, action: 'eveniment', pagePath: '/avizier', href: '/avizier?open=eveniment' },
 ]
 
 export function BottomNav() {
