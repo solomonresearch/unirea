@@ -16,14 +16,14 @@ interface Props {
 
 export function EvenimentStrip({ events, loading, onAddClick, onCardClick }: Props) {
   return (
-    <div>
+    <div className="max-w-sm mx-auto">
       {/* Header row */}
-      <div className="max-w-sm mx-auto px-4 flex items-center justify-between mb-2">
+      <div className="px-4 flex items-center justify-between mb-2.5">
         <span
           className="font-bold tracking-wider"
           style={{ fontSize: '10px', color: 'var(--ink3)', letterSpacing: '0.08em' }}
         >
-          EVENIMENTE
+          📅 EVENIMENTE
         </span>
         <Link
           href="/avizier/evenimente"
@@ -34,11 +34,16 @@ export function EvenimentStrip({ events, loading, onAddClick, onCardClick }: Pro
         </Link>
       </div>
 
-      {/* Scrollable row — constrained to max-w-sm */}
-      <div className="max-w-sm mx-auto">
+      {/* Scrollable row */}
       <div
-        className="flex gap-3 overflow-x-auto pb-2"
-        style={{ paddingLeft: '16px', paddingRight: '16px', scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        className="flex gap-3 overflow-x-auto"
+        style={{
+          paddingLeft: '16px',
+          paddingRight: '16px',
+          paddingBottom: '6px',
+          scrollbarWidth: 'none',
+          msOverflowStyle: 'none',
+        }}
       >
         <EvenimentCreateCard onClick={onAddClick} />
 
@@ -61,7 +66,6 @@ export function EvenimentStrip({ events, loading, onAddClick, onCardClick }: Pro
             <span style={{ fontSize: '11px', color: 'var(--ink3)' }}>Niciun eveniment viitor.</span>
           </div>
         )}
-      </div>
       </div>
     </div>
   )

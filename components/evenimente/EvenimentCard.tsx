@@ -1,20 +1,21 @@
 'use client'
 
+import { CheckCircle2 } from 'lucide-react'
 import { getInitials } from '@/lib/utils'
 import type { Eveniment } from './types'
 
 const SCOPE_LABELS: Record<string, string> = {
-  class: 'Clasă',
-  promotion: 'Promoție',
-  school: 'Liceu',
+  class: 'CLASĂ',
+  promotion: 'PROMOȚIE',
+  school: 'LICEU',
 }
 
 const GRADIENTS = [
-  'linear-gradient(135deg, #5B8E6D 0%, #3D6B52 100%)',
-  'linear-gradient(135deg, #7B6D9E 0%, #5A4E7B 100%)',
-  'linear-gradient(135deg, #4A7B9A 0%, #2D5C7A 100%)',
-  'linear-gradient(135deg, #C4634A 0%, #9A4535 100%)',
-  'linear-gradient(135deg, #8E6B4A 0%, #6B4E32 100%)',
+  'linear-gradient(135deg, #1a3a5c 0%, #2d6a8f 100%)',
+  'linear-gradient(135deg, #3d1f5c 0%, #7b4d9e 100%)',
+  'linear-gradient(135deg, #7a3a1a 0%, #c4834a 100%)',
+  'linear-gradient(135deg, #1a4a2e 0%, #3d8e5a 100%)',
+  'linear-gradient(135deg, #4a1a1a 0%, #9e3d3d 100%)',
 ]
 
 function gradientFromTitle(title: string): string {
@@ -34,13 +35,7 @@ function avatarColor(name: string): string {
 }
 
 function formatDay(dateStr: string): string {
-  const d = new Date(dateStr + 'T00:00:00')
-  return String(d.getDate())
-}
-
-function formatMonth(dateStr: string): string {
-  const d = new Date(dateStr + 'T00:00:00')
-  return d.toLocaleString('ro-RO', { month: 'short' }).replace('.', '')
+  return String(new Date(dateStr + 'T00:00:00').getDate()).padStart(2, '0')
 }
 
 interface Props {
@@ -49,76 +44,88 @@ interface Props {
 }
 
 export function EvenimentCard({ event, onClick }: Props) {
+  const visibleParticipants = event.top_participants.slice(0, 4)
+  const overflow = event.participant_count - 4
+
   return (
     <button
       type="button"
       onClick={onClick}
-      className="flex-shrink-0 rounded-xl overflow-hidden text-left transition-transform active:scale-95"
+      className="flex-shrink-0 rounded-xl overflow-hidden text-left transition-transform active:scale-95 flex flex-col"
       style={{
-        width: '160px',
-        height: '144px',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
-        border: '1px solid rgba(0,0,0,0.06)',
+        width: '165px',
+        height: '215px',
+        boxShadow: '0 2px 12px rgba(0,0,0,0.10)',
+        background: 'var(--white)',
       }}
     >
-      {/* Top half: image or gradient */}
+      {/* Image / gradient section */}
       <div
-        className="relative"
+        className="relative flex-shrink-0"
         style={{
-          height: '80px',
+          height: '135px',
           background: event.image_url ? undefined : gradientFromTitle(event.title),
         }}
       >
         {event.image_url && (
-          <img
-            src={event.image_url}
-            alt={event.title}
-            className="w-full h-full object-cover"
-          />
+          <img src={event.image_url} alt={event.title} className="w-full h-full object-cover" />
         )}
 
-        {/* Scope badge top-left */}
+        {/* Scope badge — top left */}
         <span
-          className="absolute top-1.5 left-1.5 text-white rounded-full px-1.5 py-0.5"
-          style={{ fontSize: '9px', fontWeight: 700, background: 'rgba(0,0,0,0.45)', letterSpacing: '0.03em' }}
+          className="absolute top-2 left-2 text-white rounded-full px-2 py-0.5"
+          style={{
+            fontSize: '9px',
+            fontWeight: 800,
+            background: 'rgba(0,0,0,0.55)',
+            letterSpacing: '0.04em',
+          }}
         >
           {SCOPE_LABELS[event.scope] || event.scope}
         </span>
 
-        {/* Day number top-right */}
+        {/* Attending checkmark — top right */}
+        {event.attending && (
+          <div className="absolute top-2 right-2">
+            <CheckCircle2 size={20} strokeWidth={2.5} style={{ color: '#4ade80', filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.4))' }} />
+          </div>
+        )}
+
+        {/* Day badge — bottom right of image */}
         <div
-          className="absolute top-1.5 right-1.5 flex flex-col items-center justify-center rounded-md"
-          style={{ background: 'rgba(255,255,255,0.92)', minWidth: '28px', padding: '2px 4px' }}
+          className="absolute bottom-2 right-2 flex items-center justify-center rounded-lg"
+          style={{
+            background: 'rgba(255,255,255,0.95)',
+            minWidth: '34px',
+            height: '34px',
+            padding: '0 6px',
+            boxShadow: '0 1px 4px rgba(0,0,0,0.15)',
+          }}
         >
-          <span style={{ fontSize: '13px', fontWeight: 800, lineHeight: 1, color: 'var(--ink)' }}>
+          <span style={{ fontSize: '17px', fontWeight: 800, lineHeight: 1, color: 'var(--ink)' }}>
             {formatDay(event.event_date)}
-          </span>
-          <span style={{ fontSize: '8px', fontWeight: 600, color: 'var(--ink3)', textTransform: 'uppercase', lineHeight: 1 }}>
-            {formatMonth(event.event_date)}
           </span>
         </div>
       </div>
 
-      {/* Bottom half */}
-      <div
-        className="px-2.5 py-2 flex flex-col justify-between"
-        style={{ height: '64px', background: 'var(--white)' }}
-      >
+      {/* White bottom section */}
+      <div className="flex flex-col justify-between flex-1 px-3 py-2.5">
+        {/* Title */}
         <p
-          className="font-bold leading-tight line-clamp-2"
-          style={{ fontSize: '11px', color: 'var(--ink)' }}
+          className="font-bold leading-snug line-clamp-2"
+          style={{ fontSize: '13px', color: 'var(--ink)' }}
         >
           {event.title}
         </p>
 
         {/* Participants */}
-        <div className="flex items-center gap-1 mt-1">
+        <div className="flex items-center gap-1.5 mt-1">
           {event.participant_count === 0 ? (
-            <span style={{ fontSize: '9px', color: 'var(--ink3)' }}>Fii primul!</span>
+            <span style={{ fontSize: '10px', color: 'var(--ink3)' }}>Fii primul!</span>
           ) : (
             <>
               <div className="flex -space-x-1.5">
-                {event.top_participants.slice(0, 4).map(p => (
+                {visibleParticipants.map(p => (
                   <div
                     key={p.id}
                     className="w-5 h-5 rounded-full border-2 border-white flex items-center justify-center overflow-hidden flex-shrink-0"
@@ -134,9 +141,9 @@ export function EvenimentCard({ event, onClick }: Props) {
                   </div>
                 ))}
               </div>
-              {event.participant_count > 4 && (
-                <span style={{ fontSize: '9px', color: 'var(--ink3)', fontWeight: 600 }}>
-                  +{event.participant_count - 4}
+              {overflow > 0 && (
+                <span style={{ fontSize: '10px', color: 'var(--ink3)', fontWeight: 600 }}>
+                  +{overflow}
                 </span>
               )}
             </>
