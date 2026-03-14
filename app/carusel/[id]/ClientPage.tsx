@@ -8,6 +8,7 @@ import { BottomNav } from '@/components/BottomNav'
 import { MentionInput } from '@/components/MentionInput'
 import { MentionText } from '@/components/MentionText'
 import { relativeTime, getInitials } from '@/lib/utils'
+import Link from 'next/link'
 
 interface CaruselComment {
   id: string
@@ -210,10 +211,12 @@ export default function CaruselPostPage() {
           Inapoi
         </button>
         <div className="flex items-center gap-2">
-          <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary-100 text-[9px] font-bold text-primary-700">
-            {getInitials(post.profiles.name)}
-          </div>
-          <span className="text-xs font-medium text-gray-900">{post.profiles.name}</span>
+          <Link href={`/profil/${post.profiles.username}`} className="flex items-center gap-2">
+            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary-100 text-[9px] font-bold text-primary-700">
+              {getInitials(post.profiles.name)}
+            </div>
+            <span className="text-xs font-medium text-gray-900">{post.profiles.name}</span>
+          </Link>
           {post.user_id === userId && (
             <button
               onClick={deletePost}
@@ -270,11 +273,11 @@ export default function CaruselPostPage() {
           <div className="mt-4 space-y-3 pb-4">
             {post.comments.map(c => (
               <div key={c.id} className="flex gap-2">
-                <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-gray-100 text-[8px] font-bold text-gray-500">
+                <Link href={`/profil/${c.profiles.username}`} className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-gray-100 text-[8px] font-bold text-gray-500">
                   {getInitials(c.profiles.name)}
-                </div>
+                </Link>
                 <div className="flex-1">
-                  <span className="text-xs font-medium text-gray-900">{c.profiles.name}</span>
+                  <Link href={`/profil/${c.profiles.username}`} className="text-xs font-medium text-gray-900 hover:underline">{c.profiles.name}</Link>
                   <p className="text-xs text-gray-600 mt-0.5"><MentionText text={c.content} /></p>
                 </div>
                 {c.user_id === userId && (

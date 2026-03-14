@@ -482,11 +482,13 @@ export default function CaruselPage() {
                   </button>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <div className="flex h-5 w-5 items-center justify-center rounded-full text-[8px] font-bold" style={{ background: 'var(--amber-soft)', color: 'var(--amber-dark)' }}>
-                        {getInitials(photo.profiles.name)}
-                      </div>
-                      <span className="text-xs font-medium" style={{ color: 'var(--ink)' }}>{photo.profiles.name}</span>
-                      <span className="text-[10px] ml-auto" style={{ color: 'var(--ink3)' }}>{relativeTime(photo.created_at)}</span>
+                      <Link href={`/profil/${photo.profiles.username}`} className="flex items-center gap-2 min-w-0">
+                        <div className="flex h-5 w-5 items-center justify-center rounded-full text-[8px] font-bold flex-shrink-0" style={{ background: 'var(--amber-soft)', color: 'var(--amber-dark)' }}>
+                          {getInitials(photo.profiles.name)}
+                        </div>
+                        <span className="text-xs font-medium truncate" style={{ color: 'var(--ink)' }}>{photo.profiles.name}</span>
+                      </Link>
+                      <span className="text-[10px] ml-auto flex-shrink-0" style={{ color: 'var(--ink3)' }}>{relativeTime(photo.created_at)}</span>
                     </div>
                     <p className="mt-1 text-xs line-clamp-2" style={{ color: 'var(--ink2)' }}>{photo.caption || 'Fara descriere'}</p>
                     <div className="mt-2 flex items-center gap-4">

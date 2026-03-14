@@ -872,20 +872,22 @@ export default function AvizierPage() {
                     <div className="px-3 pt-2 pb-1.5">
                       {/* Post header */}
                       <div className="flex items-center gap-2 mb-1.5">
-                        <div
-                          className="w-9 h-9 rounded-sm flex items-center justify-center text-white text-xxs font-bold flex-shrink-0"
-                          style={{ background: bg }}
-                        >
-                          {ini}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs font-bold leading-none" style={{ color: 'var(--ink)' }}>
-                            {name}
-                          </p>
-                          <p className="text-2xs mt-0.5" style={{ color: 'var(--ink3)' }}>
-                            @{post.profiles?.username}
-                          </p>
-                        </div>
+                        <Link href={`/profil/${post.profiles?.username}`} className="flex items-center gap-2 flex-1 min-w-0">
+                          <div
+                            className="w-9 h-9 rounded-sm flex items-center justify-center text-white text-xxs font-bold flex-shrink-0"
+                            style={{ background: bg }}
+                          >
+                            {ini}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-bold leading-none" style={{ color: 'var(--ink)' }}>
+                              {name}
+                            </p>
+                            <p className="text-2xs mt-0.5" style={{ color: 'var(--ink3)' }}>
+                              @{post.profiles?.username}
+                            </p>
+                          </div>
+                        </Link>
                         <div className="flex items-center gap-2 flex-shrink-0">
                           <span className="text-2xs" style={{ color: 'var(--ink3)' }}>
                             {relativeTime(post.created_at, true)}
@@ -970,9 +972,9 @@ export default function AvizierPage() {
                           <div key={comment.id} className="flex items-start gap-2">
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2">
-                                <span className="text-xxs font-semibold" style={{ color: 'var(--ink2)' }}>
+                                <Link href={`/profil/${comment.profiles?.username}`} className="text-xxs font-semibold hover:underline" style={{ color: 'var(--ink2)' }}>
                                   @{comment.profiles?.username}
-                                </span>
+                                </Link>
                                 <span className="text-2xs" style={{ color: 'var(--ink3)' }}>
                                   {relativeTime(comment.created_at, true)}
                                 </span>

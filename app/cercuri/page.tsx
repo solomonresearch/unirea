@@ -595,7 +595,7 @@ function PersonCard({ person, currentUserId, activeFilters, selected, onSelect }
           {selected && <Check size={13} color="var(--white)" strokeWidth={2.5} />}
         </div>
       </button>
-      <Link href={`/cercuri/${person.id}`} className="flex-1 min-w-0 px-3 py-3">
+      <div className="flex-1 min-w-0 px-3 py-3">
         <div className="flex items-start gap-3">
           <div
             className="w-[46px] h-[46px] rounded-md flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
@@ -607,12 +607,12 @@ function PersonCard({ person, currentUserId, activeFilters, selected, onSelect }
             }
           </div>
           <div className="min-w-0">
-            <p className="text-xs font-bold" style={{ color: 'var(--ink)' }}>{person.name}</p>
-            <p className="text-2xs" style={{ color: 'var(--ink2)' }}>@{person.username}</p>
+            <Link href={`/profil/${person.username}`} className="text-xs font-bold hover:underline" style={{ color: 'var(--ink)' }}>{person.name}</Link>
+            <Link href={`/profil/${person.username}`} className="block text-2xs hover:underline" style={{ color: 'var(--ink2)' }}>@{person.username}</Link>
             <PersonTags person={person} activeFilters={activeFilters} />
           </div>
         </div>
-      </Link>
+      </div>
       <button
         type="button"
         onClick={handleMessage}
