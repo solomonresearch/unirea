@@ -67,6 +67,15 @@ unirea/
 │   ├── profil/page.tsx              # User profile (/profil)
 │   ├── setari/page.tsx              # Settings (/setari)
 │   └── api/
+│       ├── admin/
+│       │   └── mock/route.ts        # DELETE all bot users (admin only)
+│       ├── account/
+│       │   └── delete/route.ts      # POST delete own account
+│       ├── evenimente/
+│       │   ├── route.ts             # GET/POST events
+│       │   └── [id]/
+│       │       ├── route.ts         # PATCH/DELETE event
+│       │       └── participare/route.ts # POST join/leave event
 │       └── kanban/
 │           ├── route.ts             # GET (list), POST (create) cards
 │           └── [id]/route.ts        # PATCH (update/move), DELETE card
@@ -123,8 +132,13 @@ unirea/
 | `/mesaje/[id]` | Chat thread |
 | `/cauta` | Search — filter alumni by profession, domain, year, class |
 | `/kanban` | Kanban board — drag-and-drop task management with realtime sync |
+| `/carusel` | Nostalgia photo carousel — scoped by school/promotion/class |
+| `/carusel/[id]` | Individual shareable photo post |
+| `/ziar` | Public newspaper/bulletin board |
+| `/cercuri` | Circles |
 | `/profil` | User profile with inline editing |
-| `/setari` | Settings |
+| `/setari` | Settings (includes admin tools for admins) |
+| `/admin` | Admin panel — user and role management |
 
 ## API Routes
 
@@ -134,6 +148,13 @@ unirea/
 | `/api/kanban` | `POST` | Create a new card (title, description, status) |
 | `/api/kanban/[id]` | `PATCH` | Update a card (move column, reorder, edit) |
 | `/api/kanban/[id]` | `DELETE` | Delete a card |
+| `/api/account/delete` | `POST` | Delete own account (soft delete + archive) |
+| `/api/evenimente` | `GET` | List events |
+| `/api/evenimente` | `POST` | Create an event |
+| `/api/evenimente/[id]` | `PATCH` | Update an event |
+| `/api/evenimente/[id]` | `DELETE` | Delete an event |
+| `/api/evenimente/[id]/participare` | `POST` | Join/leave an event |
+| `/api/admin/mock` | `DELETE` | Delete all bot/test users (admin only) |
 
 All API routes authenticate via server-side Supabase client — return 401 if not logged in.
 
@@ -263,6 +284,17 @@ Response:
 | bio | text | About me |
 | avatar_url | text | Profile photo URL |
 | onboarding_completed | boolean | |
+| role | text | `admin`, `moderator`, or `user` (default: `user`) |
+| company | text | Optional |
+| county | text | Auto-derived from city |
+| latitude | double | Geo coordinate |
+| longitude | double | Geo coordinate |
+| feedback | jsonb | User feedback entries |
+| skin | text | UI skin preference (default: `default`) |
+| signup_source | text | `direct`, `referral`, `google`, `google_referral`, `bot` |
+| referred_by | uuid | FK to profiles — who invited this user |
+| invite_count | integer | Number of invites sent |
+| archived_at | timestamptz | Soft delete timestamp |
 | created_at | timestamptz | Auto |
 | updated_at | timestamptz | Auto-updated via trigger |
 

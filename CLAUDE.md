@@ -39,6 +39,8 @@
 - **API routes**: `app/api/admin/users/` — admin-only user management. Requires caller's `profile.role = 'admin'`.
   - `GET /api/admin/users` → returns `{ users: [{ id, name, username, email, role, created_at }] }`
   - `PATCH /api/admin/users` → body: `{ userId, role: 'admin'|'moderator'|'user' }` → updates user role, prevents self-demotion → returns `{ ok: true }`
+- **API routes**: `app/api/admin/mock/` — admin-only bot/test user management. Requires caller's `profile.role = 'admin'`. Uses service role client for `auth.admin` operations. Bot users are identified by `profiles.signup_source = 'bot'`.
+  - `DELETE /api/admin/mock` → deletes all bot profiles and their auth accounts, cleans up all related data across all tables → returns `{ deleted: number, authErrors: number }`
 - **API routes**: `app/api/carusel/` — server-side CRUD for carusel (photo sharing). Authenticated only. Photos stored in Supabase Storage (`carusel` bucket, public). Posts scoped by `scope` column: `school` (highschool), `promotion` (highschool + graduation_year), `class` (highschool + graduation_year + class). Default scope: `promotion`.
   - `GET /api/carusel` → query: `?scope=liceu|promotie|clasa` (default: `promotie`) → returns `{ posts: [{ id, caption, image_url, user_id, profiles, likes, liked, comments, created_at }] }` filtered by user's matching attributes
   - `POST /api/carusel` → multipart/form-data: `file` (required, image/jpeg|png|webp, max 4MB), `caption` (optional, max 500), `scope` (optional, `liceu`|`promotie`|`clasa`, default: `promotie`) → returns created post (201)
