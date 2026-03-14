@@ -23,7 +23,7 @@ import {
   LogOut, Loader2, Sparkles, Briefcase, Layers,
   MapPin, Globe, Building, Heart, Mail, Phone,
   GraduationCap, Pencil, Settings, Shield,
-  FlaskConical, Trash2, X, MessageSquare, ChevronDown, ChevronUp, ChevronRight,
+  FlaskConical, Trash2, X, MessageSquare, ChevronRight,
   AtSign, ImageIcon, Check, AlertCircle, UserX, BarChart3,
   Gift,
 } from 'lucide-react'
@@ -83,29 +83,6 @@ export default function SetariPage() {
   const [mockLoading, setMockLoading] = useState<string | null>(null)
   const [mockResult, setMockResult] = useState<string | null>(null)
 
-  type ClusterCategory = 'design' | 'functional' | 'improvement' | 'other'
-  interface FeedbackItem {
-    userId: string
-    userName: string
-    userUsername: string
-    feedbackId: number
-    message: string
-    createdAt: string
-    page: string | null
-    category: ClusterCategory | null
-  }
-  interface ClusteredFeedback {
-    design: FeedbackItem[]
-    functional: FeedbackItem[]
-    improvement: FeedbackItem[]
-    other: FeedbackItem[]
-  }
-  const [feedbackList, setFeedbackList] = useState<FeedbackItem[]>([])
-  const [feedbackOpen, setFeedbackOpen] = useState(false)
-  const [feedbackLoading, setFeedbackLoading] = useState(false)
-  const [deletingFeedback, setDeletingFeedback] = useState<string | null>(null)
-  const [clusterOpen, setClusterOpen] = useState(false)
-  const [clustered, setClustered] = useState<ClusteredFeedback | null>(null)
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
   const [deleteConfirmText, setDeleteConfirmText] = useState('')
   const [deleting, setDeleting] = useState(false)
@@ -267,143 +244,6 @@ export default function SetariPage() {
       setMockResult('Eroare de conexiune')
     }
     setMockLoading(null)
-  }
-
-  async function loadFeedback(): Promise<FeedbackItem[]> {
-    setFeedbackLoading(true)
-    try {
-      const supabase = getSupabase()
-      const { data: profiles } = await supabase
-        .from('profiles')
-        .select('id, name, username, feedback')
-        .not('feedback', 'eq', '[]')
-        .not('feedback', 'is', null)
-
-      const allFeedback: FeedbackItem[] = (profiles || []).flatMap(p => {
-        const entries: { id: number; msg: string; at: string; page?: string; category?: string }[] =
-          Array.isArray(p.feedback) ? p.feedback : []
-        return entries.map(e => ({
-          userId: p.id,
-          userName: p.name,
-          userUsername: p.username,
-          feedbackId: e.id,
-          message: e.msg,
-          createdAt: e.at,
-          page: e.page ?? null,
-          category: (e.category as FeedbackItem['category']) ?? null,
-        }))
-      }).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-
-      setFeedbackList(allFeedback)
-      return allFeedback
-    } finally {
-      setFeedbackLoading(false)
-    }
-  }
-
-  async function handleDeleteFeedback(userId: string, feedbackId: number) {
-    const key = `${userId}-${feedbackId}`
-    setDeletingFeedback(key)
-    try {
-      const supabase = getSupabase()
-      const { data: targetProfile } = await supabase
-        .from('profiles')
-        .select('feedback')
-        .eq('id', userId)
-        .single()
-
-      const existing: { id: number; msg: string; at: string; page?: string; category?: string }[] =
-        Array.isArray(targetProfile?.feedback) ? targetProfile.feedback : []
-      const updated = existing.filter(e => e.id !== feedbackId)
-
-      const { error } = await supabase
-        .from('profiles')
-        .update({ feedback: updated })
-        .eq('id', userId)
-
-      if (!error) {
-        setFeedbackList(prev => prev.filter(f => !(f.userId === userId && f.feedbackId === feedbackId)))
-      }
-    } finally {
-      setDeletingFeedback(null)
-    }
-  }
-
-  const DESIGN_KW = [
-    'design', 'ui', 'ux', 'culoare', 'color', 'colour', 'font', 'text', 'layout',
-    'arată', 'arata', 'aspect', 'vizual', 'visual', 'interfata', 'interfață', 'interfata',
-    'buton', 'button', 'icon', 'iconita', 'iconiță', 'imagine', 'image', 'logo',
-    'tema', 'temă', 'dark', 'light', 'stil', 'style', 'spacing', 'padding', 'margin',
-    'aliniere', 'alignment', 'dimensiune', 'size', 'contrast', 'animatie', 'animație',
-    'animation', 'transition', 'responsive', 'mobil', 'mobile', 'fundal', 'background',
-    'umbra', 'umbră', 'shadow', 'border', 'chenar', 'rotunjit', 'rounded',
-  ]
-  const FUNCTIONAL_KW = [
-    'bug', 'eroare', 'error', 'crash', 'nu merge', 'nu functioneaza', 'nu funcționează',
-    'broken', 'problem', 'problema', 'problemă', 'issue', 'fail', 'failed', 'eșuat', 'esuat',
-    'lent', 'slow', 'loading', 'incarcare', 'încărcare', 'nu se incarca', 'nu se încarcă',
-    'nu se afiseaza', 'nu se afișează', 'dispare', 'freezes', 'ingheata', 'înghețat',
-    'login', 'autentificare', 'parola', 'parolă', 'cont', 'account', 'date', 'data',
-    'salvare', 'save', 'trimite', 'send', 'upload', 'download', 'sync', 'refresh',
-    'notificare', 'notification', 'mesaj', 'message', 'missing', 'lipseste', 'lipsește',
-  ]
-  const IMPROVEMENT_KW = [
-    'ar fi bine', 'ar fi util', 'ar fi misto', 'ar fi frumos', 'propun', 'propunere',
-    'idee', 'idea', 'sugestie', 'suggestion', 'imbunatatire', 'îmbunătățire', 'improvement',
-    'add', 'adauga', 'adaugă', 'adaugare', 'mai bun', 'better', 'enhance', 'enhancement',
-    'feature request', 'feature', 'optiune', 'opțiune', 'option', 'posibilitate', 'ability',
-    'permite', 'allow', 'wish', 'would be', 'could be', 'should be', 'poate ar',
-    'mai multe', 'more', 'extinde', 'extend', 'integra', 'integrate', 'export', 'import',
-    'filtru', 'filter', 'sortare', 'sort', 'cautare', 'căutare', 'search',
-  ]
-
-  function runClustering(items?: FeedbackItem[]) {
-    const source = items ?? feedbackList
-    const result: ClusteredFeedback = { design: [], functional: [], improvement: [], other: [] }
-    for (const item of source) {
-      if (item.category) {
-        result[item.category].push(item)
-        continue
-      }
-      const lower = item.message.toLowerCase()
-      if (DESIGN_KW.some(k => lower.includes(k))) result.design.push(item)
-      else if (FUNCTIONAL_KW.some(k => lower.includes(k))) result.functional.push(item)
-      else if (IMPROVEMENT_KW.some(k => lower.includes(k))) result.improvement.push(item)
-      else result.other.push(item)
-    }
-    setClustered(result)
-  }
-
-  async function moveToCategory(item: FeedbackItem, from: ClusterCategory, to: ClusterCategory) {
-    if (!clustered || from === to) return
-    // Optimistic UI update
-    setClustered(prev => {
-      if (!prev) return prev
-      return {
-        ...prev,
-        [from]: prev[from].filter(f => !(f.userId === item.userId && f.feedbackId === item.feedbackId)),
-        [to]: [...prev[to], { ...item, category: to }],
-      }
-    })
-    setFeedbackList(prev => prev.map(f =>
-      f.userId === item.userId && f.feedbackId === item.feedbackId ? { ...f, category: to } : f
-    ))
-    // Persist to DB
-    const supabase = getSupabase()
-    const { data: targetProfile } = await supabase
-      .from('profiles')
-      .select('feedback')
-      .eq('id', item.userId)
-      .single()
-
-    const entries: { id: number; msg: string; at: string; page?: string; category?: string }[] =
-      Array.isArray(targetProfile?.feedback) ? targetProfile.feedback : []
-    const updatedEntries = entries.map(e => e.id === item.feedbackId ? { ...e, category: to } : e)
-
-    await supabase
-      .from('profiles')
-      .update({ feedback: updatedEntries })
-      .eq('id', item.userId)
   }
 
   function toggleEditHobby(hobby: string) {
@@ -1044,230 +884,20 @@ export default function SetariPage() {
                 </div>
               )}
 
-              {/* Feedback panel (admin only) */}
+              {/* Feedback (admin only) */}
               {isAdmin && (
-                <div
-                  className="rounded-lg border overflow-hidden"
+                <Link
+                  href="/feedback"
+                  className="w-full flex items-center gap-3 rounded-lg border px-4 py-3 text-left transition-opacity hover:opacity-80"
                   style={{ background: 'var(--white)', borderColor: 'var(--border)', boxShadow: 'var(--shadow-s)' }}
                 >
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const next = !feedbackOpen
-                      setFeedbackOpen(next)
-                      if (next && feedbackList.length === 0) loadFeedback()
-                    }}
-                    className="w-full flex items-center gap-3 px-4 py-3 text-left"
-                  >
-                    <MessageSquare size={18} style={{ color: 'var(--teal)' }} />
-                    <div className="flex-1">
-                      <p className="text-xs font-bold" style={{ color: 'var(--ink)' }}>Feedback utilizatori</p>
-                      <p className="text-xxs" style={{ color: 'var(--ink3)' }}>
-                        {feedbackList.length > 0 ? `${feedbackList.length} mesaj${feedbackList.length !== 1 ? 'e' : ''}` : 'Vezi toate mesajele'}
-                      </p>
-                    </div>
-                    {feedbackOpen ? <ChevronUp size={16} style={{ color: 'var(--ink3)' }} /> : <ChevronDown size={16} style={{ color: 'var(--ink3)' }} />}
-                  </button>
-
-                  {feedbackOpen && (
-                    <div className="border-t" style={{ borderColor: 'var(--border)' }}>
-                      {feedbackLoading ? (
-                        <div className="flex justify-center py-6">
-                          <Loader2 size={20} className="animate-spin" style={{ color: 'var(--ink3)' }} />
-                        </div>
-                      ) : feedbackList.length === 0 ? (
-                        <p className="text-center text-xs py-6" style={{ color: 'var(--ink3)' }}>
-                          Niciun feedback primit
-                        </p>
-                      ) : (
-                        <div className="divide-y" style={{ borderColor: 'var(--border)' }}>
-                          {feedbackList.map(f => (
-                            <div key={`${f.userId}-${f.feedbackId}`} className="px-4 py-3 space-y-1">
-                              <div className="flex items-center justify-between gap-2">
-                                <div>
-                                  <span className="text-xs font-semibold" style={{ color: 'var(--ink)' }}>
-                                    {f.userName}
-                                  </span>
-                                  <span className="text-xxs ml-1.5" style={{ color: 'var(--ink3)' }}>
-                                    @{f.userUsername}
-                                  </span>
-                                </div>
-                                <button
-                                  type="button"
-                                  onClick={() => handleDeleteFeedback(f.userId, f.feedbackId)}
-                                  disabled={deletingFeedback === `${f.userId}-${f.feedbackId}`}
-                                  className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded transition-opacity disabled:opacity-40"
-                                  style={{ color: 'var(--rose)' }}
-                                >
-                                  {deletingFeedback === `${f.userId}-${f.feedbackId}`
-                                    ? <Loader2 size={12} className="animate-spin" />
-                                    : <Trash2 size={12} />
-                                  }
-                                </button>
-                              </div>
-                              <div className="flex items-center gap-2 flex-wrap">
-                                <p className="text-xxs" style={{ color: 'var(--ink3)' }}>
-                                  {new Date(f.createdAt).toLocaleString('ro-RO', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                                </p>
-                                {f.page && (
-                                  <span className="text-xxs font-mono px-1.5 py-0.5 rounded-xs" style={{ background: 'var(--cream2)', color: 'var(--ink2)' }}>
-                                    {f.page}
-                                  </span>
-                                )}
-                              </div>
-                              <p className="text-xs whitespace-pre-wrap" style={{ color: 'var(--ink2)' }}>
-                                {f.message}
-                              </p>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-
-                      <div className="px-4 pb-3 pt-1">
-                        <button
-                          type="button"
-                          onClick={loadFeedback}
-                          disabled={feedbackLoading}
-                          className="text-xxs font-medium disabled:opacity-50"
-                          style={{ color: 'var(--teal)' }}
-                        >
-                          Reîncarcă
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Clustered feedback (admin only) */}
-              {isAdmin && (
-                <div
-                  className="rounded-lg border overflow-hidden"
-                  style={{ background: 'var(--white)', borderColor: 'var(--border)', boxShadow: 'var(--shadow-s)' }}
-                >
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const next = !clusterOpen
-                      setClusterOpen(next)
-                      if (next && feedbackList.length === 0) loadFeedback()
-                    }}
-                    className="w-full flex items-center gap-3 px-4 py-3 text-left"
-                  >
-                    <Layers size={18} style={{ color: 'var(--amber-dark)' }} />
-                    <div className="flex-1">
-                      <p className="text-xs font-bold" style={{ color: 'var(--ink)' }}>Feedback grupat</p>
-                      <p className="text-xxs" style={{ color: 'var(--ink3)' }}>
-                        {clustered
-                          ? `${feedbackList.length} mesaje în ${Object.values(clustered).filter(b => b.length > 0).length} categorii`
-                          : 'Clasificare pe categorii'}
-                      </p>
-                    </div>
-                    {clusterOpen ? <ChevronUp size={16} style={{ color: 'var(--ink3)' }} /> : <ChevronDown size={16} style={{ color: 'var(--ink3)' }} />}
-                  </button>
-
-                  {clusterOpen && (
-                    <div className="border-t" style={{ borderColor: 'var(--border)' }}>
-                      {/* RUN button */}
-                      <div className="px-4 pt-3 pb-2">
-                        <button
-                          type="button"
-                          onClick={async () => {
-                            if (feedbackList.length === 0) {
-                              const items = await loadFeedback()
-                              runClustering(items)
-                            } else {
-                              runClustering()
-                            }
-                          }}
-                          disabled={feedbackLoading}
-                          className="flex items-center gap-2 rounded-sm px-5 py-2 text-xs font-bold text-white disabled:opacity-50 transition-opacity active:scale-95"
-                          style={{ background: '#DC2626' }}
-                        >
-                          {feedbackLoading && <Loader2 size={14} className="animate-spin" />}
-                          RUN
-                        </button>
-                      </div>
-
-                      {!clustered ? (
-                        <p className="text-center text-xs py-4 px-4" style={{ color: 'var(--ink3)' }}>
-                          Apasă RUN pentru a clasifica feedback-ul
-                        </p>
-                      ) : (
-                        <div className="space-y-0">
-                          {(
-                            [
-                              { key: 'design',      label: 'Probleme de design',    dot: '#7C3AED' },
-                              { key: 'functional',  label: 'Probleme funcționale',  dot: '#DC2626' },
-                              { key: 'improvement', label: 'Idei de îmbunătățire',  dot: '#059669' },
-                              { key: 'other',       label: 'Neclasificat',          dot: '#9CA3AF' },
-                            ] as { key: ClusterCategory; label: string; dot: string }[]
-                          ).map(({ key, label, dot }) => {
-                            const items = clustered[key]
-                            return (
-                              <div key={key} className="border-t" style={{ borderColor: 'var(--border)' }}>
-                                {/* Bucket header */}
-                                <div className="flex items-center gap-2 px-4 py-2" style={{ background: 'var(--cream2)' }}>
-                                  <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: dot }} />
-                                  <span className="text-xxs font-bold uppercase tracking-wider" style={{ color: 'var(--ink2)' }}>
-                                    {label}
-                                  </span>
-                                  <span className="ml-auto text-xxs font-semibold" style={{ color: 'var(--ink3)' }}>
-                                    {items.length}
-                                  </span>
-                                </div>
-
-                                {items.length === 0 ? (
-                                  <p className="px-4 py-2 text-xs italic" style={{ color: 'var(--ink3)' }}>
-                                    Niciun mesaj
-                                  </p>
-                                ) : (
-                                  <div className="divide-y" style={{ borderColor: 'var(--border)' }}>
-                                    {items.map(f => (
-                                      <div key={`${f.userId}-${f.feedbackId}`} className="px-4 py-2.5 space-y-1">
-                                        <div className="flex items-center gap-2 justify-between">
-                                          <span className="text-xxs font-semibold" style={{ color: 'var(--ink)' }}>
-                                            {f.userName}
-                                            <span className="font-normal ml-1" style={{ color: 'var(--ink3)' }}>@{f.userUsername}</span>
-                                          </span>
-                                          {/* Reassign select */}
-                                          <select
-                                            value={key}
-                                            onChange={e => moveToCategory(f, key, e.target.value as ClusterCategory)}
-                                            className="text-xxs rounded-xs px-1 py-0.5 outline-none cursor-pointer"
-                                            style={{
-                                              background: 'var(--cream2)',
-                                              border: '1px solid var(--border)',
-                                              color: 'var(--ink2)',
-                                              fontFamily: 'inherit',
-                                            }}
-                                          >
-                                            <option value="design">Design</option>
-                                            <option value="functional">Funcțional</option>
-                                            <option value="improvement">Îmbunătățire</option>
-                                            <option value="other">Neclasificat</option>
-                                          </select>
-                                        </div>
-                                        {f.page && (
-                                          <span className="text-2xs font-mono px-1 py-0.5 rounded-xs" style={{ background: 'var(--cream2)', color: 'var(--ink3)' }}>
-                                            {f.page}
-                                          </span>
-                                        )}
-                                        <p className="text-xs whitespace-pre-wrap" style={{ color: 'var(--ink2)' }}>
-                                          {f.message}
-                                        </p>
-                                      </div>
-                                    ))}
-                                  </div>
-                                )}
-                              </div>
-                            )
-                          })}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
+                  <MessageSquare size={18} style={{ color: 'var(--teal)' }} />
+                  <div className="flex-1">
+                    <p className="text-xs font-bold" style={{ color: 'var(--ink)' }}>Feedback</p>
+                    <p className="text-xxs" style={{ color: 'var(--ink3)' }}>Mesajele utilizatorilor, grupate pe categorii</p>
+                  </div>
+                  <ChevronRight size={16} style={{ color: 'var(--ink3)' }} />
+                </Link>
               )}
 
               {/* Analytics (admin only) */}
