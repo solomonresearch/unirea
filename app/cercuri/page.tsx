@@ -15,6 +15,7 @@ import {
   type CircleKey, type UserInfo,
   CIRCLE_CONFIG, CIRCLE_COLORS, ALL_CIRCLES, ALL_POSITIONS, ALL_DOTS,
 } from '@/components/circles/circleConfig'
+import { SchoolGate } from '@/components/SchoolGate'
 
 interface CirclesData {
   circles: Record<string, number>
@@ -213,6 +214,7 @@ export default function CercuriPage() {
   const intersectionLabel = getIntersectionLabel()
 
   return (
+    <SchoolGate>
     <main className="min-h-screen pb-24" style={{ background: 'var(--cream)' }}>
       {/* Sticky topbar */}
       <header
@@ -449,6 +451,7 @@ export default function CercuriPage() {
 
       <BottomNav />
     </main>
+    </SchoolGate>
   )
 }
 

@@ -11,6 +11,7 @@ import { getSupabase } from '@/lib/supabase'
 import { Loader2, MessageCircle, Plus, Search, X, Users, Archive, ArchiveRestore, ChevronRight, ArrowLeft } from 'lucide-react'
 import { SwipeableRow } from '@/components/mesaje/SwipeableRow'
 import { relativeTime, getInitials } from '@/lib/utils'
+import { SchoolGate } from '@/components/SchoolGate'
 
 interface Conversation {
   id: string
@@ -496,6 +497,7 @@ export default function MesajePage() {
   }
 
   return (
+    <SchoolGate>
     <main className="flex min-h-screen flex-col items-center px-6 py-6 pb-24" style={{ background: 'var(--cream2)' }}>
       <div className="w-full max-w-sm space-y-3">
         {showArchived ? (
@@ -874,5 +876,6 @@ export default function MesajePage() {
 
       <BottomNav />
     </main>
+    </SchoolGate>
   )
 }

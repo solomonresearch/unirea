@@ -27,6 +27,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { BottomNav } from '@/components/BottomNav'
 import { KanbanColumn } from '@/components/kanban/KanbanColumn'
 import { KanbanCard, type KanbanCardData } from '@/components/kanban/KanbanCard'
+import { SchoolGate } from '@/components/SchoolGate'
 
 const STATUSES = ['todo', 'in_progress', 'done'] as const
 type Status = typeof STATUSES[number]
@@ -45,9 +46,11 @@ const customCollisionDetection: CollisionDetection = (args) => {
 
 export default function KanbanPage() {
   return (
+    <SchoolGate>
     <AuthGuard>
       <KanbanContent />
     </AuthGuard>
+    </SchoolGate>
   )
 }
 

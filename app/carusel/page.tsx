@@ -10,6 +10,7 @@ import { NotificationBell } from '@/components/NotificationBell'
 import { MentionInput } from '@/components/MentionInput'
 import Link from 'next/link'
 import { relativeTime, getInitials } from '@/lib/utils'
+import { SchoolGate } from '@/components/SchoolGate'
 
 type Scope = 'liceu' | 'promotie' | 'clasa'
 
@@ -343,6 +344,7 @@ export default function CaruselPage() {
   }
 
   return (
+    <SchoolGate>
     <div className="min-h-screen pb-24" style={{ background: 'var(--cream2)' }}>
       {/* Hidden file input */}
       <input
@@ -647,5 +649,6 @@ export default function CaruselPage() {
 
       <BottomNav />
     </div>
+    </SchoolGate>
   )
 }

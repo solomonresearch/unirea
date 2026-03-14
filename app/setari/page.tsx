@@ -17,6 +17,7 @@ import { SKINS, type SkinId } from '@/lib/skins'
 import { useSkin } from '@/components/SkinProvider'
 import { getSupabase } from '@/lib/supabase'
 import { getInitials } from '@/lib/utils'
+import { InviteSection } from '@/components/InviteSection'
 import Link from 'next/link'
 import {
   LogOut, Loader2, Sparkles, Briefcase, Layers,
@@ -24,7 +25,9 @@ import {
   GraduationCap, Pencil, Settings, Shield,
   FlaskConical, Trash2, X, MessageSquare, ChevronDown, ChevronUp, ChevronRight,
   AtSign, ImageIcon, Check, AlertCircle, UserX, BarChart3,
+  Gift,
 } from 'lucide-react'
+import { SchoolGate } from '@/components/SchoolGate'
 
 interface Profile {
   id: string
@@ -45,6 +48,7 @@ interface Profile {
   bio: string
   avatar_url: string | null
   onboarding_completed: boolean
+  invite_count: number
 }
 
 export default function SetariPage() {
@@ -419,6 +423,7 @@ export default function SetariPage() {
   const iconClass = "absolute left-3 top-[13px] pointer-events-none"
 
   return (
+    <SchoolGate>
     <>
       <main className="min-h-screen pb-24" style={{ background: 'var(--cream2)' }}>
         {/* Profile Cover */}
@@ -812,6 +817,22 @@ export default function SetariPage() {
               )}
             </div>
           </ProfileSection>
+
+          {/* Invite section */}
+          <div className="rounded-xl border px-3 py-2.5" style={{ background: 'var(--white)', borderColor: 'var(--border)' }}>
+            <h3 className="text-sm font-semibold flex items-center gap-2 mb-2" style={{ color: 'var(--ink)' }}>
+              <Gift size={16} style={{ color: 'var(--amber)' }} />
+              Invită colegi
+            </h3>
+            <p className="text-xs mb-3" style={{ color: 'var(--ink3)' }}>
+              Trimite link-ul tău de invitație colegilor de liceu:
+            </p>
+            <InviteSection
+              username={profile.username}
+              inviteCount={profile.invite_count}
+              highschool={profile.highschool}
+            />
+          </div>
 
           {/* Photos */}
           <div className="rounded-xl border px-3 py-2.5" style={{ background: 'var(--white)', borderColor: 'var(--border)' }}>
@@ -1347,5 +1368,6 @@ export default function SetariPage() {
         </div>
       )}
     </>
+    </SchoolGate>
   )
 }

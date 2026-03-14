@@ -187,6 +187,9 @@ export default function Home() {
         </div>
 
         <p className="text-2xs text-center mt-5" style={{ color: 'var(--ink3)' }}>
+          Disponibil pentru primele 100 de licee selectate
+        </p>
+        <p className="text-2xs text-center mt-2" style={{ color: 'var(--ink3)' }}>
           Prin continuare ești de acord cu{' '}
           <Link href="/termeni" className="underline">Termenii de utilizare</Link>
         </p>

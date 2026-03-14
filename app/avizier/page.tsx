@@ -21,6 +21,8 @@ import { EvenimentStrip } from '@/components/evenimente/EvenimentStrip'
 import { EvenimentCreateModal } from '@/components/evenimente/EvenimentCreateModal'
 import { EvenimentDetailModal } from '@/components/evenimente/EvenimentDetailModal'
 import type { Eveniment, EvenimentDetail } from '@/components/evenimente/types'
+import { SchoolGate } from '@/components/SchoolGate'
+import { InvitePrompt } from '@/components/InvitePrompt'
 
 type Scope = 'clasa' | 'promotie' | 'liceu'
 
@@ -48,6 +50,7 @@ interface Post {
 interface UserProfile {
   id: string
   name: string
+  username: string
   highschool: string
   graduation_year: number | null
   class: string | null
@@ -189,7 +192,7 @@ export default function AvizierPage() {
 
       const { data: profileData } = await supabase
         .from('profiles')
-        .select('id, name, highschool, graduation_year, class, role, avatar_url, tutorial_completed')
+        .select('id, name, username, highschool, graduation_year, class, role, avatar_url, tutorial_completed')
         .eq('id', user.id)
         .single()
 
@@ -560,6 +563,7 @@ export default function AvizierPage() {
     'Niciun anunț încă. Fii primul care postează!'
 
   return (
+    <SchoolGate>
     <>
       {showTutorial && profile && (
         <TutorialModal profile={profile} onDismiss={handleTutorialDismiss} />
@@ -1030,6 +1034,10 @@ export default function AvizierPage() {
 
       <BottomNav />
 
+      {profile && (
+        <InvitePrompt username={profile.username} highschool={profile.highschool} />
+      )}
+
       {/* Post modal */}
       {showPostModal && profile && (
         <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
@@ -1218,5 +1226,6 @@ export default function AvizierPage() {
         />
       )}
     </>
+    </SchoolGate>
   )
 }

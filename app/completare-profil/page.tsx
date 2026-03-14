@@ -1,14 +1,24 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { getSupabase } from '@/lib/supabase'
 import { SearchSelect } from '@/components/SearchSelect'
 import { User, Phone, GraduationCap, Calendar, AtSign, Loader2, MapPin, Building } from 'lucide-react'
 
 export default function CompletareProfilPage() {
+  return (
+    <Suspense>
+      <CompletareProfilInner />
+    </Suspense>
+  )
+}
+
+function CompletareProfilInner() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const refUsername = searchParams.get('ref') || ''
   const [loading, setLoading] = useState(false)
   const [checking, setChecking] = useState(true)
   const [error, setError] = useState('')
@@ -16,6 +26,7 @@ export default function CompletareProfilPage() {
   const [googleEmail, setGoogleEmail] = useState('')
   const [googleName, setGoogleName] = useState('')
   const [acceptedTerms, setAcceptedTerms] = useState(false)
+  const [referrerId, setReferrerId] = useState<string | null>(null)
 
   const [form, setForm] = useState({
     name: '',
@@ -31,7 +42,9 @@ export default function CompletareProfilPage() {
   const [judete, setJudete] = useState<string[]>([])
   const [localitati, setLocalitati] = useState<string[]>([])
   const [scoli, setScoli] = useState<string[]>([])
+  const [scoliTopMap, setScoliTopMap] = useState<Record<string, boolean>>({})
   const [loadingScoli, setLoadingScoli] = useState(false)
+  const isTopSchool = form.highschool ? (scoliTopMap[form.highschool] ?? true) : true
 
   useEffect(() => {
     async function check() {
@@ -62,6 +75,19 @@ export default function CompletareProfilPage() {
   }, [router])
 
   useEffect(() => {
+    if (!refUsername || checking) return
+    async function lookupReferrer() {
+      const { data } = await getSupabase()
+        .from('profiles')
+        .select('id')
+        .eq('username', refUsername.toLowerCase())
+        .single()
+      if (data) setReferrerId(data.id)
+    }
+    lookupReferrer()
+  }, [refUsername, checking])
+
+  useEffect(() => {
     if (checking) return
     async function loadJudete() {
       const { data } = await getSupabase().rpc('get_judete')
@@ -82,11 +108,16 @@ export default function CompletareProfilPage() {
   }, [form.judet])
 
   useEffect(() => {
-    if (!form.localitate || !form.judet) { setScoli([]); return }
+    if (!form.localitate || !form.judet) { setScoli([]); setScoliTopMap({}); return }
     setLoadingScoli(true)
     async function loadScoli() {
       const { data } = await getSupabase().rpc('get_scoli', { p_judet: form.judet, p_localitate: form.localitate })
-      if (data) setScoli(data.map((r: { denumire: string }) => r.denumire))
+      if (data) {
+        setScoli(data.map((r: { denumire: string }) => r.denumire))
+        const topMap: Record<string, boolean> = {}
+        data.forEach((r: { denumire: string; top_school?: boolean }) => { topMap[r.denumire] = !!r.top_school })
+        setScoliTopMap(topMap)
+      }
       setLoadingScoli(false)
     }
     loadScoli()
@@ -123,7 +154,7 @@ export default function CompletareProfilPage() {
         return
       }
 
-      const { error: profileError } = await supabase.from('profiles').insert({
+      const profileData: Record<string, unknown> = {
         id: userId,
         name: form.name,
         username: form.username.trim().toLowerCase(),
@@ -132,9 +163,38 @@ export default function CompletareProfilPage() {
         highschool: form.highschool,
         graduation_year: parseInt(form.graduation_year),
         class: form.class,
-      })
+      }
+      if (referrerId) profileData.referred_by = referrerId
 
+      const { error: profileError } = await supabase.from('profiles').insert(profileData)
       if (profileError) throw profileError
+
+      // Increment referrer's invite_count
+      if (referrerId) {
+        await supabase.rpc('increment_invite_count', { user_id: referrerId })
+      }
+
+      // Upsert waitlist_schools for non-top schools
+      if (!isTopSchool) {
+        const { data: existing } = await supabase
+          .from('waitlist_schools')
+          .select('signup_count')
+          .eq('highschool', form.highschool)
+          .single()
+
+        if (existing) {
+          const newCount = existing.signup_count + 1
+          await supabase
+            .from('waitlist_schools')
+            .update({
+              signup_count: newCount,
+              ...(newCount >= 50 ? { activated_at: new Date().toISOString() } : {}),
+            })
+            .eq('highschool', form.highschool)
+        } else {
+          await supabase.from('waitlist_schools').insert({ highschool: form.highschool, signup_count: 1 })
+        }
+      }
 
       window.location.href = '/onboarding'
     } catch (err: any) {
@@ -243,6 +303,12 @@ export default function CompletareProfilPage() {
             required
             bold
           />
+
+          {form.highschool && !isTopSchool && (
+            <div className="rounded-sm px-3 py-2.5 text-xs" style={{ background: '#FFF7ED', border: '1px solid #FED7AA', color: '#9A3412' }}>
+              Liceul tău este pe <strong>lista de așteptare</strong>. Te poți înregistra, dar platforma se activează când 50 de colegi se alătură.
+            </div>
+          )}
 
           <div className="grid grid-cols-2 gap-2.5">
             <div className="relative">

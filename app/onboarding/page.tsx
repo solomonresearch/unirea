@@ -12,9 +12,10 @@ import { getCountyCode } from '@/lib/city-county-map'
 import { PROFESSIONS } from '@/lib/professions'
 import { DOMAINS } from '@/lib/domains'
 import { HOBBY_OPTIONS } from '@/lib/hobbies'
+import { InviteSection } from '@/components/InviteSection'
 import {
   Briefcase, MapPin, Globe, Building, ArrowRight, ArrowLeft,
-  Heart, Layers, Loader2, Sparkles, Check, Building2
+  Heart, Layers, Loader2, Sparkles, Check, Building2, Gift
 } from 'lucide-react'
 
 export default function OnboardingPage() {
@@ -22,6 +23,8 @@ export default function OnboardingPage() {
   const [step, setStep] = useState(1)
   const [loading, setLoading] = useState(false)
   const [userId, setUserId] = useState<string | null>(null)
+  const [username, setUsername] = useState('')
+  const [highschool, setHighschool] = useState('')
 
   const [profession, setProfession] = useState<string[]>([])
   const [domain, setDomain] = useState<string[]>([])
@@ -45,11 +48,15 @@ export default function OnboardingPage() {
 
       const { data: profile } = await getSupabase()
         .from('profiles')
-        .select('onboarding_completed')
+        .select('onboarding_completed, username, highschool')
         .eq('id', user.id)
         .single()
 
       if (profile?.onboarding_completed) router.push('/profil')
+      if (profile) {
+        setUsername(profile.username || '')
+        setHighschool(profile.highschool || '')
+      }
     }
     checkAuth()
   }, [router])
@@ -79,7 +86,7 @@ export default function OnboardingPage() {
       })
       .eq('id', userId)
 
-    if (!error) router.push('/profil')
+    if (!error) setStep(4)
     setLoading(false)
   }
 
@@ -98,7 +105,7 @@ export default function OnboardingPage() {
 
         {/* Progress */}
         <div className="flex gap-1.5">
-          {[1, 2, 3].map(s => (
+          {[1, 2, 3, 4].map(s => (
             <div key={s} className="h-1.5 flex-1 rounded-full transition-colors" style={{ background: s <= step ? 'var(--amber)' : 'var(--border)' }} />
           ))}
         </div>
@@ -266,9 +273,26 @@ export default function OnboardingPage() {
           </div>
         )}
 
+        {/* Step 4: Invite */}
+        {step === 4 && (
+          <div className="space-y-4 animate-in fade-in">
+            <div className="space-y-1">
+              <h2 className="text-base font-semibold flex items-center gap-2" style={{ color: 'var(--ink)' }}>
+                <Gift size={18} style={{ color: 'var(--amber-dark)' }} />
+                Invită-ți colegii
+              </h2>
+              <p className="text-xs" style={{ color: 'var(--ink3)' }}>Trimite-le link-ul tău de invitație pentru a vă reconecta.</p>
+            </div>
+
+            {username && (
+              <InviteSection username={username} highschool={highschool} />
+            )}
+          </div>
+        )}
+
         {/* Navigation */}
         <div className="flex gap-2.5 pt-2">
-          {step > 1 && (
+          {step > 1 && step < 4 && (
             <button
               type="button"
               onClick={() => setStep(s => s - 1)}
@@ -290,7 +314,7 @@ export default function OnboardingPage() {
               Continua
               <ArrowRight size={16} />
             </button>
-          ) : (
+          ) : step === 3 ? (
             <button
               type="button"
               onClick={handleFinish}
@@ -301,18 +325,30 @@ export default function OnboardingPage() {
               {loading ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
               {loading ? 'Se salveaza...' : 'Finalizeaza'}
             </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => router.push('/profil')}
+              className="flex-1 flex items-center justify-center gap-1 rounded-sm px-4 py-2.5 text-sm font-semibold transition-colors"
+              style={{ background: 'var(--ink)', color: 'var(--white)' }}
+            >
+              Hai la treabă
+              <ArrowRight size={16} />
+            </button>
           )}
         </div>
 
         {/* Skip */}
-        <button
-          type="button"
-          onClick={handleFinish}
-          className="w-full text-center text-xs transition-colors"
-          style={{ color: 'var(--ink3)' }}
-        >
-          Completeaza mai tarziu
-        </button>
+        {step < 4 && (
+          <button
+            type="button"
+            onClick={handleFinish}
+            className="w-full text-center text-xs transition-colors"
+            style={{ color: 'var(--ink3)' }}
+          >
+            Completeaza mai tarziu
+          </button>
+        )}
       </div>
     </main>
   )

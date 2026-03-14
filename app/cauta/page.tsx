@@ -16,6 +16,7 @@ import {
   GraduationCap, Users, SlidersHorizontal, List, MapPin, User,
   Check, UsersRound,
 } from 'lucide-react'
+import { SchoolGate } from '@/components/SchoolGate'
 
 const MapView = dynamic(() => import('@/components/MapView'), { ssr: false })
 
@@ -219,6 +220,7 @@ export default function CautaPage() {
   const inputFieldStyle = { border: '1px solid var(--border)', background: 'var(--white)', color: 'var(--ink)' }
 
   return (
+    <SchoolGate>
     <main className="flex min-h-screen flex-col items-center px-6 py-6 pb-24" style={{ background: 'var(--cream2)' }}>
       <div className="w-full max-w-sm space-y-3">
         {/* Header */}
@@ -510,5 +512,6 @@ export default function CautaPage() {
 
       <BottomNav />
     </main>
+    </SchoolGate>
   )
 }
