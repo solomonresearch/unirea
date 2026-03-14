@@ -11,7 +11,7 @@ interface InviteSectionProps {
 
 export function InviteSection({ username, inviteCount = 0, highschool }: InviteSectionProps) {
   const [copied, setCopied] = useState(false)
-  const inviteLink = `unirea.ro/i/${username}`
+  const inviteLink = `unirea.space/i/${username}`
   const shareText = highschool
     ? `Alătură-te comunității de la ${highschool}! ${inviteLink}`
     : `Alătură-te pe Unirea! ${inviteLink}`
