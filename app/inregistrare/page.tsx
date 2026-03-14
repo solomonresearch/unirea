@@ -161,14 +161,19 @@ function SignupPageInner() {
         highschool: form.highschool,
         graduation_year: parseInt(form.graduation_year),
         class: form.class,
+        signup_source: referrerId ? 'referral' : 'direct',
       }
       if (referrerId) profileData.referred_by = referrerId
 
       const { error: profileError } = await supabase.from('profiles').insert(profileData)
       if (profileError) throw profileError
 
-      // Increment referrer's invite_count
+      // Record referral edge + increment referrer's invite_count
       if (referrerId) {
+        await supabase.from('referrals').insert({
+          referrer_id: referrerId,
+          referred_id: data.user.id,
+        })
         await supabase.rpc('increment_invite_count', { user_id: referrerId })
       }
 

@@ -1,9 +1,38 @@
 -- Invite system: referred_by + invite_count on profiles, waitlist_schools table
 
 -- Add invite tracking columns to profiles
+-- signup_source: 'direct' (visited /inregistrare), 'referral' (came via /i/username), 'google' (Google OAuth direct), 'google_referral' (Google OAuth via referral link)
 ALTER TABLE public.profiles
   ADD COLUMN IF NOT EXISTS referred_by uuid REFERENCES public.profiles(id),
-  ADD COLUMN IF NOT EXISTS invite_count integer NOT NULL DEFAULT 0;
+  ADD COLUMN IF NOT EXISTS invite_count integer NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS signup_source text NOT NULL DEFAULT 'direct';
+
+-- Referrals table — explicit edge list for social graph queries
+-- Each row = one successful referral (referrer → referred user)
+CREATE TABLE IF NOT EXISTS public.referrals (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  referrer_id uuid NOT NULL REFERENCES public.profiles(id),
+  referred_id uuid NOT NULL REFERENCES public.profiles(id),
+  created_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (referrer_id, referred_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_referrals_referrer ON public.referrals (referrer_id);
+CREATE INDEX IF NOT EXISTS idx_referrals_referred ON public.referrals (referred_id);
+
+ALTER TABLE public.referrals ENABLE ROW LEVEL SECURITY;
+
+-- Authenticated users can read all referrals (needed for graph)
+CREATE POLICY "Authenticated users can read referrals"
+  ON public.referrals FOR SELECT
+  TO authenticated
+  USING (true);
+
+-- Authenticated users can insert referrals (on signup)
+CREATE POLICY "Authenticated users can insert referrals"
+  ON public.referrals FOR INSERT
+  TO authenticated
+  WITH CHECK (true);
 
 -- Waitlist schools table: tracks signups per non-top school
 CREATE TABLE IF NOT EXISTS public.waitlist_schools (
