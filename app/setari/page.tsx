@@ -255,8 +255,17 @@ export default function SetariPage() {
   async function handleDeleteMock() {
     setMockLoading('delete')
     setMockResult(null)
-    // Mock user deletion requires service role (auth.admin.deleteUser) — not available client-side.
-    setMockResult('Indisponibil in modul static (necesita Edge Function)')
+    try {
+      const res = await fetch('/api/admin/mock', { method: 'DELETE' })
+      const data = await res.json()
+      if (res.ok) {
+        setMockResult(`Șterși ${data.deleted} boți${data.authErrors ? ` (${data.authErrors} erori auth)` : ''}`)
+      } else {
+        setMockResult(data.error || 'Eroare la ștergere')
+      }
+    } catch {
+      setMockResult('Eroare de conexiune')
+    }
     setMockLoading(null)
   }
 
