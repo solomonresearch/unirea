@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { getSupabase } from '@/lib/supabase'
 import { getInitials } from '@/lib/utils'
@@ -8,6 +8,7 @@ import {
   Loader2, BarChart3, Users, Eye, MousePointerClick,
   TrendingUp, Clock, Activity, ArrowLeft, RefreshCw,
   X, Search, ChevronDown, ChevronRight, CalendarDays,
+  FolderOpen, Filter,
 } from 'lucide-react'
 
 interface RawEvent {
@@ -26,6 +27,7 @@ interface DayStat { date: string; users: number; events: number; sessions: numbe
 interface DayDetail { date: string; users: Set<string>; events: number; sessions: number; pageViews: number; clicks: number; engagements: number; topPages: { page: string; count: number }[] }
 interface ActionStat { target: string; count: number }
 interface HourlyStat { hour: number; events: number }
+interface RouteGroup { route: string; views: number; uniqueUsers: number; clicks: number; subPages: PageStat[] }
 
 type TimeRange = '7d' | '30d' | '90d'
 
@@ -172,6 +174,8 @@ export default function AnalPage() {
   const [userLogSearch, setUserLogSearch] = useState('')
   const [userLogExpandedSessions, setUserLogExpandedSessions] = useState<Set<string>>(new Set())
   const [expandedDays, setExpandedDays] = useState<Set<string>>(new Set())
+  const [pageFilter, setPageFilter] = useState('')
+  const [expandedRoutes, setExpandedRoutes] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     async function check() {
@@ -284,20 +288,69 @@ export default function AnalPage() {
 
   const selectedUserProfile = selectedUserId ? userProfiles.get(selectedUserId) : null
 
-  // Computed stats
-  const stats = useMemo(() => {
-    const totalEvents = events.length
-    const uniqueUserIds = new Set(events.map(e => e.user_id))
-    const uniqueSessions = new Set(events.filter(e => e.session_id).map(e => e.session_id))
-    const pageViews = events.filter(e => e.event_type === 'page_view').length
-    const clicks = events.filter(e => e.event_type === 'click').length
+  // Filtered events (by page filter)
+  const filteredEvents = useMemo(() => {
+    if (!pageFilter) return events
+    return events.filter(e => e.page && e.page.startsWith(pageFilter))
+  }, [events, pageFilter])
 
-    // Avg events per user
+  // Route groups
+  const routeGroups = useMemo<RouteGroup[]>(() => {
+    const groups: Record<string, { views: number; users: Set<string>; clicks: number; subPages: Record<string, { views: number; users: Set<string> }> }> = {}
+    for (const e of filteredEvents) {
+      if (e.event_type !== 'page_view' && e.event_type !== 'click') continue
+      if (!e.page) continue
+      // Extract route group: first path segment e.g. /avizier, /carusel, /mesaje
+      const segments = e.page.split('/').filter(Boolean)
+      const route = segments.length > 0 ? `/${segments[0]}` : '/'
+
+      if (!groups[route]) groups[route] = { views: 0, users: new Set(), clicks: 0, subPages: {} }
+      if (e.event_type === 'page_view') {
+        groups[route].views++
+        groups[route].users.add(e.user_id)
+        if (!groups[route].subPages[e.page]) groups[route].subPages[e.page] = { views: 0, users: new Set() }
+        groups[route].subPages[e.page].views++
+        groups[route].subPages[e.page].users.add(e.user_id)
+      }
+      if (e.event_type === 'click') groups[route].clicks++
+    }
+    return Object.entries(groups)
+      .map(([route, g]) => ({
+        route,
+        views: g.views,
+        uniqueUsers: g.users.size,
+        clicks: g.clicks,
+        subPages: Object.entries(g.subPages)
+          .map(([page, s]) => ({ page, views: s.views, uniqueUsers: s.users.size }))
+          .sort((a, b) => b.views - a.views),
+      }))
+      .sort((a, b) => b.views - a.views)
+  }, [filteredEvents])
+
+  // All unique route prefixes for filter buttons
+  const allRoutes = useMemo(() => {
+    const routes = new Set<string>()
+    for (const e of events) {
+      if (e.page) {
+        const segments = e.page.split('/').filter(Boolean)
+        if (segments.length > 0) routes.add(`/${segments[0]}`)
+      }
+    }
+    return [...routes].sort()
+  }, [events])
+
+  // Computed stats (use filteredEvents)
+  const stats = useMemo(() => {
+    const totalEvents = filteredEvents.length
+    const uniqueUserIds = new Set(filteredEvents.map(e => e.user_id))
+    const uniqueSessions = new Set(filteredEvents.filter(e => e.session_id).map(e => e.session_id))
+    const pageViews = filteredEvents.filter(e => e.event_type === 'page_view').length
+    const clicks = filteredEvents.filter(e => e.event_type === 'click').length
+
     const avgPerUser = uniqueUserIds.size > 0 ? Math.round(totalEvents / uniqueUserIds.size) : 0
 
-    // Pages per session
     const sessionPages: Record<string, Set<string>> = {}
-    for (const e of events) {
+    for (const e of filteredEvents) {
       if (e.session_id && e.event_type === 'page_view' && e.page) {
         if (!sessionPages[e.session_id]) sessionPages[e.session_id] = new Set()
         sessionPages[e.session_id].add(e.page)
@@ -309,14 +362,14 @@ export default function AnalPage() {
       : '0'
 
     return { totalEvents, uniqueUsers: uniqueUserIds.size, uniqueSessions: uniqueSessions.size, pageViews, clicks, avgPerUser, avgPagesPerSession }
-  }, [events])
+  }, [filteredEvents])
 
   // DAU data
   const dauData = useMemo<DayStat[]>(() => {
     const dayUsers: Record<string, Set<string>> = {}
     const dayEvents: Record<string, number> = {}
     const daySessions: Record<string, Set<string>> = {}
-    for (const e of events) {
+    for (const e of filteredEvents) {
       const day = e.created_at.slice(0, 10)
       if (!dayUsers[day]) { dayUsers[day] = new Set(); dayEvents[day] = 0; daySessions[day] = new Set() }
       dayUsers[day].add(e.user_id)
@@ -326,12 +379,12 @@ export default function AnalPage() {
     return Object.entries(dayUsers)
       .map(([date, users]) => ({ date, users: users.size, events: dayEvents[date], sessions: daySessions[date]?.size || 0 }))
       .sort((a, b) => a.date.localeCompare(b.date))
-  }, [events])
+  }, [filteredEvents])
 
   // Per-day detailed breakdown
   const dayDetails = useMemo<DayDetail[]>(() => {
     const days: Record<string, { users: Set<string>; sessions: Set<string>; events: number; pageViews: number; clicks: number; engagements: number; pages: Record<string, number> }> = {}
-    for (const e of events) {
+    for (const e of filteredEvents) {
       const day = e.created_at.slice(0, 10)
       if (!days[day]) days[day] = { users: new Set(), sessions: new Set(), events: 0, pageViews: 0, clicks: 0, engagements: 0, pages: {} }
       const d = days[day]
@@ -354,12 +407,12 @@ export default function AnalPage() {
         topPages: Object.entries(d.pages).map(([page, count]) => ({ page, count })).sort((a, b) => b.count - a.count).slice(0, 5),
       }))
       .sort((a, b) => b.date.localeCompare(a.date))
-  }, [events])
+  }, [filteredEvents])
 
   // Top pages
   const topPages = useMemo<PageStat[]>(() => {
     const pageCounts: Record<string, { views: number; users: Set<string> }> = {}
-    for (const e of events) {
+    for (const e of filteredEvents) {
       if (e.event_type === 'page_view' && e.page) {
         if (!pageCounts[e.page]) pageCounts[e.page] = { views: 0, users: new Set() }
         pageCounts[e.page].views++
@@ -370,12 +423,12 @@ export default function AnalPage() {
       .map(([page, { views, users }]) => ({ page, views, uniqueUsers: users.size }))
       .sort((a, b) => b.views - a.views)
       .slice(0, 15)
-  }, [events])
+  }, [filteredEvents])
 
   // Top users
   const topUsers = useMemo<UserStat[]>(() => {
     const userStats: Record<string, { events: number; sessions: Set<string>; pages: Set<string> }> = {}
-    for (const e of events) {
+    for (const e of filteredEvents) {
       if (!userStats[e.user_id]) userStats[e.user_id] = { events: 0, sessions: new Set(), pages: new Set() }
       userStats[e.user_id].events++
       if (e.session_id) userStats[e.user_id].sessions.add(e.session_id)
@@ -388,12 +441,12 @@ export default function AnalPage() {
       })
       .sort((a, b) => b.events - a.events)
       .slice(0, 15)
-  }, [events, userProfiles])
+  }, [filteredEvents, userProfiles])
 
   // Actions
   const actions = useMemo<ActionStat[]>(() => {
     const counts: Record<string, number> = {}
-    for (const e of events) {
+    for (const e of filteredEvents) {
       if ((e.event_type === 'click' || e.event_type === 'engagement') && e.target) {
         counts[e.target] = (counts[e.target] || 0) + 1
       }
@@ -402,28 +455,28 @@ export default function AnalPage() {
       .map(([target, count]) => ({ target, count }))
       .sort((a, b) => b.count - a.count)
       .slice(0, 20)
-  }, [events])
+  }, [filteredEvents])
 
   // Hourly heatmap
   const hourly = useMemo<HourlyStat[]>(() => {
     const hours: number[] = new Array(24).fill(0)
-    for (const e of events) {
+    for (const e of filteredEvents) {
       const h = new Date(e.created_at).getHours()
       hours[h]++
     }
     return hours.map((events, hour) => ({ hour, events }))
-  }, [events])
+  }, [filteredEvents])
 
   // Engagement by event type
   const eventTypeCounts = useMemo(() => {
     const counts: Record<string, number> = {}
-    for (const e of events) {
+    for (const e of filteredEvents) {
       counts[e.event_type] = (counts[e.event_type] || 0) + 1
     }
     return Object.entries(counts)
       .map(([type, count]) => ({ type, count }))
       .sort((a, b) => b.count - a.count)
-  }, [events])
+  }, [filteredEvents])
 
   if (loading) {
     return (
@@ -499,6 +552,44 @@ export default function AnalPage() {
               <StatCard label="Click-uri" value={stats.clicks} color="#C4634A" />
               <StatCard label="Pagini/sesiune" value={stats.avgPagesPerSession} color="#4A7B9A" />
             </div>
+
+            {/* Route filter bar */}
+            {allRoutes.length > 0 && (
+              <div className="flex items-center gap-2 flex-wrap">
+                <Filter size={14} style={{ color: 'var(--ink3)' }} />
+                <span className="text-xs font-medium" style={{ color: 'var(--ink3)' }}>Filtrează:</span>
+                <button
+                  type="button"
+                  onClick={() => setPageFilter('')}
+                  className="rounded-md px-3 py-1 text-xs font-semibold transition-colors"
+                  style={!pageFilter
+                    ? { background: 'var(--ink)', color: 'var(--white)' }
+                    : { background: 'var(--white)', color: 'var(--ink3)', border: '1px solid var(--border)' }
+                  }
+                >
+                  Toate
+                </button>
+                {allRoutes.map(r => (
+                  <button
+                    key={r}
+                    type="button"
+                    onClick={() => setPageFilter(pageFilter === r ? '' : r)}
+                    className="rounded-md px-3 py-1 text-xs font-semibold transition-colors"
+                    style={pageFilter === r
+                      ? { background: 'var(--ink)', color: 'var(--white)' }
+                      : { background: 'var(--white)', color: 'var(--ink3)', border: '1px solid var(--border)' }
+                    }
+                  >
+                    {r}
+                  </button>
+                ))}
+                {pageFilter && (
+                  <span className="text-2xs ml-1" style={{ color: 'var(--ink3)' }}>
+                    {filteredEvents.length} / {events.length} evenimente
+                  </span>
+                )}
+              </div>
+            )}
 
             {/* DAU chart — full width */}
             <Panel>
@@ -642,9 +733,112 @@ export default function AnalPage() {
               </Panel>
             )}
 
+            {/* Route groups — full width */}
+            {routeGroups.length > 0 && (
+              <Panel>
+                <PanelHeader title="Pagini grupate pe rute" icon={<FolderOpen size={16} />} />
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="border-b" style={{ borderColor: 'var(--border)' }}>
+                      <th className="text-left px-5 py-2.5 font-semibold w-8" style={{ color: 'var(--ink3)' }}></th>
+                      <th className="text-left px-3 py-2.5 font-semibold" style={{ color: 'var(--ink3)' }}>Rută</th>
+                      <th className="text-right px-3 py-2.5 font-semibold" style={{ color: 'var(--ink3)' }}>Vizualizări</th>
+                      <th className="text-right px-3 py-2.5 font-semibold" style={{ color: 'var(--ink3)' }}>Utilizatori</th>
+                      <th className="text-right px-3 py-2.5 font-semibold" style={{ color: 'var(--ink3)' }}>Click-uri</th>
+                      <th className="px-5 py-2.5 w-48" />
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {routeGroups.map(g => {
+                      const expanded = expandedRoutes.has(g.route)
+                      const maxViews = routeGroups[0]?.views || 1
+                      return (
+                        <React.Fragment key={g.route}>
+                          <tr
+                            className="border-b hover:bg-[var(--cream2)] transition-colors cursor-pointer"
+                            style={{ borderColor: 'var(--border)' }}
+                            onClick={() => {
+                              setExpandedRoutes(prev => {
+                                const next = new Set(prev)
+                                if (next.has(g.route)) next.delete(g.route)
+                                else next.add(g.route)
+                                return next
+                              })
+                            }}
+                          >
+                            <td className="px-5 py-2.5">
+                              {g.subPages.length > 1 && (
+                                <ChevronDown
+                                  size={13}
+                                  className={`transition-transform ${expanded ? '' : '-rotate-90'}`}
+                                  style={{ color: 'var(--ink3)' }}
+                                />
+                              )}
+                            </td>
+                            <td className="px-3 py-2.5">
+                              <div className="flex items-center gap-2">
+                                <span className="font-bold" style={{ color: 'var(--ink)' }}>{g.route}</span>
+                                <span className="text-2xs px-1.5 py-0.5 rounded" style={{ background: 'var(--cream2)', color: 'var(--ink3)' }}>
+                                  {g.subPages.length} {g.subPages.length === 1 ? 'pagină' : 'pagini'}
+                                </span>
+                              </div>
+                            </td>
+                            <td className="text-right px-3 py-2.5 tabular-nums font-semibold" style={{ color: 'var(--amber-dark, #B45309)' }}>
+                              {g.views.toLocaleString()}
+                            </td>
+                            <td className="text-right px-3 py-2.5 tabular-nums" style={{ color: '#5B8E6D' }}>
+                              {g.uniqueUsers}
+                            </td>
+                            <td className="text-right px-3 py-2.5 tabular-nums" style={{ color: '#C4634A' }}>
+                              {g.clicks}
+                            </td>
+                            <td className="px-5 py-2.5">
+                              <div className="h-2 rounded-full overflow-hidden" style={{ background: 'var(--cream2)' }}>
+                                <div
+                                  className="h-full rounded-full"
+                                  style={{ width: `${(g.views / maxViews) * 100}%`, background: 'var(--amber, #F59E0B)' }}
+                                />
+                              </div>
+                            </td>
+                          </tr>
+                          {expanded && g.subPages.map(sp => (
+                            <tr
+                              key={sp.page}
+                              className="border-b last:border-b-0"
+                              style={{ borderColor: 'var(--border)', background: 'var(--cream2)' }}
+                            >
+                              <td className="px-5 py-1.5" />
+                              <td className="px-3 py-1.5 pl-8">
+                                <span className="font-mono text-2xs" style={{ color: 'var(--ink2)' }}>{sp.page}</span>
+                              </td>
+                              <td className="text-right px-3 py-1.5 tabular-nums" style={{ color: 'var(--ink2)' }}>
+                                {sp.views}
+                              </td>
+                              <td className="text-right px-3 py-1.5 tabular-nums" style={{ color: 'var(--ink3)' }}>
+                                {sp.uniqueUsers}
+                              </td>
+                              <td className="px-3 py-1.5" />
+                              <td className="px-5 py-1.5">
+                                <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(0,0,0,0.06)' }}>
+                                  <div
+                                    className="h-full rounded-full"
+                                    style={{ width: `${(sp.views / g.views) * 100}%`, background: 'var(--amber, #F59E0B)', opacity: 0.6 }}
+                                  />
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </React.Fragment>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </Panel>
+            )}
+
             {/* Two column: pages + users */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Top pages */}
+              {/* Top pages (flat) */}
               <Panel>
                 <PanelHeader title="Pagini populare" icon={<Eye size={16} />} />
                 <div className="py-2">

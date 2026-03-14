@@ -22,10 +22,9 @@ import {
   LogOut, Loader2, Sparkles, Briefcase, Layers,
   MapPin, Globe, Building, Heart, Mail, Phone,
   GraduationCap, Pencil, Settings, Shield,
-  FlaskConical, Trash2, X, MessageSquare, ChevronDown, ChevronUp,
+  FlaskConical, Trash2, X, MessageSquare, ChevronDown, ChevronUp, ChevronRight,
   AtSign, ImageIcon, Check, AlertCircle, UserX, BarChart3,
 } from 'lucide-react'
-import { AnalyticsDashboard } from '@/components/AnalyticsDashboard'
 
 interface Profile {
   id: string
@@ -103,7 +102,6 @@ export default function SetariPage() {
   const [deletingFeedback, setDeletingFeedback] = useState<string | null>(null)
   const [clusterOpen, setClusterOpen] = useState(false)
   const [clustered, setClustered] = useState<ClusteredFeedback | null>(null)
-  const [analyticsOpen, setAnalyticsOpen] = useState(false)
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
   const [deleteConfirmText, setDeleteConfirmText] = useState('')
   const [deleting, setDeleting] = useState(false)
@@ -1244,29 +1242,18 @@ export default function SetariPage() {
 
               {/* Analytics (admin only) */}
               {isAdmin && (
-                <div
-                  className="rounded-lg border overflow-hidden"
+                <Link
+                  href="/anal"
+                  className="w-full flex items-center gap-3 rounded-lg border px-4 py-3 text-left transition-opacity hover:opacity-80"
                   style={{ background: 'var(--white)', borderColor: 'var(--border)', boxShadow: 'var(--shadow-s)' }}
                 >
-                  <button
-                    type="button"
-                    onClick={() => setAnalyticsOpen(!analyticsOpen)}
-                    className="w-full flex items-center gap-3 px-4 py-3 text-left"
-                  >
-                    <BarChart3 size={18} style={{ color: '#5B8E6D' }} />
-                    <div className="flex-1">
-                      <p className="text-xs font-bold" style={{ color: 'var(--ink)' }}>Analytics</p>
-                      <p className="text-xxs" style={{ color: 'var(--ink3)' }}>Vizualizări, utilizatori activi, acțiuni</p>
-                    </div>
-                    {analyticsOpen ? <ChevronUp size={16} style={{ color: 'var(--ink3)' }} /> : <ChevronDown size={16} style={{ color: 'var(--ink3)' }} />}
-                  </button>
-
-                  {analyticsOpen && (
-                    <div className="border-t px-4 py-3" style={{ borderColor: 'var(--border)' }}>
-                      <AnalyticsDashboard />
-                    </div>
-                  )}
-                </div>
+                  <BarChart3 size={18} style={{ color: '#5B8E6D' }} />
+                  <div className="flex-1">
+                    <p className="text-xs font-bold" style={{ color: 'var(--ink)' }}>Analytics</p>
+                    <p className="text-xxs" style={{ color: 'var(--ink3)' }}>Vizualizări, utilizatori activi, acțiuni</p>
+                  </div>
+                  <ChevronRight size={16} style={{ color: 'var(--ink3)' }} />
+                </Link>
               )}
 
               {/* Logout */}

@@ -6,9 +6,11 @@ import { getSupabase } from '@/lib/supabase'
 import { getInitials } from '@/lib/utils'
 import { BottomNav } from '@/components/BottomNav'
 import { Logo } from '@/components/Logo'
+import { NotificationBell } from '@/components/NotificationBell'
+import Link from 'next/link'
 import {
   Loader2, GraduationCap, MapPin, Briefcase, Layers,
-  Building2, Heart, Sparkles, UserX, ArrowLeft, MessageCircle,
+  Building2, Heart, Sparkles, UserX, ArrowLeft, MessageCircle, Search,
 } from 'lucide-react'
 
 interface PublicProfile {
@@ -45,13 +47,26 @@ export default function PublicProfilePage() {
   const [profile, setProfile] = useState<PublicProfile | null>(null)
   const [notFound, setNotFound] = useState(false)
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
+  const [currentUserAvatar, setCurrentUserAvatar] = useState<string | null>(null)
+  const [currentUserName, setCurrentUserName] = useState('')
 
   useEffect(() => {
     async function load() {
       const supabase = getSupabase()
 
       const { data: { user } } = await supabase.auth.getUser()
-      if (user) setCurrentUserId(user.id)
+      if (user) {
+        setCurrentUserId(user.id)
+        const { data: me } = await supabase
+          .from('profiles')
+          .select('name, avatar_url')
+          .eq('id', user.id)
+          .single()
+        if (me) {
+          setCurrentUserAvatar(me.avatar_url)
+          setCurrentUserName(me.name)
+        }
+      }
 
       const { data } = await supabase
         .from('profiles')
@@ -142,6 +157,27 @@ export default function PublicProfilePage() {
           </button>
           <Logo size={28} />
           <span className="font-display text-xl" style={{ color: 'var(--ink)' }}>Profil</span>
+
+          <div className="flex items-center gap-2 ml-auto">
+            <Link
+              href="/cauta"
+              className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xxs font-semibold"
+              style={{ background: 'var(--white)', border: '1.5px solid var(--border)', color: 'var(--ink3)', boxShadow: 'var(--shadow-s)' }}
+            >
+              <Search size={14} strokeWidth={1.75} />
+              Cauta
+            </Link>
+            <NotificationBell />
+            <Link href="/setari" className="flex-shrink-0 w-9 h-9 rounded-full overflow-hidden" style={{ border: '2px solid var(--border)' }}>
+              {currentUserAvatar ? (
+                <img src={currentUserAvatar} alt={currentUserName} className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-xxs font-bold" style={{ background: 'var(--amber-soft)', color: 'var(--amber)' }}>
+                  {getInitials(currentUserName || '?')}
+                </div>
+              )}
+            </Link>
+          </div>
         </div>
 
         {/* Profile card */}
