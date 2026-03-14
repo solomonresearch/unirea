@@ -447,7 +447,7 @@ export default function CaruselPage() {
                       className="h-full w-full object-cover sepia-[.3]"
                     />
                   </div>
-                  <p className="mt-2 text-[10px] truncate text-left" style={{ color: 'var(--ink2)' }}>
+                  <p className="mt-2 text-[10px] truncate text-left italic font-extrabold" style={{ color: 'var(--ink2)' }}>
                     {photo.caption || 'Fara descriere'}
                   </p>
                   <p className="text-[9px] mt-0.5 text-left" style={{ color: 'var(--ink3)' }}>{relativeTime(photo.created_at)}</p>

@@ -23,7 +23,7 @@ import {
   MapPin, Globe, Building, Heart, Mail, Phone,
   GraduationCap, Pencil, Settings, Shield,
   FlaskConical, Trash2, X, MessageSquare, ChevronDown, ChevronUp,
-  AtSign, ImageIcon, Check, AlertCircle,
+  AtSign, ImageIcon, Check, AlertCircle, UserX,
 } from 'lucide-react'
 
 interface Profile {
@@ -102,6 +102,10 @@ export default function SetariPage() {
   const [deletingFeedback, setDeletingFeedback] = useState<string | null>(null)
   const [clusterOpen, setClusterOpen] = useState(false)
   const [clustered, setClustered] = useState<ClusteredFeedback | null>(null)
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false)
+  const [deleteConfirmText, setDeleteConfirmText] = useState('')
+  const [deleting, setDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState('')
 
   useEffect(() => {
     async function loadProfile() {
@@ -211,6 +215,28 @@ export default function SetariPage() {
   async function handleLogout() {
     await getSupabase().auth.signOut()
     router.push('/autentificare')
+  }
+
+  async function handleDeleteAccount() {
+    if (deleteConfirmText.trim().toLowerCase() !== 'sterge') return
+    setDeleting(true)
+    setDeleteError('')
+    try {
+      const res = await fetch('/api/account/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ confirmation: 'sterge' }),
+      })
+      if (res.ok) {
+        router.push('/autentificare')
+      } else {
+        const data = await res.json()
+        setDeleteError(data.error || 'Eroare la ștergere')
+      }
+    } catch {
+      setDeleteError('Eroare de conexiune')
+    }
+    setDeleting(false)
   }
 
   async function handleMock(scope: string) {
@@ -1224,6 +1250,82 @@ export default function SetariPage() {
                 <LogOut size={18} />
                 <span className="text-xs font-semibold">Ieșire din cont</span>
               </button>
+
+              {/* Delete account */}
+              <button
+                type="button"
+                onClick={() => { setDeleteModalOpen(true); setDeleteConfirmText(''); setDeleteError('') }}
+                className="w-full flex items-center gap-3 rounded-lg border px-4 py-3 text-left transition-opacity hover:opacity-80"
+                style={{ background: 'var(--white)', borderColor: '#DC2626', boxShadow: 'var(--shadow-s)', color: '#DC2626' }}
+              >
+                <UserX size={18} />
+                <span className="text-xs font-semibold">Șterge contul</span>
+              </button>
+
+              {/* Delete account modal */}
+              {deleteModalOpen && (
+                <div
+                  className="fixed inset-0 z-[250] flex items-center justify-center px-4"
+                  style={{ background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(4px)' }}
+                  onClick={e => { if (e.target === e.currentTarget) setDeleteModalOpen(false) }}
+                >
+                  <div
+                    className="w-full max-w-sm rounded-xl p-5 space-y-4"
+                    style={{ background: 'var(--white)', boxShadow: '0 16px 48px rgba(0,0,0,0.22)' }}
+                  >
+                    <div className="flex items-center justify-between">
+                      <h2 className="font-display text-[1.1rem]" style={{ color: '#DC2626' }}>
+                        Șterge contul
+                      </h2>
+                      <button
+                        type="button"
+                        onClick={() => setDeleteModalOpen(false)}
+                        className="w-8 h-8 flex items-center justify-center rounded-sm"
+                        style={{ background: 'var(--cream2)', color: 'var(--ink2)' }}
+                      >
+                        <X size={15} />
+                      </button>
+                    </div>
+
+                    <p className="text-xs leading-relaxed" style={{ color: 'var(--ink2)' }}>
+                      Contul tău va fi dezactivat. Postările și mesajele tale vor rămâne vizibile, dar profilul tău va apărea ca dezactivat.
+                    </p>
+                    <p className="text-xs font-semibold" style={{ color: 'var(--ink)' }}>
+                      Scrie <span style={{ color: '#DC2626' }}>sterge</span> pentru a confirma:
+                    </p>
+
+                    <input
+                      type="text"
+                      value={deleteConfirmText}
+                      onChange={e => setDeleteConfirmText(e.target.value)}
+                      placeholder="sterge"
+                      className="w-full rounded-sm px-3 py-2.5 text-sm outline-none"
+                      style={{
+                        background: 'var(--cream2)',
+                        border: '1.5px solid var(--border)',
+                        color: 'var(--ink)',
+                        fontFamily: 'inherit',
+                      }}
+                      autoFocus
+                    />
+
+                    {deleteError && (
+                      <p className="text-xs" style={{ color: '#DC2626' }}>{deleteError}</p>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={handleDeleteAccount}
+                      disabled={deleting || deleteConfirmText.trim().toLowerCase() !== 'sterge'}
+                      className="w-full flex items-center justify-center gap-2 rounded-sm py-2.5 text-sm font-bold text-white disabled:opacity-40 transition-opacity"
+                      style={{ background: '#DC2626' }}
+                    >
+                      {deleting && <Loader2 size={15} className="animate-spin" />}
+                      {deleting ? 'Se șterge...' : 'Confirmă ștergerea'}
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

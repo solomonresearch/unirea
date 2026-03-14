@@ -131,6 +131,33 @@ CREATE TABLE public.conversations (
   CONSTRAINT conversations_pkey PRIMARY KEY (id),
   CONSTRAINT conversations_created_by_fkey FOREIGN KEY (created_by) REFERENCES public.profiles(id)
 );
+CREATE TABLE public.eveniment_participanti (
+  eveniment_id uuid NOT NULL,
+  user_id uuid NOT NULL,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT eveniment_participanti_pkey PRIMARY KEY (eveniment_id, user_id),
+  CONSTRAINT eveniment_participanti_eveniment_id_fkey FOREIGN KEY (eveniment_id) REFERENCES public.evenimente(id),
+  CONSTRAINT eveniment_participanti_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id)
+);
+CREATE TABLE public.evenimente (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL,
+  scope text NOT NULL CHECK (scope = ANY (ARRAY['class'::text, 'promotion'::text, 'school'::text])),
+  highschool text NOT NULL,
+  graduation_year integer,
+  class text,
+  title text NOT NULL,
+  event_date date NOT NULL,
+  event_time time without time zone,
+  location text,
+  description text,
+  image_storage_path text,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  deleted_at timestamp with time zone,
+  CONSTRAINT evenimente_pkey PRIMARY KEY (id),
+  CONSTRAINT evenimente_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.profiles(id)
+);
 CREATE TABLE public.kanban_cards (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
   title text NOT NULL,
@@ -214,6 +241,8 @@ CREATE TABLE public.profiles (
   latitude double precision,
   longitude double precision,
   feedback jsonb DEFAULT '[]'::jsonb,
+  skin text NOT NULL DEFAULT 'default'::text,
+  tutorial_completed boolean NOT NULL DEFAULT false,
   CONSTRAINT profiles_pkey PRIMARY KEY (id),
   CONSTRAINT profiles_id_fkey FOREIGN KEY (id) REFERENCES auth.users(id)
 );
@@ -247,11 +276,14 @@ CREATE TABLE public.quiz_responses (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
   quiz_id uuid NOT NULL,
   user_id uuid NOT NULL,
-  answers jsonb NOT NULL,
+  question_id uuid NOT NULL,
+  option_id uuid NOT NULL,
   completed_at timestamp with time zone NOT NULL DEFAULT now(),
   CONSTRAINT quiz_responses_pkey PRIMARY KEY (id),
   CONSTRAINT quiz_responses_quiz_id_fkey FOREIGN KEY (quiz_id) REFERENCES public.quizzes(id),
-  CONSTRAINT quiz_responses_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
+  CONSTRAINT quiz_responses_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id),
+  CONSTRAINT quiz_responses_question_id_fkey FOREIGN KEY (question_id) REFERENCES public.quiz_questions(id),
+  CONSTRAINT quiz_responses_option_id_fkey FOREIGN KEY (option_id) REFERENCES public.quiz_options(id)
 );
 CREATE TABLE public.quizzes (
   id uuid NOT NULL DEFAULT gen_random_uuid(),

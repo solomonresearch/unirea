@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { getSupabase } from '@/lib/supabase'
@@ -176,6 +176,8 @@ export default function AvizierPage() {
   const [showEventCreate, setShowEventCreate] = useState(false)
   const [selectedEvent, setSelectedEvent] = useState<EvenimentDetail | null>(null)
   const [editingEvent, setEditingEvent] = useState<EvenimentDetail | null>(null)
+  const [highlightPostId, setHighlightPostId] = useState<string | null>(null)
+  const highlightScrolled = useRef(false)
 
   useEffect(() => {
     async function load() {
@@ -201,7 +203,23 @@ export default function AvizierPage() {
       if (typeof window !== 'undefined') {
         const params = new URLSearchParams(window.location.search)
         const open = params.get('open')
-        if (open === 'quiz' && profileData.role === 'admin') {
+        const postParam = params.get('post')
+        if (postParam) {
+          highlightScrolled.current = false
+          setHighlightPostId(postParam)
+          window.history.replaceState({}, '', '/avizier')
+          // Look up the post's scope so we switch to the right tab
+          const { data: postRow } = await supabase
+            .from('avizier_posts')
+            .select('scope')
+            .eq('id', postParam)
+            .single()
+          if (postRow?.scope) {
+            const scopeMap: Record<string, Scope> = { class: 'clasa', promotion: 'promotie', school: 'liceu' }
+            const target = scopeMap[postRow.scope] || 'liceu'
+            setScope(target)
+          }
+        } else if (open === 'quiz' && profileData.role === 'admin') {
           setCreateQuizOpen(true)
           window.history.replaceState({}, '', '/avizier')
         } else if (open === 'post') {
@@ -360,6 +378,19 @@ export default function AvizierPage() {
     loadQuizzes(scope)
     loadEvents(profile, scope)
   }, [profile, scope, loadPosts, loadQuizzes, loadEvents])
+
+  useEffect(() => {
+    if (!highlightPostId || postsLoading || highlightScrolled.current || posts.length === 0) return
+    // Wait a frame for DOM to update after posts render
+    requestAnimationFrame(() => {
+      const el = document.getElementById(`post-${highlightPostId}`)
+      if (el) {
+        highlightScrolled.current = true
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        setTimeout(() => setHighlightPostId(null), 3000)
+      }
+    })
+  }, [highlightPostId, postsLoading, posts])
 
   useEffect(() => {
     function handler(e: Event) {
@@ -611,7 +642,7 @@ export default function AvizierPage() {
           />
         </div>
 
-        <div className="max-w-sm mx-auto w-full px-4 pt-4 space-y-2">
+        <div className="max-w-sm mx-auto w-full px-4 pt-4 space-y-1.5">
           {(missingClassData || missingPromotieData) && (
             <p className="text-xs text-center py-8" style={{ color: 'var(--ink3)' }}>
               Completează profilul pentru a accesa această secțiune.
@@ -822,12 +853,19 @@ export default function AvizierPage() {
                 return (
                   <div
                     key={post.id}
-                    className="feed-item rounded-lg border overflow-hidden"
-                    style={{ background: 'var(--white)', borderColor: 'var(--border)', boxShadow: 'var(--shadow-s)', animationDelay: `${Math.min(i, 10) * 50}ms` }}
+                    id={`post-${post.id}`}
+                    className={`feed-item rounded-lg border overflow-hidden transition-all duration-700 ${highlightPostId === post.id ? 'ring-2' : ''}`}
+                    style={{
+                      background: highlightPostId === post.id ? 'rgba(245, 158, 11, 0.08)' : 'var(--white)',
+                      borderColor: highlightPostId === post.id ? '#F59E0B' : 'var(--border)',
+                      boxShadow: highlightPostId === post.id ? '0 0 0 2px rgba(245, 158, 11, 0.2)' : 'var(--shadow-s)',
+                      animationDelay: `${Math.min(i, 10) * 50}ms`,
+                      ...(highlightPostId === post.id ? { '--tw-ring-color': '#F59E0B' } as React.CSSProperties : {}),
+                    }}
                   >
-                    <div className="px-4 pt-3 pb-2">
+                    <div className="px-3 pt-2 pb-1.5">
                       {/* Post header */}
-                      <div className="flex items-center gap-2.5 mb-2">
+                      <div className="flex items-center gap-2 mb-1.5">
                         <div
                           className="w-9 h-9 rounded-sm flex items-center justify-center text-white text-xxs font-bold flex-shrink-0"
                           style={{ background: bg }}
@@ -866,7 +904,7 @@ export default function AvizierPage() {
 
                       {/* Expiry badge */}
                       {post.expires_at && (
-                        <div className="flex items-center gap-1 mt-2">
+                        <div className="flex items-center gap-1 mt-1.5">
                           <Clock size={11} style={{ color: 'var(--ink3)' }} />
                           <span className="text-2xs" style={{ color: 'var(--ink3)' }}>{expiryLabel(post.expires_at)}</span>
                         </div>
@@ -875,7 +913,7 @@ export default function AvizierPage() {
 
                     {/* Reactions bar */}
                     <div
-                      className="flex items-center gap-3 px-4 py-2 border-t"
+                      className="flex items-center gap-3 px-3 py-1.5 border-t"
                       style={{ borderColor: 'var(--border)' }}
                     >
                       <div className="flex items-center gap-0.5">
@@ -919,7 +957,7 @@ export default function AvizierPage() {
                     {/* Comments section */}
                     {expandedComments.has(post.id) && (
                       <div
-                        className="border-t px-4 py-3 space-y-2.5"
+                        className="border-t px-3 py-2 space-y-2"
                         style={{ borderColor: 'var(--border)', background: 'var(--cream2)' }}
                       >
                         {post.comments.map(comment => (

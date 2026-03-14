@@ -47,6 +47,7 @@ export default function CautaPage() {
   const [year, setYear] = useState('')
   const [cls, setCls] = useState('')
   const [company, setCompany] = useState('')
+  const [city, setCity] = useState('')
   const [filtersOpen, setFiltersOpen] = useState(true)
   const [viewMode, setViewMode] = useState<ViewMode>('list')
 
@@ -106,11 +107,14 @@ export default function CautaPage() {
     if (company) {
       query = query.ilike('company', `%${company}%`)
     }
+    if (city) {
+      query = query.ilike('city', `%${city}%`)
+    }
 
     const { data } = await query.order('graduation_year', { ascending: false })
     setResults(data || [])
     setSearching(false)
-  }, [highschool, currentUserId, name, profession, domain, year, cls, company])
+  }, [highschool, currentUserId, name, profession, domain, year, cls, company, city])
 
   useEffect(() => {
     if (!loading && highschool) {
@@ -310,6 +314,17 @@ export default function CautaPage() {
                   onChange={setDomain}
                   placeholder="Domeniu"
                   icon={<Layers size={14} />}
+                />
+              </div>
+              <div className="relative">
+                <MapPin size={14} className="absolute left-2.5 top-2 pointer-events-none" style={{ color: 'var(--ink3)' }} />
+                <input
+                  type="text"
+                  value={city}
+                  onChange={e => setCity(e.target.value)}
+                  placeholder="Oraș"
+                  className="w-full rounded-lg pl-8 pr-2 py-1.5 text-sm outline-none"
+                  style={inputFieldStyle}
                 />
               </div>
               <div className="grid grid-cols-2 gap-2">

@@ -15,13 +15,23 @@ interface Actor {
 
 interface Notification {
   id: string
-  type: 'mention' | 'message'
+  type: 'mention' | 'message' | 'new_member'
   context: string | null
   reference_id: string | null
   content_preview: string | null
   read_at: string | null
   created_at: string
   actor: Actor
+}
+
+interface RecentMember {
+  id: string
+  name: string
+  username: string
+  avatar_url: string | null
+  graduation_year: number
+  class: string | null
+  created_at: string
 }
 
 function avatarColor(name: string): string {
@@ -43,6 +53,7 @@ export function NotificationBell() {
   const router = useRouter()
   const [userId, setUserId] = useState<string | null>(null)
   const [notifications, setNotifications] = useState<Notification[]>([])
+  const [recentMembers, setRecentMembers] = useState<RecentMember[]>([])
   const [unreadCount, setUnreadCount] = useState(0)
   const [open, setOpen] = useState(false)
   const panelRef = useRef<HTMLDivElement>(null)
@@ -54,16 +65,40 @@ export function NotificationBell() {
       if (!user) return
       setUserId(user.id)
 
-      const { data, error } = await supabase
-        .from('notifications')
-        .select('id, type, context, reference_id, content_preview, read_at, created_at, actor:profiles!actor_id(id, name, username, avatar_url)')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(50)
+      const { data: myProfile } = await supabase
+        .from('profiles')
+        .select('highschool, graduation_year, class')
+        .eq('id', user.id)
+        .single()
 
-      if (!error && data) {
-        setNotifications(data as unknown as Notification[])
-        setUnreadCount(data.filter((n: any) => !n.read_at).length)
+      const [notifsRes, membersRes] = await Promise.all([
+        supabase
+          .from('notifications')
+          .select('id, type, context, reference_id, content_preview, read_at, created_at, actor:profiles!actor_id(id, name, username, avatar_url)')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(50),
+        myProfile?.highschool && myProfile?.graduation_year
+          ? supabase
+              .from('profiles')
+              .select('id, name, username, avatar_url, graduation_year, class, created_at')
+              .eq('highschool', myProfile.highschool)
+              .eq('graduation_year', myProfile.graduation_year)
+              .eq('onboarding_completed', true)
+              .neq('id', user.id)
+              .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
+              .order('created_at', { ascending: false })
+              .limit(20)
+          : Promise.resolve({ data: null, error: null }),
+      ])
+
+      if (!notifsRes.error && notifsRes.data) {
+        setNotifications(notifsRes.data as unknown as Notification[])
+        setUnreadCount(notifsRes.data.filter((n: any) => !n.read_at).length)
+      }
+
+      if (membersRes.data) {
+        setRecentMembers(membersRes.data as RecentMember[])
       }
     }
     load()
@@ -132,6 +167,8 @@ export function NotificationBell() {
       router.push(`/mesaje/${n.reference_id}`)
     } else if (n.context === 'carusel' && n.reference_id) {
       router.push(`/carusel/${n.reference_id}`)
+    } else if (n.context && n.reference_id) {
+      router.push(`${CONTEXT_ROUTES[n.context] || '/'}?post=${n.reference_id}`)
     } else if (n.context) {
       router.push(CONTEXT_ROUTES[n.context] || '/')
     }
@@ -139,6 +176,7 @@ export function NotificationBell() {
 
   function actionText(n: Notification): string {
     if (n.type === 'message') return 'ți-a trimis un mesaj'
+    if (n.type === 'new_member') return 's-a alăturat'
     return 'te-a menționat'
   }
 
@@ -167,7 +205,7 @@ export function NotificationBell() {
             <p className="text-sm font-bold" style={{ color: 'var(--ink)' }}>Notificări</p>
           </div>
 
-          {notifications.length === 0 ? (
+          {notifications.length === 0 && recentMembers.length === 0 ? (
             <div className="px-4 py-8 text-center">
               <p className="text-sm" style={{ color: 'var(--ink3)' }}>Nicio notificare</p>
             </div>
@@ -209,6 +247,46 @@ export function NotificationBell() {
                   )}
                 </button>
               ))}
+
+              {recentMembers.length > 0 && (
+                <>
+                  <div className="px-4 py-2 border-t" style={{ borderColor: 'var(--border)' }}>
+                    <p className="text-xxs font-semibold uppercase tracking-wide" style={{ color: 'var(--ink3)' }}>
+                      S-au alăturat recent
+                    </p>
+                  </div>
+                  {recentMembers.map(m => (
+                    <button
+                      key={m.id}
+                      type="button"
+                      onClick={() => { setOpen(false); router.push(`/profil/${m.username}`) }}
+                      className="w-full flex items-start gap-3 px-4 py-3 text-left transition-colors"
+                    >
+                      <div
+                        className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center text-white text-2xs font-bold flex-shrink-0 mt-0.5"
+                        style={{ background: m.avatar_url ? 'transparent' : avatarColor(m.name) }}
+                      >
+                        {m.avatar_url
+                          ? <img src={m.avatar_url} alt={m.name} className="w-full h-full object-cover" />
+                          : getInitials(m.name)
+                        }
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs leading-snug" style={{ color: 'var(--ink)' }}>
+                          <span className="font-semibold">{m.name}</span>{' '}
+                          <span style={{ color: 'var(--ink2)' }}>s-a alăturat</span>
+                        </p>
+                        <p className="text-xxs mt-0.5" style={{ color: 'var(--ink3)' }}>
+                          Promoția {m.graduation_year}{m.class ? ` • Clasa ${m.class}` : ''}
+                        </p>
+                        <p className="text-2xs mt-1" style={{ color: 'var(--ink3)' }}>
+                          {relativeTime(m.created_at, true)}
+                        </p>
+                      </div>
+                    </button>
+                  ))}
+                </>
+              )}
             </div>
           )}
         </div>
