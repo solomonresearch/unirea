@@ -188,7 +188,7 @@ export default function Home() {
 
         <p className="text-2xs text-center mt-5" style={{ color: 'var(--ink3)' }}>
           Prin continuare ești de acord cu{' '}
-          <span className="underline cursor-pointer">Termenii de utilizare</span>
+          <Link href="/termeni" className="underline">Termenii de utilizare</Link>
         </p>
       </div>
 
