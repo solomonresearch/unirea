@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import { SkinProvider } from '@/components/SkinProvider'
 import { FeedbackButton } from '@/components/FeedbackButton'
+import { Analytics } from '@/components/Analytics'
 
 export const metadata: Metadata = {
   title: 'Unirea',
@@ -25,6 +26,7 @@ export default function RootLayout({
         <SkinProvider>
           {children}
           <FeedbackButton />
+          <Analytics />
         </SkinProvider>
       </body>
     </html>

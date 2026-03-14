@@ -16,6 +16,7 @@ import { MentionInput } from '@/components/MentionInput'
 import { MentionText } from '@/components/MentionText'
 import { relativeTime, getInitials } from '@/lib/utils'
 import { processMentions } from '@/lib/mentions'
+import { useTrack } from '@/lib/analytics'
 import { EvenimentStrip } from '@/components/evenimente/EvenimentStrip'
 import { EvenimentCreateModal } from '@/components/evenimente/EvenimentCreateModal'
 import { EvenimentDetailModal } from '@/components/evenimente/EvenimentDetailModal'
@@ -178,6 +179,7 @@ export default function AvizierPage() {
   const [editingEvent, setEditingEvent] = useState<EvenimentDetail | null>(null)
   const [highlightPostId, setHighlightPostId] = useState<string | null>(null)
   const highlightScrolled = useRef(false)
+  const { track, trackEngagement } = useTrack()
 
   useEffect(() => {
     async function load() {
@@ -406,12 +408,14 @@ export default function AvizierPage() {
   function handleScopeChange(newScope: Scope) {
     setScope(newScope)
     setSubmitError(null)
+    trackEngagement('scope_change', { scope: newScope })
     router.replace(`/avizier?scope=${newScope}`, { scroll: false } as any)
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!newContent.trim() || !profile) return
+    track('post_create', { scope })
 
     if (scope === 'clasa' && (!profile.graduation_year || !profile.class)) return
     if (scope === 'promotie' && !profile.graduation_year) return
@@ -461,6 +465,7 @@ export default function AvizierPage() {
 
   async function handleVote(postId: string, vote: 1 | -1) {
     if (!profile) return
+    track(vote === 1 ? 'upvote' : 'downvote')
     const supabase = getSupabase()
     const post = posts.find(p => p.id === postId)
     if (!post) return
@@ -480,6 +485,7 @@ export default function AvizierPage() {
     if (!profile) return
     const text = commentTexts[postId]?.trim()
     if (!text) return
+    track('comment')
 
     await getSupabase().from('avizier_post_comments').insert({
       post_id: postId,

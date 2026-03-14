@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { Newspaper, CircleDot, MessageCircle, Bell, Plus, Camera, Send, BarChart2, Calendar } from 'lucide-react'
 import { getSupabase } from '@/lib/supabase'
+import { useTrack } from '@/lib/analytics'
 
 const LEFT_NAV = [
   { href: '/avizier', label: 'Avizier', icon: Newspaper },
@@ -29,6 +30,7 @@ export function BottomNav() {
   const [unreadCount, setUnreadCount] = useState(0)
   const [fabOpen, setFabOpen] = useState(false)
   const fabRef = useRef<HTMLDivElement>(null)
+  const { track } = useTrack()
 
   const loadUnread = useCallback(async () => {
     const supabase = getSupabase()
@@ -97,6 +99,7 @@ export function BottomNav() {
 
   function handlePostOption(action: string, pagePath: string, href: string) {
     setFabOpen(false)
+    track(`fab_${action}`)
     if (pathname === pagePath || pathname?.startsWith(pagePath + '/')) {
       window.dispatchEvent(new CustomEvent('unirea:fab-action', { detail: { action } }))
     } else {
