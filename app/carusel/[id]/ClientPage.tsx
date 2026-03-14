@@ -37,6 +37,7 @@ export default function CaruselPostPage() {
   const postId = params.id as string
 
   const [userId, setUserId] = useState<string | null>(null)
+  const [isAdmin, setIsAdmin] = useState(false)
   const [post, setPost] = useState<CaruselPost | null>(null)
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
@@ -87,6 +88,8 @@ export default function CaruselPostPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/autentificare'); return }
       setUserId(user.id)
+      const { data: prof } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+      if (prof?.role === 'admin') setIsAdmin(true)
       await fetchPost()
       setLoading(false)
     }
@@ -217,7 +220,7 @@ export default function CaruselPostPage() {
             </div>
             <span className="text-xs font-medium text-gray-900">{post.profiles.name}</span>
           </Link>
-          {post.user_id === userId && (
+          {(post.user_id === userId || isAdmin) && (
             <button
               onClick={deletePost}
               className="ml-2 p-1 text-gray-400 hover:text-red-500 transition-colors"
@@ -280,7 +283,7 @@ export default function CaruselPostPage() {
                   <Link href={`/profil/${c.profiles.username}`} className="text-xs font-medium text-gray-900 hover:underline">{c.profiles.name}</Link>
                   <p className="text-xs text-gray-600 mt-0.5"><MentionText text={c.content} /></p>
                 </div>
-                {c.user_id === userId && (
+                {(c.user_id === userId || isAdmin) && (
                   <button
                     onClick={() => deleteComment(c.id)}
                     className="p-1 text-gray-300 hover:text-red-500 transition-colors"

@@ -885,7 +885,7 @@ export default function AvizierPage() {
                           <span className="text-2xs" style={{ color: 'var(--ink3)' }}>
                             {relativeTime(post.created_at, true)}
                           </span>
-                          {post.user_id === profile.id && (
+                          {(post.user_id === profile.id || isAdmin) && (
                             <button
                               type="button"
                               onClick={() => handleDelete(post.id)}
@@ -971,7 +971,7 @@ export default function AvizierPage() {
                                 <span className="text-2xs" style={{ color: 'var(--ink3)' }}>
                                   {relativeTime(comment.created_at, true)}
                                 </span>
-                                {comment.user_id === profile.id && (
+                                {(comment.user_id === profile.id || isAdmin) && (
                                   <button
                                     type="button"
                                     onClick={() => handleDeleteComment(comment.id)}

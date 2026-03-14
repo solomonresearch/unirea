@@ -48,6 +48,7 @@ export default function ZiarPage() {
   const [canPost, setCanPost] = useState(true)
   const [loading, setLoading] = useState(true)
   const [userId, setUserId] = useState<string | null>(null)
+  const [isAdmin, setIsAdmin] = useState(false)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [activeCategory, setActiveCategory] = useState<string | null>(null)
 
@@ -105,7 +106,7 @@ export default function ZiarPage() {
         // Prefill location from profile
         const { data: profile } = await supabase
           .from('profiles')
-          .select('city, county, country')
+          .select('city, county, country, role')
           .eq('id', user.id)
           .single()
 
@@ -113,6 +114,7 @@ export default function ZiarPage() {
           if (profile.city) setCity(profile.city)
           if (profile.county) setCounty(profile.county)
           if (profile.country) setCountry(profile.country)
+          if (profile.role === 'admin') setIsAdmin(true)
         }
       }
       await loadPosts(null)
@@ -315,7 +317,7 @@ export default function ZiarPage() {
                     <span className="text-xs" style={{ color: 'var(--ink3)' }}>
                       {post.author_name || 'Anonim'} &middot; {relativeTime(post.created_at)}
                     </span>
-                    {userId && post.created_by === userId && (
+                    {userId && (post.created_by === userId || isAdmin) && (
                       <button
                         type="button"
                         onClick={() => handleDelete(post.id)}

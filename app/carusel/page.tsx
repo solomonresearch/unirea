@@ -53,6 +53,7 @@ function getRotation(id: string): number {
 export default function CaruselPage() {
   const router = useRouter()
   const [userId, setUserId] = useState<string | null>(null)
+  const [isAdmin, setIsAdmin] = useState(false)
   const [posts, setPosts] = useState<CaruselPost[]>([])
   const [loading, setLoading] = useState(true)
   const [showUpload, setShowUpload] = useState(false)
@@ -152,13 +153,14 @@ export default function CaruselPage() {
 
       const { data: profile } = await supabase
         .from('profiles')
-        .select('name, avatar_url, highschool')
+        .select('name, avatar_url, highschool, role')
         .eq('id', user.id)
         .single()
       if (profile) {
         setUserName(profile.name || '')
         setUserAvatar(profile.avatar_url)
         setUserHighschool(profile.highschool || '')
+        setIsAdmin(profile.role === 'admin')
       }
 
       await fetchPosts('promotie')
@@ -515,7 +517,7 @@ export default function CaruselPage() {
                         <MessageCircle size={13} />
                         <span>{photo.comments.length}</span>
                       </button>
-                      {photo.user_id === userId && (
+                      {(photo.user_id === userId || isAdmin) && (
                         <button
                           onClick={() => deletePost(photo.id)}
                           className="flex items-center gap-1 text-[11px] hover:text-red-500 transition-colors"
