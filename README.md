@@ -291,7 +291,8 @@ Response:
 | longitude | double | Geo coordinate |
 | feedback | jsonb | User feedback entries |
 | skin | text | UI skin preference (default: `default`) |
-| signup_source | text | `direct`, `referral`, `google`, `google_referral`, `bot` |
+| is_bot | boolean | `true` for test/bot accounts (default: `false`) |
+| signup_source | text | `direct`, `referral`, `google`, `google_referral` |
 | referred_by | uuid | FK to profiles — who invited this user |
 | invite_count | integer | Number of invites sent |
 | archived_at | timestamptz | Soft delete timestamp |

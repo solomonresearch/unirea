@@ -26,7 +26,7 @@ export async function DELETE() {
   const { data: bots, error: findError } = await service
     .from('profiles')
     .select('id')
-    .eq('signup_source', 'bot')
+    .eq('is_bot', true)
 
   if (findError) {
     return NextResponse.json({ error: findError.message }, { status: 500 })

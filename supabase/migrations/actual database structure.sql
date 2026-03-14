@@ -259,6 +259,7 @@ CREATE TABLE public.profiles (
   referred_by uuid,
   invite_count integer NOT NULL DEFAULT 0,
   signup_source text NOT NULL DEFAULT 'direct'::text,
+  is_bot boolean NOT NULL DEFAULT false,
   CONSTRAINT profiles_pkey PRIMARY KEY (id),
   CONSTRAINT profiles_id_fkey FOREIGN KEY (id) REFERENCES auth.users(id),
   CONSTRAINT profiles_referred_by_fkey FOREIGN KEY (referred_by) REFERENCES public.profiles(id)
