@@ -5,19 +5,21 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { getSupabase } from '@/lib/supabase'
 import { SearchSelect } from '@/components/SearchSelect'
-import { User, Mail, Phone, GraduationCap, Calendar, AtSign, Loader2, ArrowLeft, Lock, MapPin, Building } from 'lucide-react'
+import { User, Phone, GraduationCap, Calendar, AtSign, Loader2, MapPin, Building } from 'lucide-react'
 
-export default function SignupPage() {
+export default function CompletareProfilPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [checking, setChecking] = useState(true)
   const [error, setError] = useState('')
+  const [userId, setUserId] = useState<string | null>(null)
+  const [googleEmail, setGoogleEmail] = useState('')
+  const [googleName, setGoogleName] = useState('')
   const [acceptedTerms, setAcceptedTerms] = useState(false)
+
   const [form, setForm] = useState({
     name: '',
     username: '',
-    email: '',
-    password: '',
     phone: '',
     judet: '',
     localitate: '',
@@ -33,22 +35,28 @@ export default function SignupPage() {
 
   useEffect(() => {
     async function check() {
-      const { data: { user } } = await getSupabase().auth.getUser()
-      if (user) {
-        // Check if profile exists — Google users might not have one yet
-        const { data: profile } = await getSupabase()
-          .from('profiles')
-          .select('id')
-          .eq('id', user.id)
-          .single()
-        if (profile) {
-          router.replace('/avizier')
-        } else {
-          router.replace('/completare-profil')
-        }
-      } else {
-        setChecking(false)
+      const supabase = getSupabase()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { router.push('/autentificare'); return }
+
+      // Check if profile already exists
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', user.id)
+        .single()
+
+      if (profile) {
+        router.replace('/avizier')
+        return
       }
+
+      setUserId(user.id)
+      setGoogleEmail(user.email || '')
+      const fullName = user.user_metadata?.full_name || user.user_metadata?.name || ''
+      setGoogleName(fullName)
+      setForm(prev => ({ ...prev, name: fullName }))
+      setChecking(false)
     }
     check()
   }, [router])
@@ -93,36 +101,33 @@ export default function SignupPage() {
     })
   }
 
-  async function handleGoogleSignup() {
-    const supabase = getSupabase()
-    await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
-    })
-  }
-
-  async function handleSignup(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    if (!userId) return
     setError('')
     setLoading(true)
 
     try {
       const supabase = getSupabase()
-      const { data, error: signUpError } = await supabase.auth.signUp({
-        email: form.email,
-        password: form.password,
-      })
 
-      if (signUpError) throw signUpError
-      if (!data.user) throw new Error('Eroare la crearea contului')
+      // Check username uniqueness
+      const { data: existing } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('username', form.username.trim().toLowerCase())
+        .limit(1)
+
+      if (existing && existing.length > 0) {
+        setError('Acest username este deja folosit')
+        setLoading(false)
+        return
+      }
 
       const { error: profileError } = await supabase.from('profiles').insert({
-        id: data.user.id,
+        id: userId,
         name: form.name,
-        username: form.username,
-        email: form.email,
+        username: form.username.trim().toLowerCase(),
+        email: googleEmail,
         phone: form.phone || null,
         highschool: form.highschool,
         graduation_year: parseInt(form.graduation_year),
@@ -131,9 +136,9 @@ export default function SignupPage() {
 
       if (profileError) throw profileError
 
-      window.location.href = '/avizier'
+      window.location.href = '/onboarding'
     } catch (err: any) {
-      setError(err.message || 'A aparut o eroare')
+      setError(err.message || 'A apărut o eroare')
     } finally {
       setLoading(false)
     }
@@ -158,15 +163,7 @@ export default function SignupPage() {
       style={{ background: 'var(--cream)' }}
     >
       <div className="w-full max-w-sm mx-auto space-y-5">
-        {/* Back + wordmark */}
-        <div className="flex items-center gap-3">
-          <Link
-            href="/"
-            className="w-9 h-9 flex items-center justify-center rounded-sm"
-            style={{ background: 'var(--white)', boxShadow: 'var(--shadow-s)', color: 'var(--ink2)' }}
-          >
-            <ArrowLeft size={16} />
-          </Link>
+        <div>
           <span className="font-display text-xl" style={{ color: 'var(--ink)' }}>
             uni<span style={{ color: 'var(--amber)' }}>.</span>rea
           </span>
@@ -177,34 +174,11 @@ export default function SignupPage() {
             className="font-display text-[1.8rem] leading-[1.2] mb-1"
             style={{ color: 'var(--ink)' }}
           >
-            Alătură-te <em className="italic" style={{ color: 'var(--amber)' }}>cercului</em>
+            Completează-ți <em className="italic" style={{ color: 'var(--amber)' }}>profilul</em>
           </h1>
           <p className="text-xs" style={{ color: 'var(--ink3)' }}>
-            Creează-ți contul pentru a te reconecta
+            Conectat ca <strong>{googleEmail}</strong>. Mai avem nevoie de câteva detalii.
           </p>
-        </div>
-
-        {/* Google sign-up */}
-        <button
-          type="button"
-          onClick={handleGoogleSignup}
-          className="flex items-center justify-center gap-3 w-full py-[13px] rounded-md text-sm font-semibold transition-opacity hover:opacity-80"
-          style={{ background: 'var(--white)', border: '1.5px solid var(--border)', color: 'var(--ink)', fontFamily: 'inherit' }}
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24">
-            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
-            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18A10.96 10.96 0 0 0 1 12c0 1.77.42 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
-            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-          </svg>
-          Înregistrează-te cu Google
-        </button>
-
-        {/* Divider */}
-        <div className="flex items-center gap-3">
-          <div className="flex-1 h-px" style={{ background: 'var(--border)' }} />
-          <span className="text-xxs" style={{ color: 'var(--ink3)' }}>sau cu email</span>
-          <div className="flex-1 h-px" style={{ background: 'var(--border)' }} />
         </div>
 
         {error && (
@@ -216,7 +190,7 @@ export default function SignupPage() {
           </div>
         )}
 
-        <form onSubmit={handleSignup} className="space-y-2.5">
+        <form onSubmit={handleSubmit} className="space-y-2.5">
           <div className="relative">
             <User size={15} className={iconClass} style={{ color: 'var(--ink3)' }} />
             <input type="text" required value={form.name} onChange={e => updateField('name', e.target.value)} placeholder="Nume complet" className={inputClass} style={inputStyle} />
@@ -228,24 +202,14 @@ export default function SignupPage() {
           </div>
 
           <div className="relative">
-            <Mail size={15} className={iconClass} style={{ color: 'var(--ink3)' }} />
-            <input type="email" required value={form.email} onChange={e => updateField('email', e.target.value)} placeholder="Email" className={inputClass} style={inputStyle} />
-          </div>
-
-          <div className="relative">
-            <Lock size={15} className={iconClass} style={{ color: 'var(--ink3)' }} />
-            <input type="password" required minLength={6} value={form.password} onChange={e => updateField('password', e.target.value)} placeholder="Parola (min. 6 caractere)" className={inputClass} style={inputStyle} />
-          </div>
-
-          <div className="relative">
             <Phone size={15} className={iconClass} style={{ color: 'var(--ink3)' }} />
-            <input type="tel" value={form.phone} onChange={e => updateField('phone', e.target.value)} placeholder="Telefon (optional)" className={inputClass} style={inputStyle} />
+            <input type="tel" value={form.phone} onChange={e => updateField('phone', e.target.value)} placeholder="Telefon (opțional)" className={inputClass} style={inputStyle} />
           </div>
 
           {/* Section divider */}
           <div className="flex items-center gap-3 py-1">
             <div className="flex-1 h-px" style={{ background: 'var(--border)' }} />
-            <span className="text-xxs font-semibold uppercase tracking-wider" style={{ color: 'var(--ink3)' }}>Scoala ta</span>
+            <span className="text-xxs font-semibold uppercase tracking-wider" style={{ color: 'var(--ink3)' }}>Școala ta</span>
             <div className="flex-1 h-px" style={{ background: 'var(--border)' }} />
           </div>
 
@@ -254,7 +218,7 @@ export default function SignupPage() {
               options={judete}
               value={form.judet}
               onChange={v => updateField('judet', v)}
-              placeholder="Judetul"
+              placeholder="Județul"
               icon={<MapPin size={15} />}
               required
             />
@@ -273,7 +237,7 @@ export default function SignupPage() {
             options={scoli}
             value={form.highschool}
             onChange={v => updateField('highschool', v)}
-            placeholder={loadingScoli ? 'Se incarca...' : 'Liceul'}
+            placeholder={loadingScoli ? 'Se încarcă...' : 'Liceul'}
             disabled={!form.localitate}
             icon={<GraduationCap size={15} />}
             required
@@ -331,20 +295,9 @@ export default function SignupPage() {
             style={{ background: 'var(--ink)', fontFamily: 'inherit' }}
           >
             {loading && <Loader2 size={16} className="animate-spin" />}
-            {loading ? 'Se creează contul...' : 'Creează cont'}
+            {loading ? 'Se salvează...' : 'Finalizează înregistrarea'}
           </button>
         </form>
-
-        <p className="text-center text-xs" style={{ color: 'var(--ink3)' }}>
-          Ai deja cont?{' '}
-          <Link
-            href="/autentificare"
-            className="font-semibold hover:underline"
-            style={{ color: 'var(--amber-dark)' }}
-          >
-            Autentifică-te
-          </Link>
-        </p>
       </div>
     </main>
   )
