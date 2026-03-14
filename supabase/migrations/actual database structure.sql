@@ -256,8 +256,12 @@ CREATE TABLE public.profiles (
   skin text NOT NULL DEFAULT 'default'::text,
   tutorial_completed boolean NOT NULL DEFAULT false,
   archived_at timestamp with time zone,
+  referred_by uuid,
+  invite_count integer NOT NULL DEFAULT 0,
+  signup_source text NOT NULL DEFAULT 'direct'::text,
   CONSTRAINT profiles_pkey PRIMARY KEY (id),
-  CONSTRAINT profiles_id_fkey FOREIGN KEY (id) REFERENCES auth.users(id)
+  CONSTRAINT profiles_id_fkey FOREIGN KEY (id) REFERENCES auth.users(id),
+  CONSTRAINT profiles_referred_by_fkey FOREIGN KEY (referred_by) REFERENCES public.profiles(id)
 );
 CREATE TABLE public.quiz_options (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
@@ -318,6 +322,15 @@ CREATE TABLE public.quizzes (
   CONSTRAINT quizzes_pkey PRIMARY KEY (id),
   CONSTRAINT quizzes_created_by_fkey FOREIGN KEY (created_by) REFERENCES auth.users(id)
 );
+CREATE TABLE public.referrals (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  referrer_id uuid NOT NULL,
+  referred_id uuid NOT NULL,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT referrals_pkey PRIMARY KEY (id),
+  CONSTRAINT referrals_referrer_id_fkey FOREIGN KEY (referrer_id) REFERENCES public.profiles(id),
+  CONSTRAINT referrals_referred_id_fkey FOREIGN KEY (referred_id) REFERENCES public.profiles(id)
+);
 CREATE TABLE public.schools (
   id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
   an text,
@@ -347,7 +360,14 @@ CREATE TABLE public.schools (
   fax numeric,
   email text,
   created_at timestamp with time zone NOT NULL DEFAULT now(),
+  top_school boolean NOT NULL DEFAULT false,
   CONSTRAINT schools_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.waitlist_schools (
+  highschool text NOT NULL,
+  signup_count integer NOT NULL DEFAULT 0,
+  activated_at timestamp with time zone,
+  CONSTRAINT waitlist_schools_pkey PRIMARY KEY (highschool)
 );
 CREATE TABLE public.ziar_posts (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
