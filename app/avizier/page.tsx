@@ -661,17 +661,6 @@ export default function AvizierPage() {
 
           {!missingClassData && !missingPromotieData && (
             <>
-              {/* Admin: create quiz button */}
-              {isAdmin && (
-                <button
-                  onClick={() => setCreateQuizOpen(true)}
-                  className="flex items-center gap-2 w-full px-4 py-2.5 rounded-sm text-xs font-semibold justify-center transition-opacity hover:opacity-80"
-                  style={{ background: 'var(--teal)', color: 'var(--white)' }}
-                >
-                  <Plus size={16} />
-                  Creează sondaj
-                </button>
-              )}
 
               {/* Quiz cards */}
               {quizzesLoading && (
