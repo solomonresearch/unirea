@@ -300,45 +300,23 @@ export default function CaruselPage() {
           </div>
 
           {/* Scope tabs */}
-          <div className="max-w-sm mx-auto mt-3 px-5">
-            <div
-              className="flex"
-              style={{ gap: '5px', padding: '8px 14px', background: 'var(--cream)', borderRadius: '24px', border: '1px solid var(--border)' }}
-            >
+          <div className="max-w-sm mx-auto mt-3 px-4">
+            <div className="flex rounded-md p-[3px]" style={{ background: 'var(--cream2)' }}>
               {(['liceu', 'promotie', 'clasa'] as Scope[]).map(s => (
                 <button
                   key={s}
                   type="button"
                   onClick={() => handleScopeChange(s)}
-                  style={{
-                    flex: 1,
-                    position: 'relative',
-                    borderRadius: '20px',
-                    fontSize: '12px',
-                    padding: '7px 0',
-                    background: 'transparent',
-                    border: 'none',
-                    cursor: 'pointer',
-                    color: scope === s ? 'var(--ink)' : 'var(--ink3)',
-                    fontWeight: scope === s ? 600 : 400,
-                    transition: 'color 0.15s',
+                  className="flex-1 py-[7px] rounded-sm text-xxs font-semibold transition-all"
+                  style={scope === s ? {
+                    background: 'var(--white)',
+                    color: 'var(--ink)',
+                    boxShadow: 'var(--shadow-s)',
+                  } : {
+                    color: 'var(--ink3)',
                   }}
                 >
-                  {scope === s && (
-                    <motion.div
-                      layoutId="scope-pill"
-                      style={{
-                        position: 'absolute',
-                        inset: 0,
-                        background: 'white',
-                        borderRadius: '20px',
-                        border: '1px solid var(--border)',
-                        boxShadow: '0 2px 6px rgba(107,79,40,0.10)',
-                      }}
-                      transition={{ type: 'spring', stiffness: 500, damping: 35 }}
-                    />
-                  )}
-                  <span style={{ position: 'relative', zIndex: 1 }}>{SCOPE_LABELS[s]}</span>
+                  {s === 'clasa' ? 'Clasă' : s === 'promotie' ? 'Promoție' : 'Liceu'}
                 </button>
               ))}
             </div>
