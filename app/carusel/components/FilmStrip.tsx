@@ -40,8 +40,7 @@ function PerfRow() {
             width: '12px',
             height: '8px',
             borderRadius: '2px',
-            background: '#141210',
-            border: '1px solid #2A2624',
+            background: 'var(--cream2)',
             flexShrink: 0,
           }}
         />
