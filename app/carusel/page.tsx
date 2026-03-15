@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { getSupabase } from '@/lib/supabase'
-import { Loader2, Search } from 'lucide-react'
+import { Loader2, Search, Milestone } from 'lucide-react'
 import { Logo } from '@/components/Logo'
 import { BottomNav } from '@/components/BottomNav'
 import { NotificationBell } from '@/components/NotificationBell'
@@ -33,16 +33,7 @@ function FeedIcon() {
 }
 
 function CronologieIcon() {
-  return (
-    <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-      <circle cx="2" cy="2.5" r="1.5" fill="currentColor" />
-      <rect x="5" y="1.5" width="7" height="2" rx="1" fill="currentColor" />
-      <circle cx="2" cy="6" r="1.5" fill="currentColor" />
-      <rect x="5" y="5" width="7" height="2" rx="1" fill="currentColor" />
-      <circle cx="2" cy="9.5" r="1.5" fill="currentColor" />
-      <rect x="5" y="8.5" width="7" height="2" rx="1" fill="currentColor" />
-    </svg>
-  )
+  return <Milestone size={12} />
 }
 
 export default function CaruselPage() {
