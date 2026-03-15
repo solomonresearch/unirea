@@ -1,7 +1,6 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Heart, MessageCircle, Share2, Trash2 } from 'lucide-react'
 import { relativeTime, getInitials } from '@/lib/utils'
@@ -15,10 +14,10 @@ interface FeedViewProps {
   top8Ranks: Map<string, number>
   onLike: (postId: string) => void
   onDelete: (postId: string) => void
+  onImageClick: (post: CaruselPost) => void
 }
 
-export function FeedView({ posts, userId, isAdmin, top8Ids, top8Ranks, onLike, onDelete }: FeedViewProps) {
-  const router = useRouter()
+export function FeedView({ posts, userId, isAdmin, top8Ids, top8Ranks, onLike, onDelete, onImageClick }: FeedViewProps) {
 
   if (posts.length === 0) {
     return (
@@ -90,7 +89,7 @@ export function FeedView({ posts, userId, isAdmin, top8Ids, top8Ranks, onLike, o
             {/* Photo */}
             <div style={{ margin: '9px 12px', position: 'relative', borderRadius: '10px', overflow: 'hidden', aspectRatio: '4/3' }}>
               <button
-                onClick={() => router.push(`/carusel/${post.id}`)}
+                onClick={() => onImageClick(post)}
                 style={{ display: 'block', width: '100%', height: '100%', padding: 0, border: 'none', background: 'none', cursor: 'pointer' }}
               >
                 <img
@@ -160,7 +159,7 @@ export function FeedView({ posts, userId, isAdmin, top8Ids, top8Ranks, onLike, o
               </button>
 
               <button
-                onClick={() => router.push(`/carusel/${post.id}`)}
+                onClick={() => onImageClick(post)}
                 style={{
                   display: 'flex',
                   alignItems: 'center',

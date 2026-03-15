@@ -2,7 +2,6 @@
 
 import { useMemo, useRef } from 'react'
 import { motion, useInView } from 'framer-motion'
-import { useRouter } from 'next/navigation'
 import { Heart, MessageCircle, Share2, Trash2 } from 'lucide-react'
 import { relativeTime, getInitials } from '@/lib/utils'
 import type { CaruselPost } from '../types'
@@ -15,6 +14,7 @@ interface CronologieViewProps {
   top8Ranks: Map<string, number>
   onLike: (postId: string) => void
   onDelete: (postId: string) => void
+  onImageClick: (post: CaruselPost) => void
 }
 
 interface TimelineItemProps {
@@ -25,10 +25,10 @@ interface TimelineItemProps {
   rank: number | undefined
   onLike: (id: string) => void
   onDelete: (id: string) => void
+  onImageClick: (post: CaruselPost) => void
 }
 
-function TimelineItem({ post, globalIndex, userId, isAdmin, rank, onLike, onDelete }: TimelineItemProps) {
-  const router = useRouter()
+function TimelineItem({ post, globalIndex, userId, isAdmin, rank, onLike, onDelete, onImageClick }: TimelineItemProps) {
   const ref = useRef<HTMLDivElement>(null)
   const isInView = useInView(ref, { once: true, margin: '-50px' })
 
@@ -102,7 +102,7 @@ function TimelineItem({ post, globalIndex, userId, isAdmin, rank, onLike, onDele
         >
           {/* Photo */}
           <button
-            onClick={() => router.push(`/carusel/${post.id}`)}
+            onClick={() => onImageClick(post)}
             style={{ display: 'block', width: '100%', padding: 0, border: 'none', background: 'none', cursor: 'pointer' }}
           >
             <div style={{ position: 'relative', aspectRatio: '4/3', borderRadius: '2px', overflow: 'hidden' }}>
@@ -199,7 +199,7 @@ function TimelineItem({ post, globalIndex, userId, isAdmin, rank, onLike, onDele
             </button>
 
             <button
-              onClick={() => router.push(`/carusel/${post.id}`)}
+              onClick={() => onImageClick(post)}
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -272,6 +272,7 @@ export function CronologieView({
   top8Ranks,
   onLike,
   onDelete,
+  onImageClick,
 }: CronologieViewProps) {
   const years = useMemo(
     () => [...postsByYear.keys()].sort((a, b) => b - a),
@@ -350,6 +351,7 @@ export function CronologieView({
                   rank={top8Ids.has(post.id) ? top8Ranks.get(post.id) : undefined}
                   onLike={onLike}
                   onDelete={onDelete}
+                  onImageClick={onImageClick}
                 />
               ))}
             </div>

@@ -1,12 +1,12 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { useRouter } from 'next/navigation'
 import type { CaruselPost } from '../types'
 
 interface FilmStripProps {
   top8: CaruselPost[]
   totalCount: number
+  onFrameClick: (post: CaruselPost) => void
 }
 
 const PERF_COUNT = 14
@@ -31,9 +31,7 @@ function PerfRow() {
   )
 }
 
-export function FilmStrip({ top8, totalCount }: FilmStripProps) {
-  const router = useRouter()
-
+export function FilmStrip({ top8, totalCount, onFrameClick }: FilmStripProps) {
   if (top8.length === 0) return null
 
   return (
@@ -59,7 +57,7 @@ export function FilmStrip({ top8, totalCount }: FilmStripProps) {
             <motion.button
               key={post.id}
               whileTap={{ scale: 0.92 }}
-              onClick={() => router.push(`/carusel/${post.id}`)}
+              onClick={() => onFrameClick(post)}
               style={{
                 position: 'relative',
                 width: '60px',

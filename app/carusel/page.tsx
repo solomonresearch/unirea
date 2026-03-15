@@ -15,6 +15,7 @@ import { FilmStrip } from './components/FilmStrip'
 import { FeedView } from './components/FeedView'
 import { CronologieView } from './components/CronologieView'
 import { UploadModal } from './components/UploadModal'
+import { PostModal } from './components/PostModal'
 import { SCOPE_LABELS, SCOPE_DB_MAP } from './types'
 import type { Scope, CaruselPost, CaruselComment } from './types'
 
@@ -53,6 +54,7 @@ export default function CaruselPage() {
   const [showUpload, setShowUpload] = useState(false)
   const [scope, setScope] = useState<Scope>('promotie')
   const [view, setView] = useState<View>('feed')
+  const [selectedPostId, setSelectedPostId] = useState<string | null>(null)
   const [userAvatar, setUserAvatar] = useState<string | null>(null)
   const [userName, setUserName] = useState('')
   const [userHighschool, setUserHighschool] = useState('')
@@ -219,6 +221,18 @@ export default function CaruselPage() {
     }
   }
 
+  function handleCommentAdded(postId: string, comment: CaruselComment) {
+    setPosts(prev => prev.map(p =>
+      p.id === postId ? { ...p, comments: [...p.comments, comment] } : p
+    ))
+  }
+
+  function handleCommentDeleted(postId: string, commentId: string) {
+    setPosts(prev => prev.map(p =>
+      p.id === postId ? { ...p, comments: p.comments.filter(c => c.id !== commentId) } : p
+    ))
+  }
+
   const top8 = useMemo(
     () => [...posts].sort((a, b) => b.likes - a.likes).slice(0, 8),
     [posts]
@@ -335,7 +349,7 @@ export default function CaruselPage() {
         <div className="max-w-sm mx-auto w-full">
 
         {/* Film strip */}
-        <FilmStrip top8={top8} totalCount={posts.length} />
+        <FilmStrip top8={top8} totalCount={posts.length} onFrameClick={p => setSelectedPostId(p.id)} />
 
         {/* View toggle bar */}
         <div
@@ -429,6 +443,7 @@ export default function CaruselPage() {
                 top8Ranks={top8Ranks}
                 onLike={toggleLike}
                 onDelete={deletePost}
+                onImageClick={p => setSelectedPostId(p.id)}
               />
             ) : (
               <CronologieView
@@ -439,12 +454,31 @@ export default function CaruselPage() {
                 top8Ranks={top8Ranks}
                 onLike={toggleLike}
                 onDelete={deletePost}
+                onImageClick={p => setSelectedPostId(p.id)}
               />
             )}
           </motion.div>
         </AnimatePresence>
 
         </div>{/* end max-w-sm */}
+
+        {/* Post detail modal */}
+        {(() => {
+          const selectedPost = selectedPostId ? posts.find(p => p.id === selectedPostId) : null
+          return selectedPost ? (
+            <PostModal
+              post={selectedPost}
+              rank={top8Ranks.get(selectedPost.id)}
+              userId={userId}
+              isAdmin={isAdmin}
+              onClose={() => setSelectedPostId(null)}
+              onLike={() => toggleLike(selectedPost.id)}
+              onDelete={() => deletePost(selectedPost.id)}
+              onCommentAdded={c => handleCommentAdded(selectedPost.id, c)}
+              onCommentDeleted={cId => handleCommentDeleted(selectedPost.id, cId)}
+            />
+          ) : null
+        })()}
 
         {/* Upload modal */}
         {showUpload && (
