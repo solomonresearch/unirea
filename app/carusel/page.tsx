@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { getSupabase } from '@/lib/supabase'
-import { Loader2, Search, Milestone } from 'lucide-react'
+import { Loader2, Search } from 'lucide-react'
 import { Logo } from '@/components/Logo'
 import { BottomNav } from '@/components/BottomNav'
 import { NotificationBell } from '@/components/NotificationBell'
@@ -23,17 +23,60 @@ type View = 'feed' | 'cronologie'
 
 function FeedIcon() {
   return (
-    <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-      <rect x="0.5" y="0.5" width="4.5" height="4.5" rx="1" fill="currentColor" />
-      <rect x="7" y="0.5" width="4.5" height="4.5" rx="1" fill="currentColor" />
-      <rect x="0.5" y="7" width="4.5" height="4.5" rx="1" fill="currentColor" />
-      <rect x="7" y="7" width="4.5" height="4.5" rx="1" fill="currentColor" />
-    </svg>
+    <motion.svg
+      width="14" height="14" viewBox="0 0 20 20" fill="none"
+      stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"
+      variants={{
+        idle: { x: 0 },
+        hover: { x: -3, transition: { type: 'spring', stiffness: 300, damping: 20 } },
+      }}
+    >
+      {/* Strip */}
+      <rect x="1" y="5" width="18" height="10" rx="1.5" />
+      {/* Frames (portrait ratio) */}
+      <rect x="4" y="6.5" width="4.5" height="7" rx="1" />
+      <rect x="11.5" y="6.5" width="4.5" height="7" rx="1" />
+      {/* Left perforations — top pair then bottom pair */}
+      <line x1="1.5" y1="7.5" x2="3.5" y2="7.5" />
+      <line x1="1.5" y1="9"   x2="3.5" y2="9"   />
+      <line x1="1.5" y1="11"  x2="3.5" y2="11"  />
+      <line x1="1.5" y1="12.5" x2="3.5" y2="12.5" />
+      {/* Right perforations */}
+      <line x1="16.5" y1="7.5"  x2="18.5" y2="7.5"  />
+      <line x1="16.5" y1="9"    x2="18.5" y2="9"    />
+      <line x1="16.5" y1="11"   x2="18.5" y2="11"   />
+      <line x1="16.5" y1="12.5" x2="18.5" y2="12.5" />
+    </motion.svg>
   )
 }
 
 function CronologieIcon() {
-  return <Milestone size={12} />
+  // Clock centre (7, 10) in viewBox 0 0 20 20 → (4.9px, 7px) in 14×14 CSS px
+  return (
+    <motion.svg
+      width="14" height="14" viewBox="0 0 20 20" fill="none"
+      stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"
+    >
+      {/* Clock face */}
+      <circle cx="7" cy="10" r="5" />
+      {/* Hands — rotate around clock centre on hover */}
+      <motion.g
+        variants={{
+          idle: { rotate: 0 },
+          hover: { rotate: 360, transition: { duration: 0.6, ease: [0.34, 1.56, 0.64, 1] } },
+        }}
+        style={{ transformOrigin: '4.9px 7px' }}
+      >
+        <line x1="7" y1="10" x2="7"  y2="5.5"  /> {/* 12 o'clock */}
+        <line x1="7" y1="10" x2="10" y2="11.8" /> {/* ~4 o'clock  */}
+      </motion.g>
+      {/* Timeline arc opening right */}
+      <path d="M 15 5 Q 21 10 15 15" fill="none" />
+      {/* Event dots at arc endpoints */}
+      <circle cx="15" cy="5"  r="1.5" fill="currentColor" stroke="none" />
+      <circle cx="15" cy="15" r="1.5" fill="currentColor" stroke="none" />
+    </motion.svg>
+  )
 }
 
 export default function CaruselPage() {
@@ -351,9 +394,11 @@ export default function CaruselPage() {
             }}
           >
             {(['feed', 'cronologie'] as View[]).map(v => (
-              <button
+              <motion.button
                 key={v}
                 onClick={() => setView(v)}
+                initial="idle"
+                whileHover="hover"
                 style={{ position: 'relative', padding: 0, border: 'none', background: 'transparent', cursor: 'pointer' }}
               >
                 {view === v && (
@@ -362,9 +407,10 @@ export default function CaruselPage() {
                     style={{
                       position: 'absolute',
                       inset: 0,
-                      background: 'white',
+                      background: 'var(--white)',
                       borderRadius: '7px',
-                      boxShadow: '0 2px 6px rgba(0,0,0,0.08)',
+                      border: '1px solid var(--border)',
+                      boxShadow: 'var(--shadow-s)',
                     }}
                     transition={{ type: 'spring', stiffness: 500, damping: 35 }}
                   />
@@ -389,7 +435,7 @@ export default function CaruselPage() {
                   {v === 'feed' ? <FeedIcon /> : <CronologieIcon />}
                   {v === 'feed' ? 'Feed' : 'Cronologie'}
                 </span>
-              </button>
+              </motion.button>
             ))}
           </div>
         </div>
