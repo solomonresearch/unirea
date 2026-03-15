@@ -15,6 +15,7 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog'
 import { Loader2, Plus, Trash2, ExternalLink, MapPin, Newspaper } from 'lucide-react'
+import { ConfirmDialog } from '@/components/ConfirmDialog'
 import { relativeTime } from '@/lib/utils'
 
 interface ZiarPost {
@@ -53,6 +54,7 @@ export default function ZiarPage() {
   const [activeCategory, setActiveCategory] = useState<string | null>(null)
 
   // Dialog state
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [title, setTitle] = useState('')
@@ -211,6 +213,13 @@ export default function ZiarPage() {
 
   return (
     <>
+      <ConfirmDialog
+        open={pendingDeleteId !== null}
+        onOpenChange={open => { if (!open) setPendingDeleteId(null) }}
+        title="Ștergi postarea?"
+        description="Această acțiune este permanentă și nu poate fi anulată."
+        onConfirm={() => { if (pendingDeleteId) handleDelete(pendingDeleteId) }}
+      />
       <AvizierTabBar />
       <main className="flex min-h-screen flex-col items-center px-6 pt-14 pb-24" style={{ background: 'var(--cream2)' }}>
         <div className="w-full max-w-sm space-y-3">
@@ -320,7 +329,7 @@ export default function ZiarPage() {
                     {userId && (post.created_by === userId || isAdmin) && (
                       <button
                         type="button"
-                        onClick={() => handleDelete(post.id)}
+                        onClick={() => setPendingDeleteId(post.id)}
                         className="hover:text-red-500 transition-colors"
                         style={{ color: 'var(--border)' }}
                       >

@@ -7,6 +7,7 @@ import { getSupabase } from '@/lib/supabase'
 import {
   Loader2, ArrowLeft, MessageSquare, Trash2, Layers,
 } from 'lucide-react'
+import { ConfirmDialog } from '@/components/ConfirmDialog'
 
 type ClusterCategory = 'design' | 'functional' | 'improvement' | 'other'
 
@@ -249,6 +250,15 @@ export default function FeedbackPage() {
   if (!allowed) return null
 
   return (
+    <>
+    <ConfirmDialog
+      open={deleteAllConfirm}
+      onOpenChange={open => { setDeleteAllConfirm(open); }}
+      title="Ștergi tot feedback-ul?"
+      description="Se vor șterge permanent toate mesajele de feedback. Acțiunea nu poate fi anulată."
+      confirmLabel="Șterge tot"
+      onConfirm={deleteAll}
+    />
     <main className="min-h-screen pb-12" style={{ background: '#f1f3f5' }}>
       {/* Header */}
       <header className="sticky top-0 z-30 border-b" style={{ background: 'var(--white)', borderColor: 'var(--border)' }}>
@@ -312,39 +322,16 @@ export default function FeedbackPage() {
                 <Layers size={13} />
                 RUN
               </button>
-              {!deleteAllConfirm ? (
-                <button
-                  type="button"
-                  onClick={() => setDeleteAllConfirm(true)}
-                  disabled={feedbackList.length === 0}
-                  className="flex items-center gap-1.5 rounded-sm px-3 py-2 text-xs font-semibold disabled:opacity-40 transition-opacity"
-                  style={{ background: '#FEF2F2', border: '1px solid #FECACA', color: '#DC2626' }}
-                >
-                  <Trash2 size={13} />
-                  Șterge tot
-                </button>
-              ) : (
-                <div className="flex items-center gap-1.5">
-                  <span className="text-xs font-semibold" style={{ color: '#DC2626' }}>Sigur?</span>
-                  <button
-                    type="button"
-                    onClick={deleteAll}
-                    disabled={deletingAll}
-                    className="rounded-sm px-3 py-2 text-xs font-bold text-white disabled:opacity-50"
-                    style={{ background: '#DC2626' }}
-                  >
-                    {deletingAll ? <Loader2 size={13} className="animate-spin" /> : 'Da'}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setDeleteAllConfirm(false)}
-                    className="rounded-sm px-3 py-2 text-xs font-semibold"
-                    style={{ background: 'var(--cream2)', color: 'var(--ink2)' }}
-                  >
-                    Nu
-                  </button>
-                </div>
-              )}
+              <button
+                type="button"
+                onClick={() => setDeleteAllConfirm(true)}
+                disabled={feedbackList.length === 0}
+                className="flex items-center gap-1.5 rounded-sm px-3 py-2 text-xs font-semibold disabled:opacity-40 transition-opacity"
+                style={{ background: '#FEF2F2', border: '1px solid #FECACA', color: '#DC2626' }}
+              >
+                <Trash2 size={13} />
+                Șterge tot
+              </button>
             </div>
           </div>
 
@@ -450,6 +437,7 @@ export default function FeedbackPage() {
         )}
       </div>
     </main>
+    </>
   )
 }
 
@@ -466,7 +454,16 @@ function FeedbackCard({
   onDelete: () => void
   onMove: ((to: ClusterCategory) => void) | null
 }) {
+  const [confirmOpen, setConfirmOpen] = useState(false)
   return (
+    <>
+    <ConfirmDialog
+      open={confirmOpen}
+      onOpenChange={setConfirmOpen}
+      title="Ștergi feedback-ul?"
+      description="Mesajul va fi șters permanent."
+      onConfirm={onDelete}
+    />
     <div className="px-5 py-3 space-y-1.5">
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
@@ -500,7 +497,7 @@ function FeedbackCard({
           )}
           <button
             type="button"
-            onClick={onDelete}
+            onClick={() => setConfirmOpen(true)}
             disabled={deleting}
             className="w-6 h-6 flex items-center justify-center rounded transition-opacity disabled:opacity-40"
             style={{ color: 'var(--rose)' }}
@@ -523,5 +520,6 @@ function FeedbackCard({
         {item.message}
       </p>
     </div>
+    </>
   )
 }

@@ -1,9 +1,11 @@
 'use client'
 
+import { useState } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { Heart, MessageCircle, Share2, Trash2 } from 'lucide-react'
 import { relativeTime, getInitials } from '@/lib/utils'
+import { ConfirmDialog } from '@/components/ConfirmDialog'
 import type { CaruselPost } from '../types'
 
 interface FeedViewProps {
@@ -18,6 +20,7 @@ interface FeedViewProps {
 }
 
 export function FeedView({ posts, userId, isAdmin, top8Ids, top8Ranks, onLike, onDelete, onImageClick }: FeedViewProps) {
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null)
 
   if (posts.length === 0) {
     return (
@@ -30,6 +33,14 @@ export function FeedView({ posts, userId, isAdmin, top8Ids, top8Ranks, onLike, o
   }
 
   return (
+    <>
+    <ConfirmDialog
+      open={pendingDeleteId !== null}
+      onOpenChange={open => { if (!open) setPendingDeleteId(null) }}
+      title="Ștergi postarea?"
+      description="Această acțiune este permanentă și nu poate fi anulată."
+      onConfirm={() => { if (pendingDeleteId) onDelete(pendingDeleteId) }}
+    />
     <div style={{ paddingBottom: '8px' }}>
       {posts.map((post, i) => {
         const rank = top8Ranks.get(post.id)
@@ -180,7 +191,7 @@ export function FeedView({ posts, userId, isAdmin, top8Ids, top8Ranks, onLike, o
 
               {(post.user_id === userId || isAdmin) && (
                 <button
-                  onClick={() => onDelete(post.id)}
+                  onClick={() => setPendingDeleteId(post.id)}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -223,5 +234,6 @@ export function FeedView({ posts, userId, isAdmin, top8Ids, top8Ranks, onLike, o
         )
       })}
     </div>
+    </>
   )
 }

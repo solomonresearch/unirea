@@ -8,6 +8,7 @@ import { BottomNav } from '@/components/BottomNav'
 import { MentionInput } from '@/components/MentionInput'
 import { MentionText } from '@/components/MentionText'
 import { relativeTime, getInitials } from '@/lib/utils'
+import { ConfirmDialog } from '@/components/ConfirmDialog'
 import Link from 'next/link'
 
 interface CaruselComment {
@@ -43,6 +44,7 @@ export default function CaruselPostPage() {
   const [notFound, setNotFound] = useState(false)
   const [commentText, setCommentText] = useState('')
   const [commentSubmitting, setCommentSubmitting] = useState(false)
+  const [pendingDelete, setPendingDelete] = useState<'post' | string | null>(null)
 
   const fetchPost = useCallback(async () => {
     const supabase = getSupabase()
@@ -203,6 +205,17 @@ export default function CaruselPostPage() {
   }
 
   return (
+    <>
+    <ConfirmDialog
+      open={pendingDelete !== null}
+      onOpenChange={open => { if (!open) setPendingDelete(null) }}
+      title={pendingDelete === 'post' ? 'Ștergi postarea?' : 'Ștergi comentariul?'}
+      description="Această acțiune este permanentă și nu poate fi anulată."
+      onConfirm={() => {
+        if (pendingDelete === 'post') deletePost()
+        else if (pendingDelete) deleteComment(pendingDelete)
+      }}
+    />
     <div className="flex min-h-screen flex-col bg-white">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
@@ -222,7 +235,7 @@ export default function CaruselPostPage() {
           </Link>
           {(post.user_id === userId || isAdmin) && (
             <button
-              onClick={deletePost}
+              onClick={() => setPendingDelete('post')}
               className="ml-2 p-1 text-gray-400 hover:text-red-500 transition-colors"
             >
               <Trash2 size={16} />
@@ -285,7 +298,7 @@ export default function CaruselPostPage() {
                 </div>
                 {(c.user_id === userId || isAdmin) && (
                   <button
-                    onClick={() => deleteComment(c.id)}
+                    onClick={() => setPendingDelete(c.id)}
                     className="p-1 text-gray-300 hover:text-red-500 transition-colors"
                   >
                     <Trash2 size={12} />
@@ -319,5 +332,6 @@ export default function CaruselPostPage() {
 
       <BottomNav />
     </div>
+    </>
   )
 }

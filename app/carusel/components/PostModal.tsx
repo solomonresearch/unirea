@@ -10,6 +10,7 @@ import {
 import { X, Heart, MessageCircle, Trash2, Share2, Send } from 'lucide-react'
 import { getSupabase } from '@/lib/supabase'
 import { relativeTime, getInitials } from '@/lib/utils'
+import { ConfirmDialog } from '@/components/ConfirmDialog'
 import type { CaruselPost, CaruselComment } from '../types'
 
 interface PostModalProps {
@@ -39,6 +40,7 @@ export function PostModal({
   const [submitting, setSubmitting] = useState(false)
   const [zoomed, setZoomed] = useState(false)
   const [panConstraints, setPanConstraints] = useState({ left: 0, right: 0, top: 0, bottom: 0 })
+  const [pendingDelete, setPendingDelete] = useState<'post' | string | null>(null)
 
   const ZOOM_SCALE = 2.4
   const scale = useMotionValue(1)
@@ -103,6 +105,17 @@ export function PostModal({
   }
 
   return (
+    <>
+    <ConfirmDialog
+      open={pendingDelete !== null}
+      onOpenChange={open => { if (!open) setPendingDelete(null) }}
+      title={pendingDelete === 'post' ? 'Ștergi postarea?' : 'Ștergi comentariul?'}
+      description="Această acțiune este permanentă și nu poate fi anulată."
+      onConfirm={() => {
+        if (pendingDelete === 'post') { onDelete(); onClose() }
+        else if (pendingDelete) handleDeleteComment(pendingDelete)
+      }}
+    />
     <AnimatePresence>
       {/* Backdrop */}
       <motion.div
@@ -333,7 +346,7 @@ export function PostModal({
             {(post.user_id === userId || isAdmin) && (
               <motion.button
                 whileTap={{ scale: 0.88 }}
-                onClick={() => { onDelete(); onClose() }}
+                onClick={() => setPendingDelete('post')}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -448,7 +461,7 @@ export function PostModal({
                         </span>
                         {(comment.user_id === userId || isAdmin) && (
                           <button
-                            onClick={() => handleDeleteComment(comment.id)}
+                            onClick={() => setPendingDelete(comment.id)}
                             style={{
                               color: 'var(--ink3)',
                               background: 'none',
@@ -526,5 +539,6 @@ export function PostModal({
         </div>
       </motion.div>
     </AnimatePresence>
+    </>
   )
 }

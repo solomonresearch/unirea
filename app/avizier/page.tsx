@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { getSupabase } from '@/lib/supabase'
 import { Loader2, Send, Trash2, ChevronUp, ChevronDown, MessageCircle, Clock, Plus, Users, Lock, Eye, CheckCircle2, Pencil, Search } from 'lucide-react'
+import { ConfirmDialog } from '@/components/ConfirmDialog'
 import { TutorialModal } from '@/components/TutorialModal'
 import { QuizOverlay } from '@/components/sondaje/QuizOverlay'
 import { QuizCreateDialog } from '@/components/sondaje/QuizCreateDialog'
@@ -162,6 +163,8 @@ export default function AvizierPage() {
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [expandedComments, setExpandedComments] = useState<Set<string>>(new Set())
   const [commentTexts, setCommentTexts] = useState<Record<string, string>>({})
+
+  const [pendingDelete, setPendingDelete] = useState<{ type: 'post' | 'comment'; id: string } | null>(null)
 
   const [showTutorial, setShowTutorial] = useState(false)
   const [showPostModal, setShowPostModal] = useState(false)
@@ -565,6 +568,16 @@ export default function AvizierPage() {
   return (
     <SchoolGate>
     <>
+      <ConfirmDialog
+        open={pendingDelete !== null}
+        onOpenChange={open => { if (!open) setPendingDelete(null) }}
+        title={pendingDelete?.type === 'post' ? 'Ștergi postarea?' : 'Ștergi comentariul?'}
+        description="Această acțiune este permanentă și nu poate fi anulată."
+        onConfirm={() => {
+          if (pendingDelete?.type === 'post') handleDelete(pendingDelete.id)
+          else if (pendingDelete?.type === 'comment') handleDeleteComment(pendingDelete.id)
+        }}
+      />
       {showTutorial && profile && (
         <TutorialModal profile={profile} onDismiss={handleTutorialDismiss} />
       )}
@@ -888,7 +901,7 @@ export default function AvizierPage() {
                           {(post.user_id === profile.id || isAdmin) && (
                             <button
                               type="button"
-                              onClick={() => handleDelete(post.id)}
+                              onClick={() => setPendingDelete({ type: 'post', id: post.id })}
                               className="transition-colors"
                               style={{ color: 'var(--ink3)' }}
                             >
@@ -974,7 +987,7 @@ export default function AvizierPage() {
                                 {(comment.user_id === profile.id || isAdmin) && (
                                   <button
                                     type="button"
-                                    onClick={() => handleDeleteComment(comment.id)}
+                                    onClick={() => setPendingDelete({ type: 'comment', id: comment.id })}
                                     className="transition-colors"
                                     style={{ color: 'var(--ink3)' }}
                                   >
