@@ -119,11 +119,12 @@ export function PostModal({
       {/* Sheet */}
       <motion.div
         key="sheet"
-        className="fixed inset-x-0 bottom-0 z-[60] max-w-sm mx-auto"
+        className="fixed inset-x-0 z-[60] max-w-sm mx-auto"
         style={{
+          bottom: 68,
           display: 'flex',
           flexDirection: 'column',
-          maxHeight: '92dvh',
+          maxHeight: 'calc(92dvh - 68px)',
           background: 'var(--white)',
           borderRadius: '20px 20px 0 0',
           overflow: 'hidden',
