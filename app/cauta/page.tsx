@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { Logo } from '@/components/Logo'
 import { BottomNav } from '@/components/BottomNav'
@@ -25,6 +26,7 @@ const CLASS_OPTIONS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L
 interface ProfileResult {
   id: string
   name: string
+  username: string
   graduation_year: number
   class: string | null
   profession: string[]
@@ -85,7 +87,7 @@ export default function CautaPage() {
 
     let query = getSupabase()
       .from('profiles')
-      .select('id, name, graduation_year, class, profession, domain, company, city, country')
+      .select('id, name, username, graduation_year, class, profession, domain, company, city, country')
       .eq('highschool', highschool)
       .eq('onboarding_completed', true)
       .neq('id', currentUserId)
@@ -142,13 +144,14 @@ export default function CautaPage() {
       const [baseLat, baseLng] = CITY_COORDINATES[city]
       if (people.length === 1) {
         const p = people[0]
-        out.push({ id: p.id, name: p.name, city, lat: baseLat, lng: baseLng })
+        out.push({ id: p.id, name: p.name, username: p.username, city, lat: baseLat, lng: baseLng })
       } else {
         people.forEach((p, i) => {
           const angle = (2 * Math.PI * i) / people.length
           out.push({
             id: p.id,
             name: p.name,
+            username: p.username,
             city,
             lat: baseLat + OFFSET * Math.cos(angle),
             lng: baseLng + OFFSET * Math.sin(angle),
@@ -413,7 +416,7 @@ export default function CautaPage() {
                       {selectedPeople.has(profile.id) && <Check size={13} color="var(--white)" strokeWidth={2.5} />}
                     </div>
                   </button>
-                  <div className="flex-1 min-w-0 px-3 py-3">
+                  <Link href={`/profil/${profile.username}`} className="flex-1 min-w-0 px-3 py-3 block">
                     <div className="flex items-start justify-between">
                       <p className="text-sm font-semibold" style={{ color: 'var(--ink)' }}>{profile.name}</p>
                       <span className="text-xs font-bold" style={{ color: 'var(--ink3)' }}>
@@ -440,7 +443,7 @@ export default function CautaPage() {
                         {profile.company}
                       </p>
                     )}
-                  </div>
+                  </Link>
                 </div>
               ))}
             </div>

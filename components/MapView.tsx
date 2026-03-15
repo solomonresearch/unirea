@@ -7,6 +7,7 @@ import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet'
 export interface UserMarker {
   id: string
   name: string
+  username: string
   city: string
   lat: number
   lng: number
@@ -43,7 +44,9 @@ export default function MapView({ markers }: MapViewProps) {
       {markers.map((m) => (
         <Marker key={m.id} position={[m.lat, m.lng]}>
           <Popup>
-            <span className="text-sm font-semibold">{m.name}</span>
+            <a href={`/profil/${m.username}`} className="text-sm font-semibold" style={{ color: 'inherit', textDecoration: 'underline' }}>
+              {m.name}
+            </a>
             <br />
             <span className="text-xs text-gray-500">{m.city}</span>
           </Popup>
