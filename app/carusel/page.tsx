@@ -109,7 +109,7 @@ export default function CaruselPage() {
 
     let query = supabase
       .from('carusel_posts')
-      .select('id, caption, storage_path, user_id, created_at, scope, highschool, graduation_year, class, profiles!user_id(name, username)')
+      .select('id, caption, storage_path, user_id, created_at, photo_date, location_text, scope, highschool, graduation_year, class, profiles!user_id(name, username)')
       .is('deleted_at', null)
       .order('created_at', { ascending: false })
 
@@ -153,6 +153,8 @@ export default function CaruselPage() {
         liked: userLikedSet.has(p.id),
         comments: commentsByPost[p.id] || [],
         created_at: p.created_at,
+        photo_date: p.photo_date ?? null,
+        location_text: p.location_text ?? null,
       }
     })
 
@@ -274,10 +276,18 @@ export default function CaruselPage() {
   const top8Ranks = useMemo(() => new Map(top8.map((p, i) => [p.id, i + 1])), [top8])
   const top8Ids = useMemo(() => new Set(top8.map(p => p.id)), [top8])
 
+  const sortedPosts = useMemo(
+    () => [...posts].sort((a, b) =>
+      new Date(b.photo_date ?? b.created_at).getTime() -
+      new Date(a.photo_date ?? a.created_at).getTime()
+    ),
+    [posts]
+  )
+
   const postsByYear = useMemo(() => {
     const map = new Map<number, CaruselPost[]>()
     for (const p of posts) {
-      const y = new Date(p.created_at).getFullYear()
+      const y = new Date(p.photo_date ?? p.created_at).getFullYear()
       if (!map.has(y)) map.set(y, [])
       map.get(y)!.push(p)
     }
@@ -462,7 +472,7 @@ export default function CaruselPage() {
               />
             ) : (
               <CronologieView
-                postsByYear={postsByYear}
+                posts={sortedPosts}
                 userId={userId}
                 isAdmin={isAdmin}
                 top8Ids={top8Ids}

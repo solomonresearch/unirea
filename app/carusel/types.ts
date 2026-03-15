@@ -31,6 +31,8 @@ export interface CaruselPost {
   liked: boolean
   comments: CaruselComment[]
   created_at: string
+  photo_date: string | null
+  location_text: string | null
 }
 
 export function getRotation(id: string): number {
