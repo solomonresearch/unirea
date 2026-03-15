@@ -11,6 +11,19 @@ interface FilmStripProps {
 
 const PERF_COUNT = 14
 
+// Gold for #1, warm silver for #2-3, dark muted for the rest
+function bubbleStyle(rank: number): { bg: string; color: string } {
+  if (rank === 1) return { bg: '#F5D06A', color: '#1C1917' }
+  if (rank <= 3) return { bg: 'rgba(245,208,106,0.38)', color: '#F5D06A' }
+  return { bg: '#2E2A27', color: '#5A5450' }
+}
+
+function frameBorder(rank: number): string {
+  if (rank === 1) return '#F5D06A'
+  if (rank <= 3) return 'rgba(245,208,106,0.4)'
+  return 'transparent'
+}
+
 function PerfRow() {
   return (
     <div style={{ display: 'flex', gap: '7px', padding: '5px 14px' }}>
@@ -38,73 +51,82 @@ export function FilmStrip({ top8, totalCount, onFrameClick }: FilmStripProps) {
     <div style={{ background: '#1C1917', overflow: 'hidden' }}>
       <PerfRow />
 
-      {/* Scrollable frames */}
+      {/* Scrollable columns: each column = frame + rank bubble */}
       <div
         className="scrollbar-hide"
-        style={{ display: 'flex', gap: '5px', padding: '4px 14px', overflowX: 'auto' }}
+        style={{ display: 'flex', gap: '6px', padding: '4px 14px 8px', overflowX: 'auto' }}
       >
         {top8.map((post, i) => {
           const rank = i + 1
-          const borderColor =
-            rank === 1
-              ? '#F5D06A'
-              : rank <= 3
-              ? 'rgba(245,208,106,0.45)'
-              : 'transparent'
-          const opacity = rank === 1 ? 1 : rank <= 3 ? 0.85 : 0.55
+          const { bg, color } = bubbleStyle(rank)
+          const opacity = rank === 1 ? 1 : rank <= 3 ? 0.88 : 0.58
 
           return (
-            <motion.button
+            <div
               key={post.id}
-              whileTap={{ scale: 0.92 }}
-              onClick={() => onFrameClick(post)}
-              style={{
-                position: 'relative',
-                width: '60px',
-                height: '44px',
-                borderRadius: '2px',
-                border: `1.5px solid ${borderColor}`,
-                opacity,
-                flexShrink: 0,
-                overflow: 'hidden',
-                cursor: 'pointer',
-                padding: 0,
-                background: '#2E2A27',
-              }}
+              style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px', flexShrink: 0 }}
             >
-              <img
-                src={post.image_url}
-                alt={post.caption || ''}
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-              />
-              <span
+              {/* Film frame */}
+              <motion.button
+                whileTap={{ scale: 0.9 }}
+                onClick={() => onFrameClick(post)}
                 style={{
-                  position: 'absolute',
-                  top: '2px',
-                  left: '2px',
+                  position: 'relative',
+                  width: '60px',
+                  height: '44px',
+                  borderRadius: '2px',
+                  border: `1.5px solid ${frameBorder(rank)}`,
+                  opacity,
+                  overflow: 'hidden',
+                  cursor: 'pointer',
+                  padding: 0,
+                  background: '#2E2A27',
+                  display: 'block',
+                }}
+              >
+                <img
+                  src={post.image_url}
+                  alt={post.caption || ''}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                />
+                {/* Like count overlay — bottom right */}
+                <span
+                  style={{
+                    position: 'absolute',
+                    bottom: '2px',
+                    right: '3px',
+                    fontFamily: "'Space Mono', monospace",
+                    fontSize: '7px',
+                    color: 'rgba(255,255,255,0.85)',
+                    lineHeight: 1,
+                    textShadow: '0 1px 2px rgba(0,0,0,0.6)',
+                  }}
+                >
+                  {post.likes}
+                </span>
+              </motion.button>
+
+              {/* Rank bubble below the frame */}
+              <div
+                style={{
+                  width: '18px',
+                  height: '18px',
+                  borderRadius: '50%',
+                  background: bg,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                   fontFamily: "'Space Mono', monospace",
-                  fontSize: '7px',
+                  fontSize: '8px',
                   fontWeight: 700,
-                  color: '#F5D06A',
-                  lineHeight: 1,
+                  color,
+                  flexShrink: 0,
+                  border: rank === 1 ? 'none' : '1px solid rgba(245,208,106,0.15)',
                 }}
               >
-                #{rank}
-              </span>
-              <span
-                style={{
-                  position: 'absolute',
-                  bottom: '2px',
-                  right: '3px',
-                  fontFamily: "'Space Mono', monospace",
-                  fontSize: '7px',
-                  color: 'rgba(255,255,255,0.85)',
-                  lineHeight: 1,
-                }}
-              >
-                {post.likes}
-              </span>
-            </motion.button>
+                {rank}
+              </div>
+            </div>
           )
         })}
       </div>

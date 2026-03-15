@@ -38,7 +38,9 @@ export function PostModal({
   const [newComment, setNewComment] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [zoomed, setZoomed] = useState(false)
+  const [panConstraints, setPanConstraints] = useState({ left: 0, right: 0, top: 0, bottom: 0 })
 
+  const ZOOM_SCALE = 2.4
   const scale = useMotionValue(1)
   const imgX = useMotionValue(0)
   const imgY = useMotionValue(0)
@@ -57,18 +59,15 @@ export function PostModal({
       animate(imgX, 0, { type: 'spring', stiffness: 350, damping: 30 })
       animate(imgY, 0, { type: 'spring', stiffness: 350, damping: 30 })
     } else {
+      // Compute constraints from actual container size before animating
+      const w = imgContainerRef.current?.clientWidth ?? 360
+      const h = imgContainerRef.current?.clientHeight ?? 270
+      const ex = (w * (ZOOM_SCALE - 1)) / 2
+      const ey = (h * (ZOOM_SCALE - 1)) / 2
+      setPanConstraints({ left: -ex, right: ex, top: -ey, bottom: ey })
       setZoomed(true)
-      animate(scale, 2.4, { type: 'spring', stiffness: 350, damping: 30 })
+      animate(scale, ZOOM_SCALE, { type: 'spring', stiffness: 350, damping: 30 })
     }
-  }
-
-  function getConstraints() {
-    const w = imgContainerRef.current?.clientWidth ?? 380
-    const h = imgContainerRef.current?.clientHeight ?? 285
-    const s = scale.get()
-    const ex = (w * (s - 1)) / 2
-    const ey = (h * (s - 1)) / 2
-    return { left: -ex, right: ex, top: -ey, bottom: ey }
   }
 
   async function submitComment() {
@@ -108,7 +107,7 @@ export function PostModal({
       {/* Backdrop */}
       <motion.div
         key="backdrop"
-        className="fixed inset-0 z-50"
+        className="fixed inset-0 z-[60]"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -120,7 +119,7 @@ export function PostModal({
       {/* Sheet */}
       <motion.div
         key="sheet"
-        className="fixed inset-x-0 bottom-0 z-50 max-w-sm mx-auto"
+        className="fixed inset-x-0 bottom-0 z-[60] max-w-sm mx-auto"
         style={{
           display: 'flex',
           flexDirection: 'column',
@@ -232,7 +231,7 @@ export function PostModal({
             <motion.div
               style={{ scale, x: imgX, y: imgY, width: '100%', height: '100%' }}
               drag={zoomed}
-              dragConstraints={zoomed ? getConstraints() : false}
+              dragConstraints={panConstraints}
               dragElastic={0.05}
               dragMomentum={false}
             >
