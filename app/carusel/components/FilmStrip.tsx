@@ -5,7 +5,6 @@ import type { CaruselPost } from '../types'
 
 interface FilmStripProps {
   top8: CaruselPost[]
-  totalCount: number
   onFrameClick: (post: CaruselPost) => void
 }
 
@@ -49,7 +48,7 @@ function PerfRow() {
   )
 }
 
-export function FilmStrip({ top8, totalCount, onFrameClick }: FilmStripProps) {
+export function FilmStrip({ top8, onFrameClick }: FilmStripProps) {
   if (top8.length === 0) return null
 
   return (
@@ -91,7 +90,7 @@ export function FilmStrip({ top8, totalCount, onFrameClick }: FilmStripProps) {
               color: '#5A5450',
             }}
           >
-            {totalCount} POSTĂRI
+            {top8.length} POSTĂRI
           </span>
         </div>
 

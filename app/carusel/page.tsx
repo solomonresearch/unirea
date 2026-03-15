@@ -318,7 +318,7 @@ export default function CaruselPage() {
         <div className="max-w-sm mx-auto w-full">
 
         {/* Film strip */}
-        <FilmStrip top8={top8} totalCount={posts.length} onFrameClick={p => setSelectedPostId(p.id)} />
+        <FilmStrip top8={top8} onFrameClick={p => setSelectedPostId(p.id)} />
 
         {/* View toggle bar */}
         <div
@@ -337,7 +337,7 @@ export default function CaruselPage() {
               letterSpacing: '0.06em',
             }}
           >
-            {posts.length} postări · {SCOPE_LABELS[scope]}
+            {top8.length} postări · {SCOPE_LABELS[scope]}
           </span>
 
           <div
