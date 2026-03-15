@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter, useParams } from 'next/navigation'
+import Link from 'next/link'
 import { getSupabase } from '@/lib/supabase'
 import { BottomNav } from '@/components/BottomNav'
 import { MentionInput } from '@/components/MentionInput'
@@ -370,7 +371,7 @@ export default function ChatPage() {
               </div>
             </button>
           ) : otherUser && (
-            <div className="flex items-center gap-2.5">
+            <Link href={`/profil/${otherUser.username}`} className="flex items-center gap-2.5">
               <div className="relative flex-shrink-0">
                 <div className="w-9 h-9 rounded-full overflow-hidden">
                   {otherUser.avatar_url ? (
@@ -390,7 +391,7 @@ export default function ChatPage() {
                 <p className="text-sm font-semibold leading-tight" style={{ color: 'var(--ink)' }}>{otherUser.name}</p>
                 <p className="text-[11px] mt-0.5" style={{ color: 'var(--ink3)' }}>@{otherUser.username}</p>
               </div>
-            </div>
+            </Link>
           )}
         </div>
       </header>
@@ -456,13 +457,15 @@ export default function ChatPage() {
                 {isGroup && !isOwn && (
                   <div className="w-6 mr-2 flex-shrink-0 flex items-end">
                     {isLastInGroup && senderProfile ? (
-                      senderProfile.avatar_url ? (
-                        <img src={senderProfile.avatar_url} alt={senderProfile.name} className="w-6 h-6 rounded-full object-cover" />
-                      ) : (
-                        <div className="w-6 h-6 rounded-full flex items-center justify-center" style={{ background: avatarColor(senderProfile.name) }}>
-                          <span className="text-[9px] font-bold text-white">{getInitials(senderProfile.name)}</span>
-                        </div>
-                      )
+                      <Link href={`/profil/${senderProfile.username}`} className="block flex-shrink-0">
+                        {senderProfile.avatar_url ? (
+                          <img src={senderProfile.avatar_url} alt={senderProfile.name} className="w-6 h-6 rounded-full object-cover" />
+                        ) : (
+                          <div className="w-6 h-6 rounded-full flex items-center justify-center" style={{ background: avatarColor(senderProfile.name) }}>
+                            <span className="text-[9px] font-bold text-white">{getInitials(senderProfile.name)}</span>
+                          </div>
+                        )}
+                      </Link>
                     ) : null}
                   </div>
                 )}

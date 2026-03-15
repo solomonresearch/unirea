@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { X, Copy, Check, UserPlus, LogOut, Search, Loader2, Trash2 } from 'lucide-react'
 import { getSupabase } from '@/lib/supabase'
 import { getInitials } from '@/lib/utils'
@@ -283,10 +284,16 @@ export function GroupInfoPanel({
                     )}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-xs font-medium truncate" style={{ color: 'var(--ink)' }}>
-                      {member.name}
-                      {member.id === currentUserId && <span className="font-normal" style={{ color: 'var(--ink3)' }}> (tu)</span>}
-                    </p>
+                    {member.id !== currentUserId ? (
+                      <Link href={`/profil/${member.username}`} className="text-xs font-medium truncate hover:underline block" style={{ color: 'var(--ink)' }}>
+                        {member.name}
+                      </Link>
+                    ) : (
+                      <p className="text-xs font-medium truncate" style={{ color: 'var(--ink)' }}>
+                        {member.name}
+                        <span className="font-normal" style={{ color: 'var(--ink3)' }}> (tu)</span>
+                      </p>
+                    )}
                     <p className="text-[10px]" style={{ color: 'var(--ink3)' }}>@{member.username}</p>
                   </div>
                   {member.id !== currentUserId && (

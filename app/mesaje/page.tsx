@@ -584,29 +584,48 @@ export default function MesajePage() {
                 const preview = getLastMessagePreview(convo)
                 return (
                   <div key={convo.id} className="flex items-center gap-2">
-                    <Link
-                      href={`/mesaje/${convo.id}`}
-                      className="flex items-center gap-3 rounded-xl px-4 py-3 transition-colors flex-1 min-w-0"
+                    <div
+                      className="flex items-center gap-3 rounded-xl px-4 py-3 transition-colors flex-1 min-w-0 cursor-pointer"
                       style={{ background: 'var(--white)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-s)' }}
+                      onClick={() => router.push(`/mesaje/${convo.id}`)}
                     >
-                      <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
-                        {convo.is_group ? (
+                      {!convo.is_group && convo.other_user?.username ? (
+                        <Link
+                          href={`/profil/${convo.other_user.username}`}
+                          onClick={e => e.stopPropagation()}
+                          className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 block"
+                        >
+                          {convo.other_user.avatar_url ? (
+                            <img src={convo.other_user.avatar_url} alt={displayName} className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center" style={{ background: 'var(--amber-soft)' }}>
+                              <span className="text-sm font-bold" style={{ color: 'var(--amber-dark)' }}>{getInitials(displayName)}</span>
+                            </div>
+                          )}
+                        </Link>
+                      ) : (
+                        <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
                           <div className="w-full h-full flex items-center justify-center" style={{ background: 'var(--amber-soft)' }}>
-                            <Users size={18} style={{ color: 'var(--amber-dark)' }} />
+                            {convo.is_group ? <Users size={18} style={{ color: 'var(--amber-dark)' }} /> : <span className="text-sm font-bold" style={{ color: 'var(--amber-dark)' }}>{getInitials(displayName)}</span>}
                           </div>
-                        ) : convo.other_user?.avatar_url ? (
-                          <img src={convo.other_user.avatar_url} alt={displayName} className="w-full h-full object-cover" />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center" style={{ background: 'var(--amber-soft)' }}>
-                            <span className="text-sm font-bold" style={{ color: 'var(--amber-dark)' }}>{getInitials(displayName)}</span>
-                          </div>
-                        )}
-                      </div>
+                        </div>
+                      )}
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm truncate font-semibold" style={{ color: 'var(--ink)' }}>{displayName}</p>
+                        {!convo.is_group && convo.other_user?.username ? (
+                          <Link
+                            href={`/profil/${convo.other_user.username}`}
+                            onClick={e => e.stopPropagation()}
+                            className="text-sm truncate font-semibold hover:underline block"
+                            style={{ color: 'var(--ink)' }}
+                          >
+                            {displayName}
+                          </Link>
+                        ) : (
+                          <p className="text-sm truncate font-semibold" style={{ color: 'var(--ink)' }}>{displayName}</p>
+                        )}
                         <p className="text-xs truncate" style={{ color: 'var(--ink3)' }}>{preview}</p>
                       </div>
-                    </Link>
+                    </div>
                     <button
                       type="button"
                       onClick={() => handleUnarchiveConversation(convo.id)}
@@ -799,34 +818,62 @@ export default function MesajePage() {
                   onArchive={() => handleArchiveConversation(convo.id)}
                   archiving={archivingId === convo.id}
                 >
-                  <Link
-                    href={`/mesaje/${convo.id}`}
-                    className="flex items-center gap-3 rounded-xl px-4 py-3 transition-colors"
+                  <div
+                    className="flex items-center gap-3 rounded-xl px-4 py-3 transition-colors cursor-pointer"
                     style={{
                       background: 'var(--white)',
                       border: hasUnread ? '1px solid var(--amber)' : '1px solid var(--border)',
                       boxShadow: 'var(--shadow-s)',
                     }}
+                    onClick={() => router.push(`/mesaje/${convo.id}`)}
                   >
-                    <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
-                      {convo.is_group ? (
-                        <div className="w-full h-full flex items-center justify-center" style={{ background: 'var(--amber-soft)' }}>
-                          <Users size={18} style={{ color: 'var(--amber-dark)' }} />
-                        </div>
-                      ) : convo.other_user?.avatar_url ? (
-                        <img src={convo.other_user.avatar_url} alt={displayName} className="w-full h-full object-cover" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center" style={{ background: 'var(--amber-soft)' }}>
-                          <span className="text-sm font-bold" style={{ color: 'var(--amber-dark)' }}>{getInitials(displayName)}</span>
-                        </div>
-                      )}
-                    </div>
+                    {/* Avatar — links to profile for DMs */}
+                    {!convo.is_group && convo.other_user?.username ? (
+                      <Link
+                        href={`/profil/${convo.other_user.username}`}
+                        onClick={e => e.stopPropagation()}
+                        className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 block"
+                      >
+                        {convo.other_user.avatar_url ? (
+                          <img src={convo.other_user.avatar_url} alt={displayName} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center" style={{ background: 'var(--amber-soft)' }}>
+                            <span className="text-sm font-bold" style={{ color: 'var(--amber-dark)' }}>{getInitials(displayName)}</span>
+                          </div>
+                        )}
+                      </Link>
+                    ) : (
+                      <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
+                        {convo.is_group ? (
+                          <div className="w-full h-full flex items-center justify-center" style={{ background: 'var(--amber-soft)' }}>
+                            <Users size={18} style={{ color: 'var(--amber-dark)' }} />
+                          </div>
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center" style={{ background: 'var(--amber-soft)' }}>
+                            <span className="text-sm font-bold" style={{ color: 'var(--amber-dark)' }}>{getInitials(displayName)}</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-1.5 min-w-0">
-                          <p className="text-sm truncate font-semibold" style={{ color: 'var(--ink)' }}>
-                            {displayName}
-                          </p>
+                          {/* Name — links to profile for DMs */}
+                          {!convo.is_group && convo.other_user?.username ? (
+                            <Link
+                              href={`/profil/${convo.other_user.username}`}
+                              onClick={e => e.stopPropagation()}
+                              className="text-sm truncate font-semibold hover:underline"
+                              style={{ color: 'var(--ink)' }}
+                            >
+                              {displayName}
+                            </Link>
+                          ) : (
+                            <p className="text-sm truncate font-semibold" style={{ color: 'var(--ink)' }}>
+                              {displayName}
+                            </p>
+                          )}
                           {convo.is_group && (
                             <span className="text-[10px] flex-shrink-0" style={{ color: 'var(--ink3)' }}>{convo.members.length}</span>
                           )}
@@ -848,7 +895,7 @@ export default function MesajePage() {
                         )}
                       </div>
                     </div>
-                  </Link>
+                  </div>
                 </SwipeableRow>
               )
             })}
