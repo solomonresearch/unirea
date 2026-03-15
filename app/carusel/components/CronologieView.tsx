@@ -1,13 +1,314 @@
 'use client'
 
-import { useState, useRef, useEffect, RefObject } from 'react'
-import { motion } from 'framer-motion'
-import { Heart, MessageCircle, Share2, Trash2 } from 'lucide-react'
+import { useState, useRef, useEffect, useCallback, useMemo, RefObject } from 'react'
 import type { CaruselPost } from '../types'
 
-const CARD_COLLAPSED = 180
-const CARD_EXPANDED  = 340
-const CARD_OVERLAP   = CARD_COLLAPSED * 0.5   // 90px
+// ── Constants ─────────────────────────────────────────────────────────────────
+
+const GRID_COLS  = 4
+const CELL_GAP   = 2    // px between cells
+const SCRUBBER_W = 20   // px — right rail width
+
+// ── Cell size helpers ─────────────────────────────────────────────────────────
+
+type CellSize = '1x1' | '2x2' | '2x3'
+const CELL_SPANS: Record<CellSize, { col: number; row: number }> = {
+  '1x1': { col: 1, row: 1 },
+  '2x2': { col: 2, row: 2 },
+  '2x3': { col: 2, row: 3 },
+}
+
+function getCellSize(id: string): CellSize {
+  let h = 0
+  for (let i = 0; i < id.length; i++) {
+    h = (Math.imul(31, h) + id.charCodeAt(i)) | 0
+  }
+  const n = Math.abs(h) % 10
+  if (n === 0) return '2x2'
+  if (n === 1) return '2x3'
+  return '1x1'
+}
+
+// ── Month grouping ────────────────────────────────────────────────────────────
+
+interface MonthGroup {
+  key: string
+  label: string
+  posts: CaruselPost[]
+}
+
+function groupByMonth(posts: CaruselPost[]): MonthGroup[] {
+  const map  = new Map<string, MonthGroup>()
+  const keys: string[] = []
+
+  for (const post of posts) {
+    const d   = new Date(post.photo_date ?? post.created_at)
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+    if (!map.has(key)) {
+      const label = d.toLocaleDateString('ro-RO', { month: 'long', year: 'numeric' })
+      map.set(key, { key, label, posts: [] })
+      keys.push(key)
+    }
+    map.get(key)!.posts.push(post)
+  }
+
+  return keys.map(k => map.get(k)!)
+}
+
+// ── Photo grid ────────────────────────────────────────────────────────────────
+
+function PhotoGrid({
+  posts,
+  top8Ids,
+  top8Ranks,
+  onImageClick,
+  cellSize,
+}: {
+  posts: CaruselPost[]
+  top8Ids: Set<string>
+  top8Ranks: Map<string, number>
+  onImageClick: (post: CaruselPost) => void
+  cellSize: number
+}) {
+  return (
+    <div
+      style={{
+        display: 'grid',
+        gridTemplateColumns: `repeat(${GRID_COLS}, 1fr)`,
+        gridAutoRows: cellSize > 0 ? `${cellSize}px` : 'auto',
+        gridAutoFlow: 'dense',
+        gap: CELL_GAP,
+      }}
+    >
+      {posts.map(post => {
+        const size  = getCellSize(post.id)
+        const spans = CELL_SPANS[size]
+        const rank  = top8Ids.has(post.id) ? top8Ranks.get(post.id) : undefined
+
+        return (
+          <button
+            key={post.id}
+            onClick={() => onImageClick(post)}
+            style={{
+              gridColumn: `span ${spans.col}`,
+              gridRow: `span ${spans.row}`,
+              padding: 0,
+              border: 'none',
+              background: 'var(--border)',
+              cursor: 'pointer',
+              position: 'relative',
+              overflow: 'hidden',
+              display: 'block',
+            }}
+          >
+            <img
+              src={post.image_url}
+              alt={post.caption || ''}
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                objectPosition: 'center',
+                display: 'block',
+              }}
+            />
+            {rank && (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 4,
+                  right: 4,
+                  background: 'rgba(20,18,16,0.65)',
+                  backdropFilter: 'blur(6px)',
+                  border: '1px solid rgba(245,208,106,0.4)',
+                  borderRadius: 3,
+                  padding: '1px 4px',
+                  fontFamily: "'Space Mono', monospace",
+                  fontSize: 7,
+                  fontWeight: 700,
+                  color: '#F5D06A',
+                  lineHeight: 1.4,
+                  pointerEvents: 'none',
+                }}
+              >
+                👑 #{rank}
+              </div>
+            )}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
+// ── Scrubber ──────────────────────────────────────────────────────────────────
+
+interface MonthMark {
+  key: string
+  label: string
+  fraction: number  // 0–1 within total scroll height
+}
+
+function Scrubber({
+  scrollRef,
+  marks,
+}: {
+  scrollRef: RefObject<HTMLDivElement>
+  marks: MonthMark[]
+}) {
+  const railRef = useRef<HTMLDivElement>(null)
+  const [progress, setProgress]   = useState(0)
+  const [isDragging, setIsDragging] = useState(false)
+  const [activeLabel, setActiveLabel] = useState(marks[0]?.label ?? '')
+
+  // Track scroll → update thumb + active label
+  useEffect(() => {
+    const el = scrollRef.current
+    if (!el) return
+
+    const update = () => {
+      const maxScroll = el.scrollHeight - el.clientHeight
+      const p = maxScroll > 0 ? el.scrollTop / maxScroll : 0
+      const clamped = Math.max(0, Math.min(1, p))
+      setProgress(clamped)
+
+      // Highest mark whose fraction ≤ current progress
+      let label = marks[0]?.label ?? ''
+      for (const m of marks) {
+        if (m.fraction <= clamped + 0.01) label = m.label
+      }
+      setActiveLabel(label)
+    }
+
+    update()
+    el.addEventListener('scroll', update, { passive: true })
+    return () => el.removeEventListener('scroll', update)
+  }, [scrollRef, marks])
+
+  const handlePointerDown = useCallback((e: React.PointerEvent) => {
+    e.preventDefault()
+    setIsDragging(true)
+
+    const rail    = railRef.current
+    const scrollEl = scrollRef.current
+    if (!rail || !scrollEl) return
+
+    const seek = (clientY: number) => {
+      const rect  = rail.getBoundingClientRect()
+      const ratio = Math.max(0, Math.min(1, (clientY - rect.top) / rect.height))
+      scrollEl.scrollTop = ratio * (scrollEl.scrollHeight - scrollEl.clientHeight)
+    }
+
+    seek(e.clientY)
+
+    const onMove = (ev: PointerEvent) => seek(ev.clientY)
+    const onUp   = () => {
+      setIsDragging(false)
+      window.removeEventListener('pointermove', onMove)
+      window.removeEventListener('pointerup', onUp)
+    }
+
+    window.addEventListener('pointermove', onMove)
+    window.addEventListener('pointerup', onUp)
+  }, [scrollRef])
+
+  // Position helpers — leave 8px margin top/bottom so thumb doesn't clip
+  const trackPct = `calc(8px + (100% - 16px) * ${progress})`
+
+  return (
+    <div
+      ref={railRef}
+      onPointerDown={handlePointerDown}
+      style={{
+        width: SCRUBBER_W,
+        flexShrink: 0,
+        position: 'relative',
+        cursor: isDragging ? 'grabbing' : 'grab',
+        userSelect: 'none',
+        touchAction: 'none',
+      }}
+    >
+      {/* Rail line */}
+      <div
+        style={{
+          position: 'absolute',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          top: 8,
+          bottom: 8,
+          width: 2,
+          borderRadius: 1,
+          background: 'var(--border)',
+          pointerEvents: 'none',
+        }}
+      />
+
+      {/* Month marker dots */}
+      {marks.map(mark => (
+        <div
+          key={mark.key}
+          style={{
+            position: 'absolute',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            top: `calc(8px + (100% - 16px) * ${mark.fraction})`,
+            width: 4,
+            height: 4,
+            borderRadius: '50%',
+            background: 'var(--ink3)',
+            pointerEvents: 'none',
+          }}
+        />
+      ))}
+
+      {/* Thumb */}
+      <div
+        style={{
+          position: 'absolute',
+          left: '50%',
+          top: trackPct,
+          transform: 'translateX(-50%) translateY(-50%)',
+          width: isDragging ? 12 : 10,
+          height: isDragging ? 12 : 10,
+          borderRadius: '50%',
+          background: 'var(--ink)',
+          border: '2px solid var(--white)',
+          boxShadow: '0 1px 4px rgba(0,0,0,0.25)',
+          transition: 'width 0.1s, height 0.1s',
+          pointerEvents: 'none',
+          zIndex: 2,
+        }}
+      />
+
+      {/* Month label bubble — visible while dragging */}
+      {isDragging && (
+        <div
+          style={{
+            position: 'absolute',
+            right: SCRUBBER_W + 4,
+            top: trackPct,
+            transform: 'translateY(-50%)',
+            background: 'var(--ink)',
+            color: 'var(--white)',
+            padding: '3px 7px',
+            borderRadius: 4,
+            fontFamily: "'Space Mono', monospace",
+            fontSize: 9,
+            fontWeight: 700,
+            whiteSpace: 'nowrap',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+            pointerEvents: 'none',
+            zIndex: 10,
+          }}
+        >
+          {activeLabel}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ── CronologieView ────────────────────────────────────────────────────────────
 
 interface CronologieViewProps {
   posts: CaruselPost[]
@@ -20,317 +321,59 @@ interface CronologieViewProps {
   onImageClick: (post: CaruselPost) => void
 }
 
-function formatPhotoDate(isoString: string): string {
-  return new Date(isoString).toLocaleDateString('ro-RO', {
-    day: 'numeric', month: 'short', year: 'numeric',
-  })
-}
-
-// ─── Timeline Rail ────────────────────────────────────────────────────────────
-
-interface TimelineRailProps {
-  posts: CaruselPost[]
-  activeId: string | null
-}
-
-function TimelineRail({ posts, activeId }: TimelineRailProps) {
-  const dotSpacing = CARD_COLLAPSED - CARD_OVERLAP  // 90px
-
-  // Collect first-post index per year for year labels
-  const yearFirstIndex = new Map<number, number>()
-  posts.forEach((p, i) => {
-    const y = new Date(p.photo_date ?? p.created_at).getFullYear()
-    if (!yearFirstIndex.has(y)) yearFirstIndex.set(y, i)
-  })
-
-  const totalHeight = posts.length > 0
-    ? CARD_COLLAPSED + (posts.length - 1) * dotSpacing + CARD_EXPANDED
-    : 0
-
-  return (
-    <div style={{ width: 32, flexShrink: 0, position: 'relative', height: totalHeight }}>
-      {/* Vertical gradient line */}
-      <div
-        style={{
-          position: 'absolute',
-          left: 14,
-          top: 0,
-          bottom: 0,
-          width: 1.5,
-          background: 'linear-gradient(to bottom, var(--border), transparent)',
-          pointerEvents: 'none',
-        }}
-      />
-
-      {posts.map((post, i) => {
-        const isActive = post.id === activeId
-        const y = new Date(post.photo_date ?? post.created_at).getFullYear()
-        const isYearFirst = yearFirstIndex.get(y) === i
-        const top = i * dotSpacing
-
-        return (
-          <div key={post.id} style={{ position: 'absolute', top, left: 0, width: 32 }}>
-            {/* Year label at first post of each year */}
-            {isYearFirst && (
-              <div
-                style={{
-                  position: 'absolute',
-                  left: 0,
-                  top: -14,
-                  width: 28,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <span
-                  style={{
-                    fontFamily: "'Space Mono', monospace",
-                    fontSize: 7,
-                    fontWeight: 700,
-                    color: 'var(--ink3)',
-                    writingMode: 'vertical-rl',
-                    transform: 'rotate(180deg)',
-                    letterSpacing: '0.08em',
-                  }}
-                >
-                  {y}
-                </span>
-              </div>
-            )}
-
-            {/* Dot */}
-            <motion.div
-              animate={{
-                scale: isActive ? 1.4 : 1,
-                background: isActive ? 'var(--ink)' : 'var(--white)',
-              }}
-              transition={{ type: 'spring', stiffness: 300, damping: 22 }}
-              style={{
-                position: 'absolute',
-                left: 10,
-                top: 4,
-                width: 9,
-                height: 9,
-                borderRadius: '50%',
-                border: '2px solid var(--border)',
-                transformOrigin: 'center',
-              }}
-            />
-          </div>
-        )
-      })}
-    </div>
-  )
-}
-
-// ─── Snap Card ────────────────────────────────────────────────────────────────
-
-interface SnapCardProps {
-  post: CaruselPost
-  index: number
-  isFirst: boolean
-  isActive: boolean
-  rank: number | undefined
-  userId: string | null
-  isAdmin: boolean
-  containerRef: RefObject<HTMLDivElement>
-  onBecomeActive: () => void
-  onLike: (id: string) => void
-  onDelete: (id: string) => void
-  onImageClick: (post: CaruselPost) => void
-}
-
-function SnapCard({
-  post,
-  index,
-  isFirst,
-  isActive,
-  rank,
-  userId,
-  isAdmin,
-  containerRef,
-  onBecomeActive,
-  onLike,
-  onDelete,
-  onImageClick,
-}: SnapCardProps) {
-  const wrapRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    const el = wrapRef.current
-    const root = containerRef.current
-    if (!el || !root) return
-
-    const observer = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) onBecomeActive() },
-      { root, threshold: 0.55 }
-    )
-    observer.observe(el)
-    return () => observer.disconnect()
-  }, [containerRef, onBecomeActive])
-
-  return (
-    <div
-      ref={wrapRef}
-      style={{
-        scrollSnapAlign: 'start',
-        marginTop: isFirst ? 0 : -CARD_OVERLAP,
-        position: 'relative',
-        zIndex: isActive ? 10 : index % 2 === 0 ? 2 : 1,
-      }}
-    >
-      <motion.div
-        animate={{ height: isActive ? CARD_EXPANDED : CARD_COLLAPSED }}
-        transition={{ type: 'spring', stiffness: 280, damping: 28 }}
-        style={{ overflow: 'hidden', borderRadius: 12, position: 'relative' }}
-      >
-        {/* Photo */}
-        <button
-          onClick={() => onImageClick(post)}
-          style={{ display: 'block', width: '100%', padding: 0, border: 'none', background: 'none', cursor: 'pointer' }}
-        >
-          <img
-            src={post.image_url}
-            alt={post.caption || ''}
-            style={{ width: '100%', height: CARD_EXPANDED, objectFit: 'cover', display: 'block' }}
-          />
-        </button>
-
-        {/* Date + location overlay */}
-        <motion.div
-          animate={{ opacity: isActive ? 1 : 0, y: isActive ? 0 : 8 }}
-          transition={{ duration: 0.22, delay: isActive ? 0.18 : 0 }}
-          style={{
-            position: 'absolute',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            background: 'linear-gradient(to top, rgba(0,0,0,0.65) 0%, transparent 100%)',
-            padding: '32px 12px 12px',
-            pointerEvents: 'none',
-          }}
-        >
-          <p style={{ color: 'white', fontFamily: "'Space Mono', monospace", fontSize: 11, fontWeight: 700 }}>
-            {formatPhotoDate(post.photo_date ?? post.created_at)}
-          </p>
-          {post.location_text && (
-            <p style={{ color: 'rgba(255,255,255,0.75)', fontFamily: "'Space Mono', monospace", fontSize: 10, marginTop: 2 }}>
-              📍 {post.location_text}
-            </p>
-          )}
-        </motion.div>
-
-        {/* Rank badge */}
-        {rank && (
-          <div
-            style={{
-              position: 'absolute',
-              top: 6,
-              right: 6,
-              background: 'rgba(20,18,16,0.65)',
-              backdropFilter: 'blur(6px)',
-              border: '1px solid rgba(245,208,106,0.4)',
-              borderRadius: 4,
-              padding: '2px 5px',
-              fontFamily: "'Space Mono', monospace",
-              fontSize: 7,
-              fontWeight: 700,
-              color: '#F5D06A',
-            }}
-          >
-            👑 #{rank}
-          </div>
-        )}
-      </motion.div>
-
-      {/* Action row */}
-      <motion.div
-        animate={{ opacity: isActive ? 1 : 0 }}
-        transition={{ duration: 0.15, delay: isActive ? 0.1 : 0 }}
-        style={{
-          paddingTop: 6,
-          paddingBottom: 4,
-          display: 'flex',
-          alignItems: 'center',
-          gap: 12,
-          paddingLeft: 4,
-          pointerEvents: isActive ? 'auto' : 'none',
-        }}
-      >
-        <button
-          onClick={() => onLike(post.id)}
-          style={{
-            display: 'flex', alignItems: 'center', gap: 3,
-            fontFamily: "'Space Mono', monospace", fontSize: 10,
-            color: post.liked ? '#E05252' : 'var(--ink3)',
-            background: 'none', border: 'none', padding: 0, cursor: 'pointer',
-          }}
-        >
-          <Heart size={11} fill={post.liked ? '#E05252' : 'none'} />
-          {post.likes}
-        </button>
-
-        <button
-          onClick={() => onImageClick(post)}
-          style={{
-            display: 'flex', alignItems: 'center', gap: 3,
-            fontFamily: "'Space Mono', monospace", fontSize: 10,
-            color: 'var(--ink3)',
-            background: 'none', border: 'none', padding: 0, cursor: 'pointer',
-          }}
-        >
-          <MessageCircle size={11} />
-          {post.comments.length}
-        </button>
-
-        {(post.user_id === userId || isAdmin) && (
-          <button
-            onClick={() => onDelete(post.id)}
-            style={{
-              display: 'flex', alignItems: 'center',
-              fontFamily: "'Space Mono', monospace", fontSize: 10,
-              color: 'var(--ink3)',
-              background: 'none', border: 'none', padding: 0, cursor: 'pointer',
-            }}
-          >
-            <Trash2 size={11} />
-          </button>
-        )}
-
-        <button
-          onClick={() =>
-            navigator.share?.({ title: post.caption || 'Amintire', url: `${window.location.origin}/carusel/${post.id}` }).catch(() => {})
-          }
-          style={{
-            display: 'flex', alignItems: 'center',
-            fontFamily: "'Space Mono', monospace", fontSize: 10,
-            color: 'var(--ink3)',
-            background: 'none', border: 'none', padding: 0, cursor: 'pointer',
-            marginLeft: 'auto',
-          }}
-        >
-          <Share2 size={11} />
-        </button>
-      </motion.div>
-    </div>
-  )
-}
-
-// ─── Main component ───────────────────────────────────────────────────────────
-
 export function CronologieView({
   posts,
-  userId,
-  isAdmin,
   top8Ids,
   top8Ranks,
-  onLike,
-  onDelete,
   onImageClick,
 }: CronologieViewProps) {
-  const [activeId, setActiveId] = useState<string | null>(posts[0]?.id ?? null)
-  const containerRef = useRef<HTMLDivElement>(null)
+  const scrollRef  = useRef<HTMLDivElement>(null)
+  const widthRef   = useRef<HTMLDivElement>(null)   // probe for grid width
+  const headerRefs = useRef<Map<string, HTMLDivElement>>(new Map())
+
+  const [cellSize, setCellSize] = useState(0)
+  const [marks, setMarks]       = useState<MonthMark[]>([])
+
+  const groups = useMemo(() => groupByMonth(posts), [posts])
+
+  // Measure available grid width → derive cell size
+  useEffect(() => {
+    const el = widthRef.current
+    if (!el) return
+    const ro = new ResizeObserver(entries => {
+      const w = entries[0].contentRect.width
+      setCellSize(Math.floor((w - CELL_GAP * (GRID_COLS - 1)) / GRID_COLS))
+    })
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
+
+  // After grid renders, compute month mark fractions from header offsets
+  useEffect(() => {
+    if (cellSize === 0) return
+    const scrollEl = scrollRef.current
+    if (!scrollEl) return
+
+    // Wait one frame for the grid to paint at the correct height
+    const id = requestAnimationFrame(() => {
+      const totalH = scrollEl.scrollHeight
+      if (totalH === 0) return
+
+      const newMarks: MonthMark[] = []
+      for (const group of groups) {
+        const headerEl = headerRefs.current.get(group.key)
+        if (!headerEl) continue
+        // offsetTop relative to scroll container content
+        const relTop = headerEl.getBoundingClientRect().top
+          - scrollEl.getBoundingClientRect().top
+          + scrollEl.scrollTop
+        newMarks.push({ key: group.key, label: group.label, fraction: relTop / totalH })
+      }
+      setMarks(newMarks)
+    })
+
+    return () => cancelAnimationFrame(id)
+  }, [groups, cellSize])
 
   if (posts.length === 0) {
     return (
@@ -343,41 +386,53 @@ export function CronologieView({
   }
 
   return (
-    <div style={{ display: 'flex', height: 'calc(100svh - 224px)', overflow: 'hidden', paddingLeft: 16, paddingRight: 16 }}>
-      {/* Left timeline rail */}
-      <TimelineRail posts={posts} activeId={activeId} />
+    <div style={{ display: 'flex', height: 'calc(100svh - 224px)', overflow: 'hidden' }}>
 
-      {/* Snap-scroll card stack */}
+      {/* ── Left: scrollable grid ── */}
       <div
-        ref={containerRef}
-        style={{
-          flex: 1,
-          overflowY: 'scroll',
-          scrollSnapType: 'y mandatory',
-          WebkitOverflowScrolling: 'touch',
-          paddingBottom: CARD_EXPANDED,
-          paddingLeft: 8,
-        }}
+        ref={scrollRef}
+        style={{ flex: 1, overflowY: 'scroll', minWidth: 0 }}
         className="scrollbar-hide"
       >
-        {posts.map((post, i) => (
-          <SnapCard
-            key={post.id}
-            post={post}
-            index={i}
-            isFirst={i === 0}
-            isActive={activeId === post.id}
-            rank={top8Ids.has(post.id) ? top8Ranks.get(post.id) : undefined}
-            userId={userId}
-            isAdmin={isAdmin}
-            containerRef={containerRef as RefObject<HTMLDivElement>}
-            onBecomeActive={() => setActiveId(post.id)}
-            onLike={onLike}
-            onDelete={onDelete}
-            onImageClick={onImageClick}
-          />
+        {/* Width probe — sits at the top, invisible, gives us the content width */}
+        <div ref={widthRef} style={{ width: '100%', height: 0, pointerEvents: 'none' }} />
+
+        {groups.map(group => (
+          <div key={group.key}>
+            {/* Sticky month header */}
+            <div
+              ref={el => { if (el) headerRefs.current.set(group.key, el) }}
+              style={{
+                position: 'sticky',
+                top: 0,
+                zIndex: 5,
+                background: 'var(--cream2)',
+                padding: '5px 6px 3px',
+                fontFamily: "'Space Mono', monospace",
+                fontSize: 9,
+                fontWeight: 700,
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
+                color: 'var(--ink3)',
+              }}
+            >
+              {group.label}
+            </div>
+
+            {/* Photo grid for this month */}
+            <PhotoGrid
+              posts={group.posts}
+              top8Ids={top8Ids}
+              top8Ranks={top8Ranks}
+              onImageClick={onImageClick}
+              cellSize={cellSize}
+            />
+          </div>
         ))}
       </div>
+
+      {/* ── Right: scrubber ── */}
+      <Scrubber scrollRef={scrollRef as RefObject<HTMLDivElement>} marks={marks} />
     </div>
   )
 }
