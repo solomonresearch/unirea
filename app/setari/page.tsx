@@ -28,6 +28,7 @@ import {
   Gift,
 } from 'lucide-react'
 import { SchoolGate } from '@/components/SchoolGate'
+import { ConfirmDialog } from '@/components/ConfirmDialog'
 
 interface Profile {
   id: string
@@ -56,6 +57,7 @@ export default function SetariPage() {
   const { skin, setSkin } = useSkin()
   const [loading, setLoading] = useState(true)
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const [confirmDeleteBots, setConfirmDeleteBots] = useState(false)
   const [pendingSkin, setPendingSkin] = useState<SkinId | null>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
 
@@ -274,6 +276,14 @@ export default function SetariPage() {
   return (
     <SchoolGate>
     <>
+      <ConfirmDialog
+        open={confirmDeleteBots}
+        onOpenChange={setConfirmDeleteBots}
+        title="Ștergi toți boții?"
+        description="Se vor șterge toate profilurile bot și toate datele asociate. Acțiunea este permanentă."
+        confirmLabel="Șterge tot"
+        onConfirm={handleDeleteMock}
+      />
       <main className="min-h-screen pb-24" style={{ background: 'var(--cream2)' }}>
         {/* Profile Cover */}
         <div
@@ -869,7 +879,7 @@ export default function SetariPage() {
                     ))}
                     <button
                       type="button"
-                      onClick={handleDeleteMock}
+                      onClick={() => setConfirmDeleteBots(true)}
                       disabled={!!mockLoading}
                       className="flex items-center justify-center gap-1.5 rounded-sm px-3 py-2 text-xs font-medium disabled:opacity-50 col-span-2 transition-opacity"
                       style={{ background: '#FEF2F2', border: '1.5px solid #FECACA', color: 'var(--rose)' }}
