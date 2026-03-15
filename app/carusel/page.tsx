@@ -331,7 +331,10 @@ export default function CaruselPage() {
           </div>
         </header>
 
-        {/* Film strip — full bleed */}
+        {/* Constrained content column */}
+        <div className="max-w-sm mx-auto w-full">
+
+        {/* Film strip */}
         <FilmStrip top8={top8} totalCount={posts.length} />
 
         {/* View toggle bar */}
@@ -341,8 +344,6 @@ export default function CaruselPage() {
             alignItems: 'center',
             justifyContent: 'space-between',
             padding: '10px 16px 6px',
-            maxWidth: '384px',
-            margin: '0 auto',
           }}
         >
           <span
@@ -442,6 +443,8 @@ export default function CaruselPage() {
             )}
           </motion.div>
         </AnimatePresence>
+
+        </div>{/* end max-w-sm */}
 
         {/* Upload modal */}
         {showUpload && (
