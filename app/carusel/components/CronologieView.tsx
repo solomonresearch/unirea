@@ -386,7 +386,7 @@ export function CronologieView({
   }
 
   return (
-    <div style={{ display: 'flex', height: 'calc(100svh - 224px)', overflow: 'hidden' }}>
+    <div style={{ display: 'flex', height: 'calc(100svh - 224px - 68px)', overflow: 'hidden' }}>
 
       {/* ── Left: scrollable grid ── */}
       <div
