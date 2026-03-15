@@ -391,7 +391,7 @@ export function CronologieView({
       {/* ── Left: scrollable grid ── */}
       <div
         ref={scrollRef}
-        style={{ flex: 1, overflowY: 'scroll', minWidth: 0 }}
+        style={{ flex: 1, overflowY: 'scroll', minWidth: 0, paddingBottom: 80 }}
         className="scrollbar-hide"
       >
         {/* Width probe — sits at the top, invisible, gives us the content width */}
