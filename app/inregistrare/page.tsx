@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { getSupabase } from '@/lib/supabase'
 import { SearchSelect } from '@/components/SearchSelect'
-import { User, Mail, Phone, GraduationCap, Calendar, AtSign, Loader2, ArrowLeft, Lock, MapPin, Building } from 'lucide-react'
+import { User, Mail, Phone, GraduationCap, Calendar, AtSign, Loader2, ArrowLeft, Lock, MapPin, Building, X } from 'lucide-react'
 
 export default function SignupPage() {
   return (
@@ -41,6 +41,13 @@ function SignupPageInner() {
   const [localitati, setLocalitati] = useState<string[]>([])
   const [scoli, setScoli] = useState<string[]>([])
   const [loadingScoli, setLoadingScoli] = useState(false)
+  const [reqModalOpen, setReqModalOpen] = useState(false)
+  const [reqSchool, setReqSchool] = useState('')
+  const [reqEmail, setReqEmail] = useState('')
+  const [reqMessage, setReqMessage] = useState('')
+  const [reqLoading, setReqLoading] = useState(false)
+  const [reqSuccess, setReqSuccess] = useState(false)
+  const [reqError, setReqError] = useState('')
 
   useEffect(() => {
     async function check() {
@@ -119,6 +126,23 @@ function SignupPageInner() {
     })
   }
 
+  async function handleSchoolRequest(e: React.FormEvent) {
+    e.preventDefault()
+    setReqLoading(true)
+    setReqError('')
+    const res = await fetch('/api/school-request', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ school_name: reqSchool, email: reqEmail, message: reqMessage || undefined }),
+    })
+    if (res.ok) {
+      setReqSuccess(true)
+    } else {
+      setReqError('A apărut o eroare. Încearcă din nou.')
+    }
+    setReqLoading(false)
+  }
+
   async function handleGoogleSignup() {
     const supabase = getSupabase()
     const callbackUrl = refUsername
@@ -194,6 +218,7 @@ function SignupPageInner() {
   const iconClass = "absolute left-3 top-[13px] pointer-events-none"
 
   return (
+    <>
     <main
       className="flex min-h-screen flex-col px-7 pt-14 pb-10"
       style={{ background: 'var(--cream)' }}
@@ -321,6 +346,20 @@ function SignupPageInner() {
             bold
           />
 
+          {form.localitate && scoli.length === 0 && !loadingScoli && (
+            <p className="text-xxs" style={{ color: 'var(--ink3)' }}>
+              Nu găsești liceul?{' '}
+              <button
+                type="button"
+                onClick={() => { setReqSchool(''); setReqEmail(''); setReqMessage(''); setReqSuccess(false); setReqError(''); setReqModalOpen(true) }}
+                className="underline font-semibold"
+                style={{ color: 'var(--amber-dark)' }}
+              >
+                Solicită adăugarea
+              </button>
+            </p>
+          )}
+
           <div className="grid grid-cols-2 gap-2.5">
             <div className="relative">
               <Calendar size={15} className={iconClass} style={{ color: 'var(--ink3)' }} />
@@ -388,5 +427,85 @@ function SignupPageInner() {
         </p>
       </div>
     </main>
+
+    {reqModalOpen && (
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center px-5"
+        style={{ background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(4px)' }}
+        onClick={e => { if (e.target === e.currentTarget) setReqModalOpen(false) }}
+      >
+        <div
+          className="w-full max-w-sm rounded-xl p-5 space-y-4"
+          style={{ background: 'var(--white)', boxShadow: '0 16px 48px rgba(0,0,0,0.22)' }}
+        >
+          <div className="flex items-center justify-between">
+            <h2 className="font-display text-base" style={{ color: 'var(--ink)' }}>Solicită adăugarea școlii</h2>
+            <button
+              type="button"
+              onClick={() => setReqModalOpen(false)}
+              className="w-8 h-8 flex items-center justify-center rounded-sm"
+              style={{ background: 'var(--cream2)', color: 'var(--ink2)' }}
+            >
+              <X size={15} />
+            </button>
+          </div>
+
+          {reqSuccess ? (
+            <div className="py-4 text-center space-y-2">
+              <p className="text-sm font-semibold" style={{ color: 'var(--ink)' }}>Cerere trimisă!</p>
+              <p className="text-xs" style={{ color: 'var(--ink3)' }}>Un administrator va analiza solicitarea ta în curând.</p>
+              <button
+                type="button"
+                onClick={() => setReqModalOpen(false)}
+                className="mt-2 px-4 py-2 rounded-md text-xs font-semibold"
+                style={{ background: 'var(--ink)', color: 'var(--white)' }}
+              >
+                Închide
+              </button>
+            </div>
+          ) : (
+            <form onSubmit={handleSchoolRequest} className="space-y-3">
+              <input
+                type="text"
+                required
+                value={reqSchool}
+                onChange={e => setReqSchool(e.target.value)}
+                placeholder="Numele școlii"
+                className="w-full px-3 py-2.5 text-sm rounded-md outline-none"
+                style={{ background: 'var(--cream2)', border: '1.5px solid var(--border)', color: 'var(--ink)', fontFamily: 'inherit' }}
+              />
+              <input
+                type="email"
+                required
+                value={reqEmail}
+                onChange={e => setReqEmail(e.target.value)}
+                placeholder="Email-ul tău"
+                className="w-full px-3 py-2.5 text-sm rounded-md outline-none"
+                style={{ background: 'var(--cream2)', border: '1.5px solid var(--border)', color: 'var(--ink)', fontFamily: 'inherit' }}
+              />
+              <textarea
+                value={reqMessage}
+                onChange={e => setReqMessage(e.target.value)}
+                placeholder="Mesaj opțional..."
+                rows={3}
+                className="w-full px-3 py-2.5 text-sm rounded-md outline-none resize-none"
+                style={{ background: 'var(--cream2)', border: '1.5px solid var(--border)', color: 'var(--ink)', fontFamily: 'inherit' }}
+              />
+              {reqError && <p className="text-xs" style={{ color: 'var(--rose)' }}>{reqError}</p>}
+              <button
+                type="submit"
+                disabled={reqLoading}
+                className="flex items-center justify-center gap-2 w-full py-2.5 rounded-md text-sm font-bold text-white disabled:opacity-50"
+                style={{ background: 'var(--ink)', fontFamily: 'inherit' }}
+              >
+                {reqLoading && <Loader2 size={15} className="animate-spin" />}
+                {reqLoading ? 'Se trimite...' : 'Trimite cererea'}
+              </button>
+            </form>
+          )}
+        </div>
+      </div>
+    )}
+    </>
   )
 }
