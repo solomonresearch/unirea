@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { createServerSupabaseClient, createServiceRoleClient } from '@/lib/supabase-server'
 
 async function requireAdmin() {
   const supabase = createServerSupabaseClient()
@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
 
   const { judet, localitate } = await req.json().catch(() => ({}))
 
-  const supabase = createServerSupabaseClient()
+  const supabase = createServiceRoleClient()
   let query = supabase.from('schools').update({ enabled: true }).eq('enabled', false)
 
   if (judet) query = query.eq('judet_pj', judet)

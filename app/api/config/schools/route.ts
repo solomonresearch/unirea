@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { createServerSupabaseClient, createServiceRoleClient } from '@/lib/supabase-server'
 
 async function requireAdmin() {
   const supabase = createServerSupabaseClient()
@@ -94,7 +94,7 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: 'id and enabled required' }, { status: 400 })
   }
 
-  const supabase = createServerSupabaseClient()
+  const supabase = createServiceRoleClient()
   const { error } = await supabase
     .from('schools')
     .update({ enabled })
