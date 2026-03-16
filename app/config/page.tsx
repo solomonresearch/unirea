@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { getSupabase } from '@/lib/supabase'
-import { Shield, Search, Loader2, Check, Users, ChevronDown, ChevronUp, ArrowLeft, Inbox } from 'lucide-react'
+import { Shield, Search, Loader2, Check, X, Users, ChevronDown, ChevronUp, ArrowLeft, Inbox } from 'lucide-react'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
 
 interface School {
@@ -36,6 +36,8 @@ export default function ConfigPage() {
   const [toggling, setToggling] = useState<number | null>(null)
   const [confirmEnableAll, setConfirmEnableAll] = useState(false)
   const [enablingAll, setEnablingAll] = useState(false)
+  const [confirmDisableAll, setConfirmDisableAll] = useState(false)
+  const [disablingAll, setDisablingAll] = useState(false)
   const [collapsed, setCollapsed] = useState(false)
 
   // Admin check
@@ -137,6 +139,14 @@ export default function ConfigPage() {
     setConfirmEnableAll(false)
   }
 
+  async function handleDisableAll() {
+    setDisablingAll(true)
+    const res = await fetch('/api/config/schools/disable-all', { method: 'POST' })
+    if (res.ok) await fetchSchools()
+    setDisablingAll(false)
+    setConfirmDisableAll(false)
+  }
+
   if (checking) {
     return (
       <div className="flex min-h-screen items-center justify-center" style={{ background: 'var(--cream)' }}>
@@ -201,6 +211,16 @@ export default function ConfigPage() {
               </span>
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">
+              <button
+                type="button"
+                onClick={() => setConfirmDisableAll(true)}
+                disabled={disablingAll || enabledCount === 0}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold disabled:opacity-40 transition-opacity hover:opacity-80"
+                style={{ background: 'var(--cream2)', border: '1px solid var(--border)', color: 'var(--ink2)' }}
+              >
+                {disablingAll ? <Loader2 size={13} className="animate-spin" /> : <X size={13} />}
+                Dezactivează toate
+              </button>
               <button
                 type="button"
                 onClick={() => setConfirmEnableAll(true)}
@@ -370,6 +390,15 @@ export default function ConfigPage() {
         description={`Vei activa toate cele ${disabledCount} școli inactive. Utilizatorii lor vor putea accesa platforma imediat.`}
         confirmLabel="Activează toate"
         onConfirm={handleEnableAll}
+      />
+
+      <ConfirmDialog
+        open={confirmDisableAll}
+        onOpenChange={setConfirmDisableAll}
+        title="Dezactivează toate școlile"
+        description={`Vei dezactiva toate cele ${enabledCount} școli active. Utilizatorii lor nu vor mai putea accesa platforma.`}
+        confirmLabel="Dezactivează toate"
+        onConfirm={handleDisableAll}
       />
     </main>
   )
