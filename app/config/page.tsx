@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { getSupabase } from '@/lib/supabase'
 import { Shield, Search, Loader2, Check, Users } from 'lucide-react'
@@ -50,25 +50,24 @@ export default function ConfigPage() {
     checkAdmin()
   }, [router])
 
-  const fetchSchools = useCallback(async () => {
+  async function fetchSchools(s = search, f = filter) {
     setLoading(true)
     const params = new URLSearchParams()
-    if (search) params.set('search', search)
-    if (filter !== 'all') params.set('filter', filter)
+    if (s) params.set('search', s)
+    if (f !== 'all') params.set('filter', f)
 
-    const res = await fetch(`/api/config/schools?${params}`)
+    const res = await fetch(`/api/config/schools?${params}`, { cache: 'no-store' })
     if (res.ok) {
       const data = await res.json()
       setSchools(data)
     }
     setLoading(false)
-  }, [search, filter])
+  }
 
   useEffect(() => {
-    if (!checking) {
-      fetchSchools()
-    }
-  }, [checking, fetchSchools])
+    if (!checking) fetchSchools()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [checking, search, filter])
 
   async function handleToggle(school: School) {
     setToggling(school.id)
