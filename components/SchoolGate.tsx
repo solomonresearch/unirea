@@ -3,16 +3,23 @@
 import { useState, useEffect, type ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
 import { getSupabase } from '@/lib/supabase'
-import { LogOut, Loader2, Lock } from 'lucide-react'
+import { LogOut, Loader2, Lock, Users } from 'lucide-react'
 
 interface SchoolGateProps {
   children: ReactNode
+}
+
+interface SchoolStats {
+  waitingCount: number
+  threshold: number
+  remaining: number
 }
 
 export function SchoolGate({ children }: SchoolGateProps) {
   const router = useRouter()
   const [status, setStatus] = useState<'loading' | 'active' | 'inactive'>('loading')
   const [highschool, setHighschool] = useState('')
+  const [stats, setStats] = useState<SchoolStats | null>(null)
 
   useEffect(() => {
     async function check() {
@@ -36,7 +43,17 @@ export function SchoolGate({ children }: SchoolGateProps) {
         .eq('denumire_lunga_unitate', profile.highschool)
         .single()
 
-      setStatus(school?.enabled === true ? 'active' : 'inactive')
+      if (school?.enabled === true) {
+        setStatus('active')
+      } else {
+        setStatus('inactive')
+        // Fetch stats for the waiting screen
+        const res = await fetch(`/api/school-status?highschool=${encodeURIComponent(profile.highschool)}`)
+        if (res.ok) {
+          const data = await res.json()
+          setStats({ waitingCount: data.waitingCount, threshold: data.threshold, remaining: data.remaining })
+        }
+      }
     }
     check()
   }, [router])
@@ -69,15 +86,38 @@ export function SchoolGate({ children }: SchoolGateProps) {
             className="font-display text-2xl"
             style={{ color: 'var(--ink)' }}
           >
-            Școala ta nu este activă
+            Liceul tău nu e activ încă
           </h1>
-          <p className="text-sm" style={{ color: 'var(--ink2)' }}>
+          <p className="text-sm font-medium" style={{ color: 'var(--ink2)' }}>
             {highschool}
           </p>
-          <p className="text-xs" style={{ color: 'var(--ink3)' }}>
-            Un administrator trebuie să activeze școala ta pentru a accesa platforma.
-          </p>
         </div>
+
+        {stats ? (
+          <div
+            className="rounded-xl px-5 py-4 space-y-1 text-left"
+            style={{ background: 'var(--cream2)', border: '1px solid var(--border)' }}
+          >
+            <div className="flex items-center gap-2 mb-2">
+              <Users size={14} style={{ color: 'var(--amber-dark)' }} />
+              <span className="text-xs font-semibold" style={{ color: 'var(--ink2)' }}>Sala de așteptare</span>
+            </div>
+            <p className="text-sm" style={{ color: 'var(--ink)' }}>
+              În momentul de față sunt{' '}
+              <strong>{stats.waitingCount}</strong> colegi care așteaptă,
+              iar în total sunt <strong>{stats.threshold}</strong> necesari.
+            </p>
+            <p className="text-sm" style={{ color: 'var(--ink)' }}>
+              Așadar, încă{' '}
+              <strong style={{ color: 'var(--amber-dark)' }}>{stats.remaining}</strong>
+              {' '}— și aplicația devine activă și pentru liceul tău!
+            </p>
+          </div>
+        ) : (
+          <p className="text-xs" style={{ color: 'var(--ink3)' }}>
+            Se încarcă statisticile...
+          </p>
+        )}
 
         <button
           type="button"

@@ -167,6 +167,13 @@ function CompletareProfilInner() {
       const { error: profileError } = await supabase.from('profiles').insert(profileData)
       if (profileError) throw profileError
 
+      // Increment school request_count (fire-and-forget)
+      fetch('/api/signup/school-check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ highschool: form.highschool }),
+      })
+
       // Record referral edge + increment referrer's invite_count
       if (referrerId && userId) {
         await supabase.from('referrals').insert({
