@@ -26,11 +26,11 @@ export async function GET(req: NextRequest) {
   const filter = searchParams.get('filter') || 'all'
   const judet = searchParams.get('judet') || ''
   const localitate = searchParams.get('localitate') || ''
+  const sort = searchParams.get('sort') || 'name'
 
   let query = supabase
     .from('schools')
-    .select('id, denumire_lunga_unitate, localitate_unitate, judet_pj, enabled')
-    .order('denumire_lunga_unitate')
+    .select('id, denumire_lunga_unitate, localitate_unitate, judet_pj, enabled, request_count')
 
   if (search) {
     query = query.or(
@@ -46,6 +46,12 @@ export async function GET(req: NextRequest) {
 
   if (judet) query = query.eq('judet_pj', judet)
   if (localitate) query = query.eq('localitate_unitate', localitate)
+
+  if (sort === 'requests') {
+    query = query.order('request_count', { ascending: false }).order('denumire_lunga_unitate')
+  } else {
+    query = query.order('denumire_lunga_unitate')
+  }
 
   const { data: schools, error } = await query
 

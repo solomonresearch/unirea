@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { getSupabase } from '@/lib/supabase'
-import { Shield, Search, Loader2, Check, Users, ChevronDown, ChevronUp, ArrowLeft } from 'lucide-react'
+import { Shield, Search, Loader2, Check, Users, ChevronDown, ChevronUp, ArrowLeft, Inbox } from 'lucide-react'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
 
 interface School {
@@ -13,9 +13,11 @@ interface School {
   judet_pj: string
   enabled: boolean
   member_count: number
+  request_count: number
 }
 
 type StatusFilter = 'all' | 'enabled' | 'disabled'
+type SortOrder = 'name' | 'requests'
 
 const COLLAPSED_KEY = 'config-schools-collapsed'
 
@@ -30,6 +32,7 @@ export default function ConfigPage() {
   const [localitate, setLocalitate] = useState('')
   const [judete, setJudete] = useState<string[]>([])
   const [localitati, setLocalitati] = useState<string[]>([])
+  const [sortOrder, setSortOrder] = useState<SortOrder>('name')
   const [toggling, setToggling] = useState<number | null>(null)
   const [confirmEnableAll, setConfirmEnableAll] = useState(false)
   const [enablingAll, setEnablingAll] = useState(false)
@@ -84,11 +87,11 @@ export default function ConfigPage() {
     loadLocalitati()
   }, [judet])
 
-  // Fetch schools whenever any filter changes
+  // Fetch schools whenever any filter/sort changes
   useEffect(() => {
     if (!checking) fetchSchools()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [checking, search, statusFilter, judet, localitate])
+  }, [checking, search, statusFilter, judet, localitate, sortOrder])
 
   async function fetchSchools() {
     setLoading(true)
@@ -97,6 +100,7 @@ export default function ConfigPage() {
     if (statusFilter !== 'all') params.set('filter', statusFilter)
     if (judet) params.set('judet', judet)
     if (localitate) params.set('localitate', localitate)
+    if (sortOrder === 'requests') params.set('sort', 'requests')
 
     const res = await fetch(`/api/config/schools?${params}`, { cache: 'no-store' })
     if (res.ok) setSchools(await res.json())
@@ -236,8 +240,8 @@ export default function ConfigPage() {
                   />
                 </div>
 
-                {/* Row 2: judet + localitate + status */}
-                <div className="grid grid-cols-3 gap-2">
+                {/* Row 2: judet + localitate + status + sort */}
+                <div className="grid grid-cols-2 gap-2">
                   <select
                     value={judet}
                     onChange={e => setJudet(e.target.value)}
@@ -268,6 +272,16 @@ export default function ConfigPage() {
                     <option value="all">Toate statusurile</option>
                     <option value="enabled">Active</option>
                     <option value="disabled">Inactive</option>
+                  </select>
+
+                  <select
+                    value={sortOrder}
+                    onChange={e => setSortOrder(e.target.value as SortOrder)}
+                    className="w-full px-2 py-2 text-sm rounded-md outline-none appearance-none"
+                    style={selectStyle}
+                  >
+                    <option value="name">Sortare: Nume A→Z</option>
+                    <option value="requests">Sortare: Cereri ↓</option>
                   </select>
                 </div>
               </div>
@@ -313,6 +327,18 @@ export default function ConfigPage() {
                           {school.localitate_unitate}, {school.judet_pj}
                         </p>
                       </div>
+
+                      {school.request_count > 0 && (
+                        <div
+                          className="flex items-center gap-1 px-2 py-0.5 rounded-full flex-shrink-0"
+                          style={{ background: 'rgba(239,107,74,0.08)', border: '1px solid rgba(239,107,74,0.25)' }}
+                        >
+                          <Inbox size={11} style={{ color: '#ef6b4a' }} />
+                          <span className="text-xs font-semibold" style={{ color: '#ef6b4a' }}>
+                            {school.request_count}
+                          </span>
+                        </div>
+                      )}
 
                       {school.member_count > 0 && (
                         <div
