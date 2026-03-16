@@ -58,7 +58,7 @@ export async function GET(req: NextRequest) {
     query = query.order('denumire_lunga_unitate')
   }
 
-  const { data: schools, error } = await query
+  const { data: schools, error } = await query.limit(5000)
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
