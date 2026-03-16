@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 
 async function requireAdmin() {
@@ -16,18 +16,21 @@ async function requireAdmin() {
   return user
 }
 
-export async function POST() {
+export async function POST(req: NextRequest) {
   const admin = await requireAdmin()
   if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
+  const { judet, localitate } = await req.json().catch(() => ({}))
+
   const supabase = createServerSupabaseClient()
-  const { data, error } = await supabase
-    .from('schools')
-    .update({ enabled: true })
-    .eq('enabled', false)
-    .select('id')
+  let query = supabase.from('schools').update({ enabled: true }).eq('enabled', false)
+
+  if (judet) query = query.eq('judet_pj', judet)
+  if (localitate) query = query.eq('localitate_unitate', localitate)
+
+  const { error } = await query
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-  return NextResponse.json({ updated: data?.length ?? 0 })
+  return NextResponse.json({ ok: true })
 }

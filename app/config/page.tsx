@@ -133,7 +133,11 @@ export default function ConfigPage() {
 
   async function handleEnableAll() {
     setEnablingAll(true)
-    const res = await fetch('/api/config/schools/enable-all', { method: 'POST' })
+    const res = await fetch('/api/config/schools/enable-all', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ judet: judet || undefined, localitate: localitate || undefined }),
+    })
     if (res.ok) await fetchSchools()
     setEnablingAll(false)
     setConfirmEnableAll(false)
@@ -141,7 +145,11 @@ export default function ConfigPage() {
 
   async function handleDisableAll() {
     setDisablingAll(true)
-    const res = await fetch('/api/config/schools/disable-all', { method: 'POST' })
+    const res = await fetch('/api/config/schools/disable-all', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ judet: judet || undefined, localitate: localitate || undefined }),
+    })
     if (res.ok) await fetchSchools()
     setDisablingAll(false)
     setConfirmDisableAll(false)
@@ -387,7 +395,7 @@ export default function ConfigPage() {
         open={confirmEnableAll}
         onOpenChange={setConfirmEnableAll}
         title="Activează toate școlile"
-        description={`Vei activa toate cele ${disabledCount} școli inactive. Utilizatorii lor vor putea accesa platforma imediat.`}
+        description={`Vei activa toate cele ${disabledCount} școli inactive${judet ? ` din ${localitate || judet}` : ''}. Utilizatorii lor vor putea accesa platforma imediat.`}
         confirmLabel="Activează toate"
         onConfirm={handleEnableAll}
       />
@@ -396,7 +404,7 @@ export default function ConfigPage() {
         open={confirmDisableAll}
         onOpenChange={setConfirmDisableAll}
         title="Dezactivează toate școlile"
-        description={`Vei dezactiva toate cele ${enabledCount} școli active. Utilizatorii lor nu vor mai putea accesa platforma.`}
+        description={`Vei dezactiva toate cele ${enabledCount} școli active${judet ? ` din ${localitate || judet}` : ''}. Utilizatorii lor nu vor mai putea accesa platforma.`}
         confirmLabel="Dezactivează toate"
         onConfirm={handleDisableAll}
       />
