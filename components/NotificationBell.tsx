@@ -118,18 +118,18 @@ export function NotificationBell() {
         filter: `user_id=eq.${userId}`,
       }, async (payload) => {
         const newNotif = payload.new as any
-        // Fetch actor profile
-        const { data: actor } = await supabase
-          .from('profiles')
-          .select('id, name, username, avatar_url')
-          .eq('id', newNotif.actor_id)
-          .single()
-
-        if (actor) {
-          const full: Notification = { ...newNotif, actor }
-          setNotifications(prev => [full, ...prev])
-          setUnreadCount(prev => prev + 1)
+        let actor: Actor | null = null
+        if (newNotif.actor_id) {
+          const { data } = await supabase
+            .from('profiles')
+            .select('id, name, username, avatar_url')
+            .eq('id', newNotif.actor_id)
+            .single()
+          actor = data
         }
+        const full: Notification = { ...newNotif, actor }
+        setNotifications(prev => [full, ...prev])
+        setUnreadCount(prev => prev + 1)
       })
       .subscribe()
 

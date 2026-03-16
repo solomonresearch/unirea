@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { getSupabase } from '@/lib/supabase'
-import { Shield, Search, Loader2, Check, Users, ChevronDown, ChevronUp } from 'lucide-react'
+import { Shield, Search, Loader2, Check, Users, ChevronDown, ChevronUp, ArrowLeft } from 'lucide-react'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
 
 interface School {
@@ -157,6 +157,14 @@ export default function ConfigPage() {
 
         {/* Page header */}
         <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => router.back()}
+            className="flex items-center justify-center w-9 h-9 rounded-lg flex-shrink-0 transition-opacity hover:opacity-70"
+            style={{ background: 'var(--white)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-s)', color: 'var(--ink2)' }}
+          >
+            <ArrowLeft size={16} />
+          </button>
           <div
             className="flex items-center justify-center w-10 h-10 rounded-xl flex-shrink-0"
             style={{ background: 'var(--amber-soft)', border: '1px solid var(--amber)' }}

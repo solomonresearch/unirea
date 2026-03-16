@@ -101,7 +101,7 @@ export default function Home() {
         <button
           type="button"
           onClick={openModal}
-          className="hero-fade-up text-xs mb-2"
+          className="hero-fade-up text-xs mb-6"
           style={{ color: 'var(--ink3)', animationDelay: '0.7s', background: 'none', border: 'none', cursor: 'pointer' }}
         >
           Nu găsești școala ta?{' '}
