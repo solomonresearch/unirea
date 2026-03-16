@@ -58,6 +58,7 @@ export default function MesajePage() {
   const [searchingMembers, setSearchingMembers] = useState(false)
   const [creatingGroup, setCreatingGroup] = useState(false)
   const [archivingId, setArchivingId] = useState<string | null>(null)
+  const [hoveredId, setHoveredId] = useState<string | null>(null)
   const [showArchived, setShowArchived] = useState(false)
   const [archivedConversations, setArchivedConversations] = useState<Conversation[]>([])
   const [loadingArchived, setLoadingArchived] = useState(false)
@@ -813,8 +814,12 @@ export default function MesajePage() {
               const preview = getLastMessagePreview(convo)
 
               return (
-                <SwipeableRow
+                <div
                   key={convo.id}
+                  onMouseEnter={() => setHoveredId(convo.id)}
+                  onMouseLeave={() => setHoveredId(null)}
+                >
+                <SwipeableRow
                   onArchive={() => handleArchiveConversation(convo.id)}
                   archiving={archivingId === convo.id}
                 >
@@ -895,8 +900,37 @@ export default function MesajePage() {
                         )}
                       </div>
                     </div>
+                    {/* Hover archive button — desktop only */}
+                    <button
+                      type="button"
+                      onClick={e => { e.stopPropagation(); handleArchiveConversation(convo.id) }}
+                      disabled={archivingId === convo.id}
+                      style={{
+                        flexShrink: 0,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        padding: '6px 10px',
+                        borderRadius: '9px',
+                        border: '1px solid var(--border)',
+                        background: 'var(--cream2)',
+                        color: 'var(--ink3)',
+                        cursor: 'pointer',
+                        fontSize: '11px',
+                        opacity: hoveredId === convo.id ? 1 : 0,
+                        pointerEvents: hoveredId === convo.id ? 'auto' : 'none',
+                        transition: 'opacity 0.15s',
+                      }}
+                    >
+                      {archivingId === convo.id ? (
+                        <Loader2 size={13} className="animate-spin" />
+                      ) : (
+                        <Archive size={13} />
+                      )}
+                    </button>
                   </div>
                 </SwipeableRow>
+                </div>
               )
             })}
           </div>
