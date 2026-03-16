@@ -42,9 +42,7 @@ function CompletareProfilInner() {
   const [judete, setJudete] = useState<string[]>([])
   const [localitati, setLocalitati] = useState<string[]>([])
   const [scoli, setScoli] = useState<string[]>([])
-  const [scoliTopMap, setScoliTopMap] = useState<Record<string, boolean>>({})
   const [loadingScoli, setLoadingScoli] = useState(false)
-  const isTopSchool = form.highschool ? (scoliTopMap[form.highschool] ?? true) : true
 
   useEffect(() => {
     async function check() {
@@ -108,15 +106,12 @@ function CompletareProfilInner() {
   }, [form.judet])
 
   useEffect(() => {
-    if (!form.localitate || !form.judet) { setScoli([]); setScoliTopMap({}); return }
+    if (!form.localitate || !form.judet) { setScoli([]); return }
     setLoadingScoli(true)
     async function loadScoli() {
       const { data } = await getSupabase().rpc('get_scoli', { p_judet: form.judet, p_localitate: form.localitate })
       if (data) {
         setScoli(data.map((r: { denumire: string }) => r.denumire))
-        const topMap: Record<string, boolean> = {}
-        data.forEach((r: { denumire: string; top_school?: boolean }) => { topMap[r.denumire] = !!r.top_school })
-        setScoliTopMap(topMap)
       }
       setLoadingScoli(false)
     }
@@ -177,28 +172,6 @@ function CompletareProfilInner() {
           referred_id: userId,
         })
         await supabase.rpc('increment_invite_count', { user_id: referrerId })
-      }
-
-      // Upsert waitlist_schools for non-top schools
-      if (!isTopSchool) {
-        const { data: existing } = await supabase
-          .from('waitlist_schools')
-          .select('signup_count')
-          .eq('highschool', form.highschool)
-          .single()
-
-        if (existing) {
-          const newCount = existing.signup_count + 1
-          await supabase
-            .from('waitlist_schools')
-            .update({
-              signup_count: newCount,
-              ...(newCount >= 50 ? { activated_at: new Date().toISOString() } : {}),
-            })
-            .eq('highschool', form.highschool)
-        } else {
-          await supabase.from('waitlist_schools').insert({ highschool: form.highschool, signup_count: 1 })
-        }
       }
 
       window.location.href = '/onboarding'
@@ -308,12 +281,6 @@ function CompletareProfilInner() {
             required
             bold
           />
-
-          {form.highschool && !isTopSchool && (
-            <div className="rounded-sm px-3 py-2.5 text-xs" style={{ background: '#FFF7ED', border: '1px solid #FED7AA', color: '#9A3412' }}>
-              Liceul tău este pe <strong>lista de așteptare</strong>. Te poți înregistra, dar platforma se activează când 50 de colegi se alătură.
-            </div>
-          )}
 
           <div className="grid grid-cols-2 gap-2.5">
             <div className="relative">

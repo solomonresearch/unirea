@@ -15,13 +15,13 @@ interface Actor {
 
 interface Notification {
   id: string
-  type: 'mention' | 'message' | 'new_member'
+  type: 'mention' | 'message' | 'new_member' | 'school_request'
   context: string | null
   reference_id: string | null
   content_preview: string | null
   read_at: string | null
   created_at: string
-  actor: Actor
+  actor: Actor | null
 }
 
 interface RecentMember {
@@ -47,6 +47,7 @@ const CONTEXT_ROUTES: Record<string, string> = {
   carusel: '/carusel',
   mesaje: '/mesaje',
   ziar: '/ziar',
+  config: '/config',
 }
 
 export function NotificationBell() {
@@ -177,6 +178,7 @@ export function NotificationBell() {
   function actionText(n: Notification): string {
     if (n.type === 'message') return 'ți-a trimis un mesaj'
     if (n.type === 'new_member') return 's-a alăturat'
+    if (n.type === 'school_request') return 'a solicitat adăugarea școlii'
     return 'te-a menționat'
   }
 
@@ -221,16 +223,17 @@ export function NotificationBell() {
                 >
                   <div
                     className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center text-white text-2xs font-bold flex-shrink-0 mt-0.5"
-                    style={{ background: n.actor.avatar_url ? 'transparent' : avatarColor(n.actor.name) }}
+                    style={{ background: n.actor?.avatar_url ? 'transparent' : avatarColor(n.actor?.name || 'System') }}
                   >
-                    {n.actor.avatar_url
+                    {n.actor?.avatar_url
                       ? <img src={n.actor.avatar_url} alt={n.actor.name} className="w-full h-full object-cover" />
-                      : getInitials(n.actor.name)
+                      : getInitials(n.actor?.name || 'S')
                     }
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-xs leading-snug" style={{ color: 'var(--ink)' }}>
-                      <span className="font-semibold">{n.actor.name}</span>{' '}
+                      {n.actor && <span className="font-semibold">{n.actor.name}</span>}
+                      {n.actor && ' '}
                       <span style={{ color: 'var(--ink2)' }}>{actionText(n)}</span>
                     </p>
                     {n.content_preview && (
