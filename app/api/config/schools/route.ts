@@ -47,8 +47,12 @@ export async function GET(req: NextRequest) {
   if (judet) query = query.eq('judet_pj', judet)
   if (localitate) query = query.eq('localitate_unitate', localitate)
 
-  if (sort === 'requests') {
+  if (sort === 'requests_desc') {
     query = query.order('request_count', { ascending: false }).order('denumire_lunga_unitate')
+  } else if (sort === 'requests_asc') {
+    query = query.order('request_count', { ascending: true }).order('denumire_lunga_unitate')
+  } else if (sort === 'name_desc') {
+    query = query.order('denumire_lunga_unitate', { ascending: false })
   } else {
     query = query.order('denumire_lunga_unitate')
   }

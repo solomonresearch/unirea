@@ -17,7 +17,7 @@ interface School {
 }
 
 type StatusFilter = 'all' | 'enabled' | 'disabled'
-type SortOrder = 'name' | 'requests'
+type SortOrder = 'name_asc' | 'name_desc' | 'requests_desc' | 'requests_asc'
 
 const COLLAPSED_KEY = 'config-schools-collapsed'
 
@@ -32,7 +32,7 @@ export default function ConfigPage() {
   const [localitate, setLocalitate] = useState('')
   const [judete, setJudete] = useState<string[]>([])
   const [localitati, setLocalitati] = useState<string[]>([])
-  const [sortOrder, setSortOrder] = useState<SortOrder>('name')
+  const [sortOrder, setSortOrder] = useState<SortOrder>('name_asc')
   const [toggling, setToggling] = useState<number | null>(null)
   const [confirmEnableAll, setConfirmEnableAll] = useState(false)
   const [enablingAll, setEnablingAll] = useState(false)
@@ -100,7 +100,7 @@ export default function ConfigPage() {
     if (statusFilter !== 'all') params.set('filter', statusFilter)
     if (judet) params.set('judet', judet)
     if (localitate) params.set('localitate', localitate)
-    if (sortOrder === 'requests') params.set('sort', 'requests')
+    params.set('sort', sortOrder)
 
     const res = await fetch(`/api/config/schools?${params}`, { cache: 'no-store' })
     if (res.ok) setSchools(await res.json())
@@ -280,8 +280,10 @@ export default function ConfigPage() {
                     className="w-full px-2 py-2 text-sm rounded-md outline-none appearance-none"
                     style={selectStyle}
                   >
-                    <option value="name">Sortare: Nume A→Z</option>
-                    <option value="requests">Sortare: Cereri ↓</option>
+                    <option value="name_asc">Nume A→Z</option>
+                    <option value="name_desc">Nume Z→A</option>
+                    <option value="requests_desc">Cereri ↓</option>
+                    <option value="requests_asc">Cereri ↑</option>
                   </select>
                 </div>
               </div>
@@ -328,17 +330,18 @@ export default function ConfigPage() {
                         </p>
                       </div>
 
-                      {school.request_count > 0 && (
-                        <div
-                          className="flex items-center gap-1 px-2 py-0.5 rounded-full flex-shrink-0"
-                          style={{ background: 'rgba(239,107,74,0.08)', border: '1px solid rgba(239,107,74,0.25)' }}
-                        >
-                          <Inbox size={11} style={{ color: '#ef6b4a' }} />
-                          <span className="text-xs font-semibold" style={{ color: '#ef6b4a' }}>
-                            {school.request_count}
-                          </span>
-                        </div>
-                      )}
+                      <div
+                        className="flex items-center gap-1 px-2 py-0.5 rounded-full flex-shrink-0"
+                        style={{
+                          background: school.request_count > 0 ? 'rgba(239,107,74,0.08)' : 'var(--cream2)',
+                          border: `1px solid ${school.request_count > 0 ? 'rgba(239,107,74,0.25)' : 'var(--border)'}`,
+                        }}
+                      >
+                        <Inbox size={11} style={{ color: school.request_count > 0 ? '#ef6b4a' : 'var(--ink3)' }} />
+                        <span className="text-xs font-semibold" style={{ color: school.request_count > 0 ? '#ef6b4a' : 'var(--ink3)' }}>
+                          {school.request_count}
+                        </span>
+                      </div>
 
                       {school.member_count > 0 && (
                         <div
