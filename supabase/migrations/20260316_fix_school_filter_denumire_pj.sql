@@ -18,6 +18,7 @@ returns table(localitate text) as $$
   order by localitate_unitate;
 $$ language sql stable;
 
+drop function if exists public.get_scoli(text, text);
 create or replace function public.get_scoli(p_judet text, p_localitate text)
 returns table(denumire text, top_school boolean) as $$
   select distinct denumire_lunga_unitate as denumire, coalesce(s.top_school, false) as top_school
