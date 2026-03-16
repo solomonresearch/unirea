@@ -31,7 +31,7 @@ export async function GET(req: NextRequest) {
   let query = supabase
     .from('schools')
     .select('id, denumire_lunga_unitate, localitate_unitate, judet_pj, enabled, request_count')
-    .or('denumire_pj.ilike.%COLEGIU%,denumire_pj.ilike.%LICEU%')
+    .or('denumire_lunga_unitate.ilike.%COLEGIU%,denumire_lunga_unitate.ilike.%LICEU%')
 
   if (search) {
     query = query.or(

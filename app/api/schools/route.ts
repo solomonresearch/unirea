@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
     .select('id, denumire_lunga_unitate')
     .eq('judet_pj', judet)
     .eq('localitate_unitate', localitate)
-    .or('denumire_pj.ilike.%COLEGIU%,denumire_pj.ilike.%LICEU%')
+    .or('denumire_lunga_unitate.ilike.%COLEGIU%,denumire_lunga_unitate.ilike.%LICEU%')
     .order('denumire_lunga_unitate')
 
   if (error) return NextResponse.json([], { status: 500 })

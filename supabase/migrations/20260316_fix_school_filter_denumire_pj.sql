@@ -1,10 +1,10 @@
--- Fix school lookup RPCs to filter on denumire_pj (school type) instead of denumire_lunga_unitate
+-- Fix school lookup RPCs to filter on denumire_lunga_unitate (full school name)
 create or replace function public.get_judete()
 returns table(judet text) as $$
   select distinct judet_pj as judet
   from public.schools
   where judet_pj is not null
-    and (upper(denumire_pj) like '%COLEGIU%' or upper(denumire_pj) like '%LICEU%')
+    and (upper(denumire_lunga_unitate) like '%COLEGIU%' or upper(denumire_lunga_unitate) like '%LICEU%')
   order by judet_pj;
 $$ language sql stable;
 
@@ -14,7 +14,7 @@ returns table(localitate text) as $$
   from public.schools
   where judet_pj = p_judet
     and localitate_unitate is not null
-    and (upper(denumire_pj) like '%COLEGIU%' or upper(denumire_pj) like '%LICEU%')
+    and (upper(denumire_lunga_unitate) like '%COLEGIU%' or upper(denumire_lunga_unitate) like '%LICEU%')
   order by localitate_unitate;
 $$ language sql stable;
 
@@ -25,6 +25,6 @@ returns table(denumire text, top_school boolean) as $$
   where s.judet_pj = p_judet
     and s.localitate_unitate = p_localitate
     and s.denumire_lunga_unitate is not null
-    and (upper(s.denumire_pj) like '%COLEGIU%' or upper(s.denumire_pj) like '%LICEU%')
+    and (upper(s.denumire_lunga_unitate) like '%COLEGIU%' or upper(s.denumire_lunga_unitate) like '%LICEU%')
   order by denumire_lunga_unitate;
 $$ language sql stable;
