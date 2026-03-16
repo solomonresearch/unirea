@@ -253,7 +253,7 @@ export function PostModal({
                 src={post.image_url}
                 alt={post.caption || 'Amintire'}
                 draggable={false}
-                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', userSelect: 'none' }}
+                style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block', userSelect: 'none' }}
               />
             </motion.div>
 
