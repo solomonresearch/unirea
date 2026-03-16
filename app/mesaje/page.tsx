@@ -8,7 +8,8 @@ import { BottomNav } from '@/components/BottomNav'
 import { AvatarSettingsButton } from '@/components/AvatarSettingsButton'
 import { NotificationBell } from '@/components/NotificationBell'
 import { getSupabase } from '@/lib/supabase'
-import { Loader2, MessageCircle, Plus, Search, X, Users, Archive, ArchiveRestore, ChevronRight, ArrowLeft } from 'lucide-react'
+import { Loader2, MessageCircle, Plus, Search, X, Users, Archive, ArchiveRestore, ChevronRight, ArrowLeft, Trash2 } from 'lucide-react'
+import { ConfirmDialog } from '@/components/ConfirmDialog'
 import { SwipeableRow } from '@/components/mesaje/SwipeableRow'
 import { relativeTime, getInitials } from '@/lib/utils'
 import { SchoolGate } from '@/components/SchoolGate'
@@ -58,7 +59,9 @@ export default function MesajePage() {
   const [searchingMembers, setSearchingMembers] = useState(false)
   const [creatingGroup, setCreatingGroup] = useState(false)
   const [archivingId, setArchivingId] = useState<string | null>(null)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
   const [hoveredId, setHoveredId] = useState<string | null>(null)
+  const [pendingConfirm, setPendingConfirm] = useState<{ action: 'archive' | 'delete', id: string } | null>(null)
   const [showArchived, setShowArchived] = useState(false)
   const [archivedConversations, setArchivedConversations] = useState<Conversation[]>([])
   const [loadingArchived, setLoadingArchived] = useState(false)
@@ -77,6 +80,7 @@ export default function MesajePage() {
         .select('conversation_id, last_read_at')
         .eq('user_id', user.id)
         .is('archived_at', null)
+        .is('deleted_at', null)
 
       const { count: archCount } = await supabase
         .from('conversation_participants')
@@ -358,6 +362,21 @@ export default function MesajePage() {
     setArchivingId(null)
   }
 
+  async function handleDeleteConversation(conversationId: string) {
+    if (deletingId) return
+    setDeletingId(conversationId)
+    const supabase = getSupabase()
+    const { error } = await supabase
+      .from('conversation_participants')
+      .update({ deleted_at: new Date().toISOString() })
+      .eq('conversation_id', conversationId)
+      .eq('user_id', currentUserId)
+    if (!error) {
+      setConversations(prev => prev.filter(c => c.id !== conversationId))
+    }
+    setDeletingId(null)
+  }
+
   async function loadAndShowArchived() {
     setLoadingArchived(true)
     const supabase = getSupabase()
@@ -497,8 +516,34 @@ export default function MesajePage() {
     )
   }
 
+  const pendingConvo = conversations.find(c => c.id === pendingConfirm?.id)
+
   return (
     <SchoolGate>
+    <ConfirmDialog
+      open={pendingConfirm !== null}
+      onOpenChange={open => { if (!open) setPendingConfirm(null) }}
+      title={
+        pendingConfirm?.action === 'archive'
+          ? 'Arhivezi conversația?'
+          : pendingConvo?.is_group
+            ? 'Ieși din grup?'
+            : 'Ștergi conversația?'
+      }
+      description={
+        pendingConfirm?.action === 'archive'
+          ? 'Conversația va fi mutată în arhivă. O poți recupera oricând.'
+          : pendingConvo?.is_group
+            ? 'Nu vei mai putea vedea mesajele acestui grup.'
+            : 'Conversația va fi ștearsă din lista ta.'
+      }
+      confirmLabel={pendingConfirm?.action === 'archive' ? 'Arhivează' : 'Șterge'}
+      onConfirm={() => {
+        if (!pendingConfirm) return
+        if (pendingConfirm.action === 'archive') handleArchiveConversation(pendingConfirm.id)
+        else handleDeleteConversation(pendingConfirm.id)
+      }}
+    />
     <main className="flex min-h-screen flex-col items-center px-6 py-6 pb-24" style={{ background: 'var(--cream2)' }}>
       <div className="w-full max-w-sm space-y-3">
         {showArchived ? (
@@ -821,7 +866,9 @@ export default function MesajePage() {
                 >
                 <SwipeableRow
                   onArchive={() => handleArchiveConversation(convo.id)}
+                  onDelete={() => setPendingConfirm({ action: 'delete', id: convo.id })}
                   archiving={archivingId === convo.id}
+                  deleting={deletingId === convo.id}
                 >
                   <div
                     className="flex items-center gap-3 rounded-xl px-4 py-3 transition-colors cursor-pointer"
@@ -900,34 +947,50 @@ export default function MesajePage() {
                         )}
                       </div>
                     </div>
-                    {/* Hover archive button — desktop only */}
-                    <button
-                      type="button"
-                      onClick={e => { e.stopPropagation(); handleArchiveConversation(convo.id) }}
-                      disabled={archivingId === convo.id}
-                      style={{
-                        flexShrink: 0,
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '4px',
-                        padding: '6px 10px',
-                        borderRadius: '9px',
-                        border: '1px solid var(--border)',
-                        background: 'var(--cream2)',
-                        color: 'var(--ink3)',
-                        cursor: 'pointer',
-                        fontSize: '11px',
-                        opacity: hoveredId === convo.id ? 1 : 0,
-                        pointerEvents: hoveredId === convo.id ? 'auto' : 'none',
-                        transition: 'opacity 0.15s',
-                      }}
-                    >
-                      {archivingId === convo.id ? (
-                        <Loader2 size={13} className="animate-spin" />
-                      ) : (
-                        <Archive size={13} />
-                      )}
-                    </button>
+                    {/* Hover action buttons — desktop only */}
+                    <div style={{
+                      display: 'flex',
+                      gap: '6px',
+                      flexShrink: 0,
+                      opacity: hoveredId === convo.id ? 1 : 0,
+                      pointerEvents: hoveredId === convo.id ? 'auto' : 'none',
+                      transition: 'opacity 0.15s',
+                    }}>
+                      <button
+                        type="button"
+                        onClick={e => { e.stopPropagation(); setPendingConfirm({ action: 'archive', id: convo.id }) }}
+                        disabled={archivingId === convo.id}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          padding: '6px 10px',
+                          borderRadius: '9px',
+                          border: '1px solid var(--border)',
+                          background: 'var(--cream2)',
+                          color: 'var(--ink3)',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        {archivingId === convo.id ? <Loader2 size={13} className="animate-spin" /> : <Archive size={13} />}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={e => { e.stopPropagation(); setPendingConfirm({ action: 'delete', id: convo.id }) }}
+                        disabled={deletingId === convo.id}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          padding: '6px 10px',
+                          borderRadius: '9px',
+                          border: '1px solid #FECACA',
+                          background: '#FEF2F2',
+                          color: '#E05252',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        {deletingId === convo.id ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} />}
+                      </button>
+                    </div>
                   </div>
                 </SwipeableRow>
                 </div>

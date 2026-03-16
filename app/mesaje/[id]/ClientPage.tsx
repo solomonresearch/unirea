@@ -9,6 +9,7 @@ import { MentionInput } from '@/components/MentionInput'
 import { MentionText } from '@/components/MentionText'
 import { GroupInfoPanel } from '@/components/mesaje/GroupInfoPanel'
 import { Loader2, ArrowLeft, Send, Users, ChevronDown, MessageCircle, Check, Clock } from 'lucide-react'
+import { ConfirmDialog } from '@/components/ConfirmDialog'
 import { getInitials } from '@/lib/utils'
 
 const DAYS_RO = ['Duminica', 'Luni', 'Marti', 'Miercuri', 'Joi', 'Vineri', 'Sambata']
@@ -503,27 +504,6 @@ export default function ChatPage() {
                       </span>
                     )}
                   </div>
-                  {confirmDeleteId === msg.id && (
-                    <div className={`flex gap-2 mt-1 ${isOwn ? 'justify-end' : 'justify-start'}`}>
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteMessage(msg.id)}
-                        disabled={deletingMessageId === msg.id}
-                        className="text-[11px] font-medium px-2.5 py-1 rounded-lg disabled:opacity-50"
-                        style={{ background: 'var(--rose)', color: 'white' }}
-                      >
-                        {deletingMessageId === msg.id ? 'Se sterge...' : 'Sterge'}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setConfirmDeleteId(null)}
-                        className="text-[11px] font-medium px-2.5 py-1 rounded-lg"
-                        style={{ background: 'var(--cream2, #f5f5f0)', color: 'var(--ink3, #888)' }}
-                      >
-                        Anuleaza
-                      </button>
-                    </div>
-                  )}
                 </div>
               </div>
               </div>
@@ -595,6 +575,14 @@ export default function ChatPage() {
           }}
         />
       )}
+
+      <ConfirmDialog
+        open={confirmDeleteId !== null}
+        onOpenChange={open => { if (!open) setConfirmDeleteId(null) }}
+        title="Ștergi mesajul?"
+        description="Mesajul va fi șters permanent pentru tine."
+        onConfirm={() => { if (confirmDeleteId) handleDeleteMessage(confirmDeleteId) }}
+      />
 
       <BottomNav />
     </main>
