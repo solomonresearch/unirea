@@ -24,6 +24,8 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const search = searchParams.get('search') || ''
   const filter = searchParams.get('filter') || 'all'
+  const judet = searchParams.get('judet') || ''
+  const localitate = searchParams.get('localitate') || ''
 
   let query = supabase
     .from('schools')
@@ -41,6 +43,9 @@ export async function GET(req: NextRequest) {
   } else if (filter === 'disabled') {
     query = query.eq('enabled', false)
   }
+
+  if (judet) query = query.eq('judet_pj', judet)
+  if (localitate) query = query.eq('localitate_unitate', localitate)
 
   const { data: schools, error } = await query
 
