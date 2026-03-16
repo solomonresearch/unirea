@@ -3,8 +3,7 @@
 import { useState, useEffect, type ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
 import { getSupabase } from '@/lib/supabase'
-import { InviteSection } from '@/components/InviteSection'
-import { LogOut, Loader2, Users, Lock } from 'lucide-react'
+import { LogOut, Loader2, Lock } from 'lucide-react'
 
 interface SchoolGateProps {
   children: ReactNode
@@ -12,10 +11,8 @@ interface SchoolGateProps {
 
 export function SchoolGate({ children }: SchoolGateProps) {
   const router = useRouter()
-  const [status, setStatus] = useState<'loading' | 'active' | 'waitlist'>('loading')
-  const [username, setUsername] = useState('')
+  const [status, setStatus] = useState<'loading' | 'active' | 'inactive'>('loading')
   const [highschool, setHighschool] = useState('')
-  const [signupCount, setSignupCount] = useState(0)
 
   useEffect(() => {
     async function check() {
@@ -25,32 +22,21 @@ export function SchoolGate({ children }: SchoolGateProps) {
 
       const { data: profile } = await supabase
         .from('profiles')
-        .select('username, highschool, invite_count')
+        .select('highschool')
         .eq('id', user.id)
         .single()
 
       if (!profile) { router.push('/autentificare'); return }
 
-      setUsername(profile.username)
       setHighschool(profile.highschool)
 
-      // Check if school is active
-      const { data: isActive } = await supabase.rpc('check_school_active', { school_name: profile.highschool })
-
-      if (isActive) {
-        setStatus('active')
-        return
-      }
-
-      // Get waitlist count
-      const { data: waitlist } = await supabase
-        .from('waitlist_schools')
-        .select('signup_count')
-        .eq('highschool', profile.highschool)
+      const { data: school } = await supabase
+        .from('schools')
+        .select('enabled')
+        .eq('denumire_lunga_unitate', profile.highschool)
         .single()
 
-      setSignupCount(waitlist?.signup_count ?? 0)
-      setStatus('waitlist')
+      setStatus(school?.enabled === true ? 'active' : 'inactive')
     }
     check()
   }, [router])
@@ -64,8 +50,6 @@ export function SchoolGate({ children }: SchoolGateProps) {
   }
 
   if (status === 'active') return <>{children}</>
-
-  const remaining = Math.max(0, 50 - signupCount)
 
   return (
     <main
@@ -85,40 +69,14 @@ export function SchoolGate({ children }: SchoolGateProps) {
             className="font-display text-2xl"
             style={{ color: 'var(--ink)' }}
           >
-            Liceul tău este pe lista de așteptare
+            Școala ta nu este activă
           </h1>
           <p className="text-sm" style={{ color: 'var(--ink2)' }}>
             {highschool}
           </p>
-        </div>
-
-        <div
-          className="rounded-xl p-4 space-y-2"
-          style={{ background: 'var(--white)', border: '1px solid var(--border)' }}
-        >
-          <div className="flex items-center justify-center gap-2">
-            <Users size={18} style={{ color: 'var(--amber-dark)' }} />
-            <span className="text-2xl font-bold" style={{ color: 'var(--ink)' }}>
-              {signupCount}
-            </span>
-            <span className="text-sm" style={{ color: 'var(--ink3)' }}>/ 50</span>
-          </div>
-          <div className="w-full h-2 rounded-full overflow-hidden" style={{ background: 'var(--cream2)' }}>
-            <div
-              className="h-full rounded-full transition-all"
-              style={{ width: `${Math.min(100, (signupCount / 50) * 100)}%`, background: 'var(--amber)' }}
-            />
-          </div>
           <p className="text-xs" style={{ color: 'var(--ink3)' }}>
-            {signupCount} {signupCount === 1 ? 'coleg așteaptă' : 'colegi așteaptă'}. Mai {remaining === 1 ? 'este necesar' : 'sunt necesari'} <strong style={{ color: 'var(--ink)' }}>{remaining}</strong> pentru activare.
+            Un administrator trebuie să activeze școala ta pentru a accesa platforma.
           </p>
-        </div>
-
-        <div className="space-y-2">
-          <p className="text-xs font-semibold" style={{ color: 'var(--ink2)' }}>
-            Invită-ți colegii pentru a debloca platforma:
-          </p>
-          <InviteSection username={username} highschool={highschool} />
         </div>
 
         <button

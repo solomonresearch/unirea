@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { getSupabase } from '@/lib/supabase'
 import { SearchSelect } from '@/components/SearchSelect'
 import { User, Mail, Phone, GraduationCap, Calendar, AtSign, Loader2, ArrowLeft, Lock, MapPin, Building } from 'lucide-react'
+import { SchoolRequestModal } from '@/components/SchoolRequestModal'
 
 export default function SignupPage() {
   return (
@@ -40,9 +41,8 @@ function SignupPageInner() {
   const [judete, setJudete] = useState<string[]>([])
   const [localitati, setLocalitati] = useState<string[]>([])
   const [scoli, setScoli] = useState<string[]>([])
-  const [scoliTopMap, setScoliTopMap] = useState<Record<string, boolean>>({})
   const [loadingScoli, setLoadingScoli] = useState(false)
-  const isTopSchool = form.highschool ? (scoliTopMap[form.highschool] ?? true) : true
+  const [reqModalOpen, setReqModalOpen] = useState(false)
 
   useEffect(() => {
     async function check() {
@@ -100,15 +100,12 @@ function SignupPageInner() {
   }, [form.judet])
 
   useEffect(() => {
-    if (!form.localitate || !form.judet) { setScoli([]); setScoliTopMap({}); return }
+    if (!form.localitate || !form.judet) { setScoli([]); return }
     setLoadingScoli(true)
     async function loadScoli() {
       const { data } = await getSupabase().rpc('get_scoli', { p_judet: form.judet, p_localitate: form.localitate })
       if (data) {
         setScoli(data.map((r: { denumire: string }) => r.denumire))
-        const topMap: Record<string, boolean> = {}
-        data.forEach((r: { denumire: string; top_school?: boolean }) => { topMap[r.denumire] = !!r.top_school })
-        setScoliTopMap(topMap)
       }
       setLoadingScoli(false)
     }
@@ -123,6 +120,7 @@ function SignupPageInner() {
       return next
     })
   }
+
 
   async function handleGoogleSignup() {
     const supabase = getSupabase()
@@ -177,28 +175,6 @@ function SignupPageInner() {
         await supabase.rpc('increment_invite_count', { user_id: referrerId })
       }
 
-      // Upsert waitlist_schools for non-top schools
-      if (!isTopSchool) {
-        const { data: existing } = await supabase
-          .from('waitlist_schools')
-          .select('signup_count')
-          .eq('highschool', form.highschool)
-          .single()
-
-        if (existing) {
-          const newCount = existing.signup_count + 1
-          await supabase
-            .from('waitlist_schools')
-            .update({
-              signup_count: newCount,
-              ...(newCount >= 50 ? { activated_at: new Date().toISOString() } : {}),
-            })
-            .eq('highschool', form.highschool)
-        } else {
-          await supabase.from('waitlist_schools').insert({ highschool: form.highschool, signup_count: 1 })
-        }
-      }
-
       window.location.href = '/avizier'
     } catch (err: any) {
       setError(err.message || 'A aparut o eroare')
@@ -221,6 +197,7 @@ function SignupPageInner() {
   const iconClass = "absolute left-3 top-[13px] pointer-events-none"
 
   return (
+    <>
     <main
       className="flex min-h-screen flex-col px-7 pt-14 pb-10"
       style={{ background: 'var(--cream)' }}
@@ -348,10 +325,18 @@ function SignupPageInner() {
             bold
           />
 
-          {form.highschool && !isTopSchool && (
-            <div className="rounded-sm px-3 py-2.5 text-xs" style={{ background: '#FFF7ED', border: '1px solid #FED7AA', color: '#9A3412' }}>
-              Liceul tău este pe <strong>lista de așteptare</strong>. Te poți înregistra, dar platforma se activează când 50 de colegi se alătură.
-            </div>
+          {form.localitate && (
+            <p className="text-xxs" style={{ color: 'var(--ink3)' }}>
+              Nu găsești liceul?{' '}
+              <button
+                type="button"
+                onClick={() => setReqModalOpen(true)}
+                className="underline font-semibold"
+                style={{ color: 'var(--amber-dark)' }}
+              >
+                Solicită adăugarea
+              </button>
+            </p>
           )}
 
           <div className="grid grid-cols-2 gap-2.5">
@@ -421,5 +406,8 @@ function SignupPageInner() {
         </p>
       </div>
     </main>
+
+    <SchoolRequestModal open={reqModalOpen} onClose={() => setReqModalOpen(false)} />
+    </>
   )
 }

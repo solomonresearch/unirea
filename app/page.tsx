@@ -1,7 +1,13 @@
+'use client'
+
+import { useState } from 'react'
 import Link from 'next/link'
 import { Search, PlayCircle, Camera, Briefcase, BookOpen, MapPin, Users, CalendarHeart, Clock } from 'lucide-react'
+import { SchoolRequestModal } from '@/components/SchoolRequestModal'
 
 export default function Home() {
+  const [modalOpen, setModalOpen] = useState(false)
+
   return (
     <main
       className="relative flex min-h-screen flex-col items-center justify-center px-6 py-12 overflow-hidden"
@@ -64,6 +70,17 @@ export default function Home() {
             Am deja cont
           </Link>
         </div>
+
+        {/* School request link */}
+        <button
+          type="button"
+          onClick={() => setModalOpen(true)}
+          className="hero-fade-up text-xs mb-6"
+          style={{ color: 'var(--ink3)', animationDelay: '0.7s', background: 'none', border: 'none', cursor: 'pointer' }}
+        >
+          Nu găsești școala ta?{' '}
+          <span className="underline" style={{ color: 'var(--amber-dark)' }}>Solicită adăugarea</span>
+        </button>
 
         {/* Floating card cluster — 2-col grid */}
         <div className="hero-fade-up w-full grid grid-cols-2 gap-3" style={{ animationDelay: '0.8s' }}>
@@ -194,6 +211,8 @@ export default function Home() {
           <Link href="/termeni" className="underline">Termenii de utilizare</Link>
         </p>
       </div>
+
+      <SchoolRequestModal open={modalOpen} onClose={() => setModalOpen(false)} />
 
       <style dangerouslySetInnerHTML={{ __html: `
         .hero-ping {

@@ -845,6 +845,22 @@ export default function SetariPage() {
                 </button>
               )}
 
+              {/* Config panel (admin only) */}
+              {isAdmin && (
+                <button
+                  type="button"
+                  onClick={() => { setSettingsOpen(false); router.push('/config') }}
+                  className="w-full flex items-center gap-3 rounded-lg border px-4 py-3 text-left transition-opacity hover:opacity-80"
+                  style={{ background: 'var(--white)', borderColor: 'var(--border)', boxShadow: 'var(--shadow-s)' }}
+                >
+                  <Settings size={20} style={{ color: 'var(--amber-dark)' }} />
+                  <div>
+                    <p className="text-xs font-bold" style={{ color: 'var(--ink)' }}>Panou de configurare</p>
+                    <p className="text-xxs" style={{ color: 'var(--ink3)' }}>Gestionează școlile disponibile</p>
+                  </div>
+                </button>
+              )}
+
               {/* Mock data (admin only) */}
               {isAdmin && (
                 <div
