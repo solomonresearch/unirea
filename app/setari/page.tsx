@@ -27,7 +27,6 @@ import {
   AtSign, ImageIcon, Check, AlertCircle, UserX, BarChart3,
   Gift,
 } from 'lucide-react'
-import { SchoolGate } from '@/components/SchoolGate'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
 
 interface Profile {
@@ -274,7 +273,6 @@ export default function SetariPage() {
   const iconClass = "absolute left-3 top-[13px] pointer-events-none"
 
   return (
-    <SchoolGate>
     <>
       <ConfirmDialog
         open={confirmDeleteBots}
@@ -1033,6 +1031,5 @@ export default function SetariPage() {
         </div>
       )}
     </>
-    </SchoolGate>
   )
 }

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { getSupabase } from '@/lib/supabase'
-import { Shield, Search, Loader2, Check, X, Users, ChevronDown, ChevronUp, ArrowLeft, Inbox } from 'lucide-react'
+import { Shield, Search, Loader2, Check, X, Users, ChevronDown, ChevronUp, ArrowLeft, Inbox, SlidersHorizontal } from 'lucide-react'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
 
 interface School {
@@ -39,6 +39,9 @@ export default function ConfigPage() {
   const [confirmDisableAll, setConfirmDisableAll] = useState(false)
   const [disablingAll, setDisablingAll] = useState(false)
   const [collapsed, setCollapsed] = useState(false)
+  const [thresh, setThresh] = useState<number | ''>('')
+  const [threshLoading, setThreshLoading] = useState(false)
+  const [threshSaved, setThreshSaved] = useState(false)
 
   // Admin check
   useEffect(() => {
@@ -67,6 +70,19 @@ export default function ConfigPage() {
   useEffect(() => {
     setCollapsed(localStorage.getItem(COLLAPSED_KEY) === 'true')
   }, [])
+
+  // Load threshold once admin is confirmed
+  useEffect(() => {
+    if (checking) return
+    async function loadThresh() {
+      const res = await fetch('/api/config/app-config')
+      if (res.ok) {
+        const data = await res.json()
+        setThresh(data.thresh_enable_school)
+      }
+    }
+    loadThresh()
+  }, [checking])
 
   // Load judete once admin is confirmed
   useEffect(() => {
@@ -141,6 +157,23 @@ export default function ConfigPage() {
     if (res.ok) await fetchSchools()
     setEnablingAll(false)
     setConfirmEnableAll(false)
+  }
+
+  async function handleSaveThresh() {
+    if (!thresh || typeof thresh !== 'number') return
+    setThreshLoading(true)
+    const res = await fetch('/api/config/app-config', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ thresh_enable_school: thresh }),
+    })
+    if (res.ok) {
+      setThreshSaved(true)
+      setTimeout(() => setThreshSaved(false), 2000)
+      // Refresh schools in case some got auto-enabled
+      await fetchSchools()
+    }
+    setThreshLoading(false)
   }
 
   async function handleDisableAll() {
@@ -388,6 +421,55 @@ export default function ConfigPage() {
               </div>
             </>
           )}
+        </div>
+
+        {/* Threshold section */}
+        <div
+          className="rounded-xl border overflow-hidden"
+          style={{ background: 'var(--white)', borderColor: 'var(--border)', boxShadow: 'var(--shadow-s)' }}
+        >
+          <div className="flex items-center gap-3 px-4 py-3" style={{ borderBottom: '1px solid var(--border)' }}>
+            <div
+              className="flex items-center justify-center w-8 h-8 rounded-lg flex-shrink-0"
+              style={{ background: 'var(--amber-soft)', border: '1px solid var(--amber)' }}
+            >
+              <SlidersHorizontal size={15} style={{ color: 'var(--amber-dark)' }} />
+            </div>
+            <div>
+              <p className="text-sm font-bold" style={{ color: 'var(--ink)' }}>Prag de activare licee</p>
+              <p className="text-xs" style={{ color: 'var(--ink3)' }}>
+                Numărul minim de înscrieri necesar pentru activarea automată a unui liceu
+              </p>
+            </div>
+          </div>
+
+          <div className="px-4 py-4">
+            <div className="flex items-center gap-3">
+              <input
+                type="number"
+                min={1}
+                value={thresh}
+                onChange={e => setThresh(e.target.value === '' ? '' : parseInt(e.target.value))}
+                className="w-28 px-3 py-2 text-sm rounded-md outline-none"
+                style={{
+                  background: 'var(--cream2)',
+                  border: '1.5px solid var(--border)',
+                  color: 'var(--ink)',
+                  fontFamily: 'inherit',
+                }}
+              />
+              <button
+                type="button"
+                onClick={handleSaveThresh}
+                disabled={threshLoading || !thresh}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-md text-xs font-semibold disabled:opacity-40 transition-opacity hover:opacity-80"
+                style={{ background: 'var(--amber-soft)', border: '1px solid var(--amber)', color: 'var(--amber-dark)' }}
+              >
+                {threshLoading ? <Loader2 size={13} className="animate-spin" /> : threshSaved ? <Check size={13} /> : null}
+                {threshSaved ? 'Salvat!' : 'Salvează'}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
