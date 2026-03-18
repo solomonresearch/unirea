@@ -1,25 +1,17 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
 import { BottomNav } from '@/components/BottomNav'
 import { SchoolGate } from '@/components/SchoolGate'
 import { getSupabase } from '@/lib/supabase'
-import { Loader2, ChevronRight, ArrowLeft, Network } from 'lucide-react'
+import { Loader2, ArrowLeft } from 'lucide-react'
 
-interface YearEntry {
-  year: number
-  count: number
-}
+// ─── Types ────────────────────────────────────────────────────────────────────
 
-interface ClassEntry {
-  letter: string
-  count: number
-}
-
-interface ProfileResult {
+interface Student {
   id: string
   name: string
   username: string
@@ -27,42 +19,135 @@ interface ProfileResult {
   class: string | null
   profession: string[]
   domain: string[]
-  company: string | null
   city: string | null
-  country: string | null
 }
 
-type Layer = 'years' | 'classes' | 'classmates'
-
-const variants = {
-  enter: (direction: 'forward' | 'back') => ({
-    x: direction === 'forward' ? 60 : -60,
-    opacity: 0,
-  }),
-  center: { x: 0, opacity: 1 },
-  exit: (direction: 'forward' | 'back') => ({
-    x: direction === 'forward' ? -60 : 60,
-    opacity: 0,
-  }),
+interface ClassNode {
+  letter: string
+  students: Student[]
+  startAngle: number
+  endAngle: number
+  midAngle: number
 }
 
-const transition = { type: 'spring' as const, stiffness: 300, damping: 30 }
+interface YearNode {
+  year: number
+  classes: ClassNode[]
+  startAngle: number
+  endAngle: number
+  midAngle: number
+  colorIdx: number
+}
+
+// ─── Colour palette ───────────────────────────────────────────────────────────
+
+const COLORS = [
+  { fill: '#F59E0B', dark: '#92400E', light: '#FEF3C7' },
+  { fill: '#10B981', dark: '#064E3B', light: '#D1FAE5' },
+  { fill: '#3B82F6', dark: '#1E3A8A', light: '#DBEAFE' },
+  { fill: '#8B5CF6', dark: '#4C1D95', light: '#EDE9FE' },
+  { fill: '#EC4899', dark: '#831843', light: '#FCE7F3' },
+  { fill: '#F97316', dark: '#7C2D12', light: '#FFEDD5' },
+  { fill: '#06B6D4', dark: '#164E63', light: '#CFFAFE' },
+]
+
+// ─── SVG dimensions ───────────────────────────────────────────────────────────
+
+const CX = 170
+const CY = 170
+const R_CENTER  = 45
+const R_YEAR    = 100
+const R_CLASS   = 152
+const GAP_YEAR  = 0.035   // radians between year segments
+const GAP_CLASS = 0.022   // radians between class segments
+
+// ─── Arc path helper ──────────────────────────────────────────────────────────
+
+function arcPath(
+  rIn: number, rOut: number,
+  a1: number, a2: number,
+): string {
+  if (Math.abs(a2 - a1) < 0.001) return ''
+  const c1 = Math.cos(a1), s1 = Math.sin(a1)
+  const c2 = Math.cos(a2), s2 = Math.sin(a2)
+  const x1 = CX + rOut * c1, y1 = CY + rOut * s1
+  const x2 = CX + rOut * c2, y2 = CY + rOut * s2
+  const x3 = CX + rIn  * c2, y3 = CY + rIn  * s2
+  const x4 = CX + rIn  * c1, y4 = CY + rIn  * s1
+  const large = (a2 - a1) > Math.PI ? 1 : 0
+  return `M ${x1} ${y1} A ${rOut} ${rOut} 0 ${large} 1 ${x2} ${y2} L ${x3} ${y3} A ${rIn} ${rIn} 0 ${large} 0 ${x4} ${y4} Z`
+}
+
+function labelPos(rIn: number, rOut: number, midAngle: number) {
+  const r = (rIn + rOut) / 2
+  return { x: CX + r * Math.cos(midAngle), y: CY + r * Math.sin(midAngle) }
+}
+
+// ─── Tree builder ─────────────────────────────────────────────────────────────
+
+function buildTree(students: Student[]): YearNode[] {
+  const total = students.length
+  if (total === 0) return []
+
+  // Group by year
+  const byYear = new Map<number, Student[]>()
+  for (const s of students) {
+    if (!byYear.has(s.graduation_year)) byYear.set(s.graduation_year, [])
+    byYear.get(s.graduation_year)!.push(s)
+  }
+  const sortedYears = [...byYear.keys()].sort((a, b) => b - a)
+  const numYears = sortedYears.length
+
+  const availableAngle = 2 * Math.PI - numYears * GAP_YEAR
+  const nodes: YearNode[] = []
+  let angle = -Math.PI / 2   // start from top
+
+  sortedYears.forEach((year, idx) => {
+    const yearStudents = byYear.get(year)!
+    const yearAngle = (yearStudents.length / total) * availableAngle
+    const yearStart = angle
+    const yearEnd   = angle + yearAngle
+    const yearMid   = (yearStart + yearEnd) / 2
+
+    // Group by class (null → '?')
+    const byClass = new Map<string, Student[]>()
+    for (const s of yearStudents) {
+      const key = s.class ?? '?'
+      if (!byClass.has(key)) byClass.set(key, [])
+      byClass.get(key)!.push(s)
+    }
+    const sortedClasses = [...byClass.keys()].sort()
+    const numClasses = sortedClasses.length
+    const availableClassAngle = yearAngle - numClasses * GAP_CLASS
+
+    const classNodes: ClassNode[] = []
+    let classAngle = yearStart
+
+    sortedClasses.forEach(letter => {
+      const classStudents = byClass.get(letter)!
+      const classArcAngle = (classStudents.length / yearStudents.length) * availableClassAngle
+      const classStart = classAngle
+      const classEnd   = classAngle + classArcAngle
+      const classMid   = (classStart + classEnd) / 2
+      classNodes.push({ letter, students: classStudents, startAngle: classStart, endAngle: classEnd, midAngle: classMid })
+      classAngle = classEnd + GAP_CLASS
+    })
+
+    nodes.push({ year, classes: classNodes, startAngle: yearStart, endAngle: yearEnd, midAngle: yearMid, colorIdx: idx % COLORS.length })
+    angle = yearEnd + GAP_YEAR
+  })
+
+  return nodes
+}
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function TreeChartPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
-  const [highschool, setHighschool] = useState<string | null>(null)
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
-
-  const [layer, setLayer] = useState<Layer>('years')
-  const [direction, setDirection] = useState<'forward' | 'back'>('forward')
-
-  const [years, setYears] = useState<YearEntry[]>([])
+  const [students, setStudents] = useState<Student[]>([])
   const [selectedYear, setSelectedYear] = useState<number | null>(null)
-  const [classes, setClasses] = useState<ClassEntry[]>([])
   const [selectedClass, setSelectedClass] = useState<string | null>(null)
-  const [classmates, setClassmates] = useState<ProfileResult[]>([])
-  const [layerLoading, setLayerLoading] = useState(false)
 
   useEffect(() => {
     async function init() {
@@ -77,99 +162,35 @@ export default function TreeChartPage() {
 
       if (!profile) { router.push('/autentificare'); return }
 
-      setCurrentUserId(profile.id)
-      setHighschool(profile.highschool)
-
-      // Fetch years
       const { data } = await getSupabase()
         .from('profiles')
-        .select('graduation_year')
+        .select('id, name, username, graduation_year, class, profession, domain, city')
         .eq('highschool', profile.highschool)
         .eq('onboarding_completed', true)
         .neq('id', user.id)
         .is('archived_at', null)
         .not('graduation_year', 'is', null)
 
-      if (data) {
-        const counts: Record<number, number> = {}
-        for (const row of data) {
-          if (row.graduation_year) {
-            counts[row.graduation_year] = (counts[row.graduation_year] ?? 0) + 1
-          }
-        }
-        const sorted = Object.entries(counts)
-          .map(([y, c]) => ({ year: Number(y), count: c }))
-          .sort((a, b) => b.year - a.year)
-        setYears(sorted)
-      }
-
+      setStudents((data as Student[]) ?? [])
       setLoading(false)
     }
     init()
   }, [router])
 
-  async function selectYear(year: number) {
-    setLayerLoading(true)
+  const tree = useMemo(() => buildTree(students), [students])
+
+  const selectedYearNode  = tree.find(y => y.year === selectedYear) ?? null
+  const selectedClassNode = selectedYearNode?.classes.find(c => c.letter === selectedClass) ?? null
+
+  function handleYearClick(year: number) {
+    if (selectedYear === year) { setSelectedYear(null); setSelectedClass(null) }
+    else { setSelectedYear(year); setSelectedClass(null) }
+  }
+
+  function handleClassClick(year: number, letter: string) {
     setSelectedYear(year)
-
-    const { data } = await getSupabase()
-      .from('profiles')
-      .select('class')
-      .eq('highschool', highschool)
-      .eq('graduation_year', year)
-      .eq('onboarding_completed', true)
-      .neq('id', currentUserId)
-      .is('archived_at', null)
-      .not('class', 'is', null)
-
-    if (data) {
-      const counts: Record<string, number> = {}
-      for (const row of data) {
-        if (row.class) {
-          counts[row.class] = (counts[row.class] ?? 0) + 1
-        }
-      }
-      const sorted = Object.entries(counts)
-        .map(([letter, count]) => ({ letter, count }))
-        .sort((a, b) => a.letter.localeCompare(b.letter))
-      setClasses(sorted)
-    }
-
-    setDirection('forward')
-    setLayer('classes')
-    setLayerLoading(false)
-  }
-
-  async function selectClass(letter: string) {
-    setLayerLoading(true)
-    setSelectedClass(letter)
-
-    const { data } = await getSupabase()
-      .from('profiles')
-      .select('id, name, username, graduation_year, class, profession, domain, company, city, country')
-      .eq('highschool', highschool)
-      .eq('graduation_year', selectedYear)
-      .eq('class', letter)
-      .eq('onboarding_completed', true)
-      .neq('id', currentUserId)
-      .is('archived_at', null)
-      .order('name')
-
-    setClassmates((data as ProfileResult[]) ?? [])
-    setDirection('forward')
-    setLayer('classmates')
-    setLayerLoading(false)
-  }
-
-  function goBack() {
-    setDirection('back')
-    if (layer === 'classmates') {
-      setLayer('classes')
-      setSelectedClass(null)
-    } else if (layer === 'classes') {
-      setLayer('years')
-      setSelectedYear(null)
-    }
+    if (selectedYear === year && selectedClass === letter) setSelectedClass(null)
+    else setSelectedClass(letter)
   }
 
   if (loading) {
@@ -180,206 +201,199 @@ export default function TreeChartPage() {
     )
   }
 
-  const breadcrumb = selectedYear
-    ? selectedClass
-      ? `${selectedYear} → ${selectedClass}`
-      : `${selectedYear}`
-    : null
-
   return (
     <SchoolGate>
       <main className="min-h-screen pb-24" style={{ background: 'var(--cream2)' }}>
         <div className="mx-auto max-w-sm px-6 py-6 space-y-4">
+
           {/* Header */}
           <div className="flex items-center gap-3">
-            {layer !== 'years' ? (
-              <button
-                type="button"
-                onClick={goBack}
-                className="flex items-center gap-1 text-sm font-medium"
-                style={{ color: 'var(--ink2)' }}
-              >
-                <ArrowLeft size={16} />
-                Înapoi
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={() => router.back()}
-                className="flex items-center gap-1 text-sm font-medium"
-                style={{ color: 'var(--ink2)' }}
-              >
-                <ArrowLeft size={16} />
-                Înapoi
-              </button>
-            )}
-            <span className="flex items-center gap-1.5 font-display text-lg" style={{ color: 'var(--ink)' }}>
-              <Network size={18} style={{ color: 'var(--ink3)' }} />
-              Arbore de promoție
-            </span>
+            <button
+              type="button"
+              onClick={() => router.back()}
+              className="flex items-center gap-1 text-sm font-medium"
+              style={{ color: 'var(--ink2)' }}
+            >
+              <ArrowLeft size={16} />
+              Înapoi
+            </button>
+            <span className="font-display text-lg" style={{ color: 'var(--ink)' }}>Arbore de promoție</span>
           </div>
 
-          {/* Breadcrumb */}
-          {breadcrumb && (
-            <div className="flex items-center gap-1 text-sm" style={{ color: 'var(--ink3)' }}>
-              {selectedYear && (
-                <button
-                  type="button"
-                  onClick={() => { setDirection('back'); setLayer('years'); setSelectedYear(null); setSelectedClass(null) }}
-                  className="hover:underline"
-                  style={{ color: 'var(--amber-dark)' }}
-                >
-                  {selectedYear}
-                </button>
-              )}
-              {selectedClass && (
-                <>
-                  <ChevronRight size={12} />
-                  <span style={{ color: 'var(--ink2)' }}>Clasa {selectedClass}</span>
-                </>
-              )}
-            </div>
-          )}
-
-          {/* Panel area */}
-          <div className="overflow-hidden relative">
-            {layerLoading ? (
-              <div className="flex justify-center py-12">
-                <Loader2 size={22} className="animate-spin" style={{ color: 'var(--ink3)' }} />
+          {/* Sunburst */}
+          <div className="rounded-2xl overflow-hidden" style={{ border: '1px solid var(--border)', background: 'var(--white)' }}>
+            {students.length === 0 ? (
+              <div className="flex items-center justify-center py-20 text-sm" style={{ color: 'var(--ink3)' }}>
+                Niciun coleg găsit.
               </div>
             ) : (
-              <AnimatePresence mode="wait" custom={direction}>
-                {layer === 'years' && (
-                  <motion.div
-                    key="years"
-                    custom={direction}
-                    variants={variants}
-                    initial="enter"
-                    animate="center"
-                    exit="exit"
-                    transition={transition}
-                  >
-                    <p className="mb-3 text-sm" style={{ color: 'var(--ink3)' }}>Selectează promoția:</p>
-                    <div className="flex flex-wrap gap-2">
-                      {years.map(({ year, count }) => (
-                        <button
-                          key={year}
-                          type="button"
-                          onClick={() => selectYear(year)}
-                          className="flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium transition-colors"
-                          style={{ border: '1px solid var(--border)', background: 'var(--white)', color: 'var(--ink2)' }}
-                          onMouseEnter={e => {
-                            const el = e.currentTarget
-                            el.style.background = 'var(--amber-soft)'
-                            el.style.color = 'var(--amber-dark)'
-                            el.style.borderColor = 'var(--amber-dark)'
-                          }}
-                          onMouseLeave={e => {
-                            const el = e.currentTarget
-                            el.style.background = 'var(--white)'
-                            el.style.color = 'var(--ink2)'
-                            el.style.borderColor = 'var(--border)'
-                          }}
-                        >
-                          {year}
-                          <span className="rounded-full px-1.5 py-0.5 text-xs" style={{ background: 'var(--cream2)', color: 'var(--ink3)' }}>
-                            {count}
-                          </span>
-                        </button>
-                      ))}
-                      {years.length === 0 && (
-                        <p className="text-sm" style={{ color: 'var(--ink3)' }}>Nicio promoție găsită.</p>
-                      )}
-                    </div>
-                  </motion.div>
-                )}
+              <svg viewBox="0 0 340 340" width="100%" style={{ display: 'block' }}>
+                {tree.map(yn => {
+                  const col = COLORS[yn.colorIdx]
+                  const yearDimmed = selectedYear !== null && selectedYear !== yn.year
+                  const yearOpacity = yearDimmed ? 0.2 : 1
 
-                {layer === 'classes' && (
-                  <motion.div
-                    key="classes"
-                    custom={direction}
-                    variants={variants}
-                    initial="enter"
-                    animate="center"
-                    exit="exit"
-                    transition={transition}
-                  >
-                    <p className="mb-3 text-sm" style={{ color: 'var(--ink3)' }}>Selectează clasa:</p>
-                    <div className="grid grid-cols-3 gap-2">
-                      {classes.map(({ letter, count }) => (
-                        <button
-                          key={letter}
-                          type="button"
-                          onClick={() => selectClass(letter)}
-                          className="rounded-xl py-4 text-center transition-colors"
-                          style={{ border: '1px solid var(--border)', background: 'var(--white)' }}
-                          onMouseEnter={e => {
-                            const el = e.currentTarget
-                            el.style.background = 'var(--amber-soft)'
-                            el.style.borderColor = 'var(--amber-dark)'
-                          }}
-                          onMouseLeave={e => {
-                            const el = e.currentTarget
-                            el.style.background = 'var(--white)'
-                            el.style.borderColor = 'var(--border)'
-                          }}
-                        >
-                          <div className="text-2xl font-display" style={{ color: 'var(--ink)' }}>{letter}</div>
-                          <div className="mt-0.5 text-xs" style={{ color: 'var(--ink3)' }}>clasa · {count}</div>
-                        </button>
-                      ))}
-                      {classes.length === 0 && (
-                        <p className="col-span-3 text-sm" style={{ color: 'var(--ink3)' }}>Nicio clasă găsită.</p>
-                      )}
-                    </div>
-                  </motion.div>
-                )}
+                  return (
+                    <g key={yn.year}>
+                      {/* Year arc */}
+                      <path
+                        d={arcPath(R_CENTER, R_YEAR, yn.startAngle, yn.endAngle)}
+                        fill={col.fill}
+                        style={{ opacity: yearOpacity, cursor: 'pointer', transition: 'opacity 0.25s' }}
+                        onClick={() => handleYearClick(yn.year)}
+                      />
 
-                {layer === 'classmates' && (
-                  <motion.div
-                    key="classmates"
-                    custom={direction}
-                    variants={variants}
-                    initial="enter"
-                    animate="center"
-                    exit="exit"
-                    transition={transition}
-                  >
-                    <p className="mb-3 text-sm" style={{ color: 'var(--ink3)' }}>Colegi din clasa {selectedClass}:</p>
-                    <div className="space-y-2">
-                      {classmates.map(profile => (
-                        <Link
-                          key={profile.id}
-                          href={`/profil/${profile.username}`}
-                          className="block rounded-xl px-4 py-3 transition-colors"
-                          style={{ border: '1px solid var(--border)', background: 'var(--white)' }}
-                        >
-                          <div className="font-medium text-sm" style={{ color: 'var(--ink)' }}>{profile.name}</div>
-                          <div className="mt-0.5 text-xs" style={{ color: 'var(--ink3)' }}>
-                            Promoția {profile.graduation_year}
-                            {profile.city ? ` · ${profile.city}` : ''}
-                          </div>
-                          {(profile.profession?.length > 0 || profile.domain?.length > 0) && (
-                            <div className="mt-1.5 flex flex-wrap gap-1">
-                              {profile.profession?.slice(0, 2).map(p => (
-                                <span key={p} className="rounded-full px-2 py-0.5 text-xs" style={{ background: 'var(--amber-soft)', color: 'var(--amber-dark)' }}>{p}</span>
-                              ))}
-                              {profile.domain?.slice(0, 2).map(d => (
-                                <span key={d} className="rounded-full px-2 py-0.5 text-xs" style={{ background: 'var(--teal-soft)', color: 'var(--teal-dark)' }}>{d}</span>
-                              ))}
-                            </div>
-                          )}
-                        </Link>
-                      ))}
-                      {classmates.length === 0 && (
-                        <p className="text-sm" style={{ color: 'var(--ink3)' }}>Nicio persoană în această clasă.</p>
-                      )}
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                      {/* Year label */}
+                      {(yn.endAngle - yn.startAngle) > 0.22 && (() => {
+                        const p = labelPos(R_CENTER, R_YEAR, yn.midAngle)
+                        return (
+                          <text
+                            x={p.x} y={p.y}
+                            textAnchor="middle" dominantBaseline="middle"
+                            fontSize="10" fontWeight="700" fill="white"
+                            style={{ opacity: yearOpacity, pointerEvents: 'none', userSelect: 'none', transition: 'opacity 0.25s' }}
+                          >
+                            {yn.year}
+                          </text>
+                        )
+                      })()}
+
+                      {/* Class arcs */}
+                      {yn.classes.map(cn => {
+                        const isActive = selectedYear === yn.year && selectedClass === cn.letter
+                        const classDimmed = selectedYear === yn.year && selectedClass !== null && !isActive
+                        const classOpacity = yearDimmed ? 0.2 : classDimmed ? 0.3 : 1
+
+                        return (
+                          <g key={cn.letter}>
+                            <path
+                              d={arcPath(R_YEAR, R_CLASS, cn.startAngle, cn.endAngle)}
+                              fill={isActive ? col.dark : col.light}
+                              stroke={col.fill}
+                              strokeWidth={isActive ? 1.5 : 0.5}
+                              style={{ opacity: classOpacity, cursor: 'pointer', transition: 'opacity 0.25s, fill 0.15s' }}
+                              onClick={() => handleClassClick(yn.year, cn.letter)}
+                            />
+                            {(cn.endAngle - cn.startAngle) > 0.17 && (() => {
+                              const p = labelPos(R_YEAR, R_CLASS, cn.midAngle)
+                              return (
+                                <text
+                                  x={p.x} y={p.y}
+                                  textAnchor="middle" dominantBaseline="middle"
+                                  fontSize="9" fontWeight="600"
+                                  fill={isActive ? 'white' : col.dark}
+                                  style={{ opacity: classOpacity, pointerEvents: 'none', userSelect: 'none', transition: 'opacity 0.25s' }}
+                                >
+                                  {cn.letter}
+                                </text>
+                              )
+                            })()}
+                          </g>
+                        )
+                      })}
+                    </g>
+                  )
+                })}
+
+                {/* Centre circle */}
+                <circle
+                  cx={CX} cy={CY} r={R_CENTER}
+                  fill="white" stroke="#e5e7eb" strokeWidth="1"
+                  style={{ cursor: selectedYear ? 'pointer' : 'default' }}
+                  onClick={() => { setSelectedYear(null); setSelectedClass(null) }}
+                />
+                <text x={CX} y={CY - 7} textAnchor="middle" dominantBaseline="middle" fontSize="13" fontWeight="700" fill="#1f2937" style={{ pointerEvents: 'none', userSelect: 'none' }}>
+                  {students.length}
+                </text>
+                <text x={CX} y={CY + 8} textAnchor="middle" dominantBaseline="middle" fontSize="8.5" fill="#9ca3af" style={{ pointerEvents: 'none', userSelect: 'none' }}>
+                  colegi
+                </text>
+              </svg>
             )}
           </div>
+
+          {/* Hint */}
+          {!selectedYear && students.length > 0 && (
+            <p className="text-center text-xs" style={{ color: 'var(--ink3)' }}>
+              Apasă pe o promoție · apoi pe o clasă
+            </p>
+          )}
+
+          {/* Info panel */}
+          <AnimatePresence mode="wait">
+            {selectedClassNode && (
+              <motion.div
+                key={`class-${selectedYear}-${selectedClass}`}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 10 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                className="space-y-2"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-semibold" style={{ color: 'var(--ink)' }}>
+                    Clasa {selectedClass} · Promoția {selectedYear}
+                  </span>
+                  <span className="rounded-full px-2 py-0.5 text-xs" style={{ background: 'var(--cream2)', color: 'var(--ink3)' }}>
+                    {selectedClassNode.students.length}
+                  </span>
+                </div>
+                {selectedClassNode.students.map(s => (
+                  <Link
+                    key={s.id}
+                    href={`/profil/${s.username}`}
+                    className="block rounded-xl px-4 py-3"
+                    style={{ border: '1px solid var(--border)', background: 'var(--white)' }}
+                  >
+                    <div className="text-sm font-medium" style={{ color: 'var(--ink)' }}>{s.name}</div>
+                    {s.city && <div className="mt-0.5 text-xs" style={{ color: 'var(--ink3)' }}>{s.city}</div>}
+                    {(s.profession?.length > 0 || s.domain?.length > 0) && (
+                      <div className="mt-1.5 flex flex-wrap gap-1">
+                        {s.profession?.slice(0, 2).map(p => (
+                          <span key={p} className="rounded-full px-2 py-0.5 text-xs" style={{ background: 'var(--amber-soft)', color: 'var(--amber-dark)' }}>{p}</span>
+                        ))}
+                        {s.domain?.slice(0, 2).map(d => (
+                          <span key={d} className="rounded-full px-2 py-0.5 text-xs" style={{ background: 'var(--teal-soft)', color: 'var(--teal-dark)' }}>{d}</span>
+                        ))}
+                      </div>
+                    )}
+                  </Link>
+                ))}
+              </motion.div>
+            )}
+
+            {selectedYearNode && !selectedClassNode && (
+              <motion.div
+                key={`year-${selectedYear}`}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 10 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                className="space-y-2"
+              >
+                <div className="text-sm font-semibold" style={{ color: 'var(--ink)' }}>
+                  Promoția {selectedYear} &middot; {selectedYearNode.classes.reduce((s, c) => s + c.students.length, 0)} colegi
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {selectedYearNode.classes.map(c => (
+                    <button
+                      key={c.letter}
+                      type="button"
+                      onClick={() => handleClassClick(selectedYear!, c.letter)}
+                      className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors"
+                      style={{ border: '1px solid var(--border)', background: 'var(--white)', color: 'var(--ink2)' }}
+                    >
+                      Clasa {c.letter}
+                      <span className="rounded-full px-1.5 py-0.5 text-xs" style={{ background: 'var(--cream2)', color: 'var(--ink3)' }}>
+                        {c.students.length}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
         </div>
         <BottomNav />
       </main>
