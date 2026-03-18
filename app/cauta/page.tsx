@@ -15,7 +15,7 @@ import type { UserMarker } from '@/components/MapView'
 import {
   Loader2, Search, Briefcase, Layers, Building2,
   GraduationCap, Users, SlidersHorizontal, List, MapPin, User,
-  Check, UsersRound,
+  Check, UsersRound, Network, ChevronRight,
 } from 'lucide-react'
 import { SchoolGate } from '@/components/SchoolGate'
 
@@ -260,6 +260,18 @@ export default function CautaPage() {
             Harta
           </button>
         </div>
+
+        {/* Tree chart link */}
+        <button
+          type="button"
+          onClick={() => router.push('/cauta/tree_chart')}
+          className="flex w-full items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors"
+          style={{ border: '1px solid var(--border)', background: 'var(--white)', color: 'var(--ink2)' }}
+        >
+          <Network size={15} style={{ color: 'var(--ink3)' }} />
+          Arbore de promoție
+          <ChevronRight size={14} style={{ color: 'var(--ink3)' }} />
+        </button>
 
         {/* Filters */}
         <div className="rounded-xl" style={{ border: '1px solid var(--border)', background: 'var(--white)', boxShadow: 'var(--shadow-s)' }}>
