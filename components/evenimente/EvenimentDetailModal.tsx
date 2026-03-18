@@ -216,7 +216,7 @@ export function EvenimentDetailModal({
         </div>
 
         {/* Content */}
-        <div className="px-4 py-4 space-y-3">
+        <div className="px-4 pt-4 pb-24 sm:pb-4 space-y-3">
           <h2 className="font-bold text-base leading-tight" style={{ color: 'var(--ink)' }}>
             {event.title}
           </h2>

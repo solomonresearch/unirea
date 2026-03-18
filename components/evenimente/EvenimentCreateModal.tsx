@@ -146,7 +146,7 @@ export function EvenimentCreateModal({ open, onClose, initialEvent, onCreated, o
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="px-4 py-4 space-y-3">
+        <form onSubmit={handleSubmit} className="px-4 pt-4 pb-24 sm:pb-4 space-y-3">
           {/* Image picker */}
           <div>
             <input
