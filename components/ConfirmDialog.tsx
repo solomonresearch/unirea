@@ -28,7 +28,7 @@ export function ConfirmDialog({
             position: 'fixed',
             inset: 0,
             background: 'rgba(0,0,0,0.45)',
-            zIndex: 9000,
+            zIndex: 10000,
           }}
         />
         <DialogPrimitive.Content
@@ -37,7 +37,7 @@ export function ConfirmDialog({
             top: '50%',
             left: '50%',
             transform: 'translate(-50%, -50%)',
-            zIndex: 9001,
+            zIndex: 10001,
             background: 'var(--white)',
             borderRadius: 18,
             padding: '28px 22px 22px',

@@ -147,7 +147,7 @@ export function EvenimentDetailModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div className="fixed inset-0 z-[10000] bg-black/50 flex items-end sm:items-center justify-center p-0 sm:p-4">
       <div
         className="w-full sm:max-w-sm rounded-t-2xl sm:rounded-xl overflow-y-auto"
         style={{
