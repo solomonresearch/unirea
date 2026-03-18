@@ -736,7 +736,7 @@ export default function SetariPage() {
       {/* Settings overlay */}
       {settingsOpen && (
         <div
-          className="fixed inset-0 z-[100] flex flex-col"
+          className="fixed inset-0 z-[10000] flex flex-col"
           style={{ background: 'var(--cream2)' }}
         >
           {/* Settings header */}
@@ -965,7 +965,7 @@ export default function SetariPage() {
               {/* Delete account modal */}
               {deleteModalOpen && (
                 <div
-                  className="fixed inset-0 z-[250] flex items-center justify-center px-4"
+                  className="fixed inset-0 z-[10001] flex items-center justify-center px-4"
                   style={{ background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(4px)' }}
                   onClick={e => { if (e.target === e.currentTarget) setDeleteModalOpen(false) }}
                 >

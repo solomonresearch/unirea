@@ -91,6 +91,7 @@ export default function CautaPage() {
       .eq('highschool', highschool)
       .eq('onboarding_completed', true)
       .neq('id', currentUserId)
+      .is('archived_at', null)
 
     if (name) {
       query = query.ilike('name', `%${name}%`)

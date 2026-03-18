@@ -29,7 +29,7 @@ export function InvitePrompt({ username, highschool }: InvitePromptProps) {
   if (!visible) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center">
+    <div className="fixed inset-0 z-[10000] flex items-end justify-center pb-[68px]">
       <div className="absolute inset-0 bg-black/40" onClick={dismiss} />
       <div
         className="relative w-full max-w-sm rounded-t-2xl px-6 py-6 space-y-4 animate-in slide-in-from-bottom"
