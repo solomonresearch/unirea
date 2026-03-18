@@ -134,7 +134,7 @@ export function UploadModal({ currentScope, onClose, onUploaded }: UploadModalPr
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-6">
+    <div className="fixed inset-0 z-[10000] bg-black/50 flex items-center justify-center p-4 overflow-y-auto">
       <input
         ref={fileInputRef}
         type="file"
@@ -142,7 +142,7 @@ export function UploadModal({ currentScope, onClose, onUploaded }: UploadModalPr
         onChange={handleFileSelect}
         className="hidden"
       />
-      <div className="w-full max-w-sm rounded-xl p-6" style={{ background: 'var(--white)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-m)' }}>
+      <div className="w-full max-w-sm rounded-xl p-6 overflow-y-auto max-h-[calc(100dvh-2rem)]" style={{ background: 'var(--white)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-m)' }}>
         <div className="flex items-center justify-between mb-6">
           <h2 className="font-display text-xl" style={{ color: 'var(--ink)' }}>Amintire nouă</h2>
           <button onClick={onClose} className="p-1" style={{ color: 'var(--ink3)' }}>
