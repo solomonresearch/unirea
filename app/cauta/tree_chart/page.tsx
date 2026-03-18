@@ -217,7 +217,7 @@ export default function TreeChartPage() {
               <ArrowLeft size={16} />
               Înapoi
             </button>
-            <span className="font-display text-lg" style={{ color: 'var(--ink)' }}>Arbore de promoție</span>
+            <span className="font-display text-lg" style={{ color: 'var(--ink)' }}>Diagramă radială de promoție</span>
           </div>
 
           {/* Sunburst */}

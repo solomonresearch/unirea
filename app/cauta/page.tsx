@@ -17,6 +17,7 @@ import {
   GraduationCap, Users, SlidersHorizontal, List, MapPin, User,
   Check, UsersRound, Network, ChevronRight,
 } from 'lucide-react'
+import { getInitials } from '@/lib/utils'
 import { SchoolGate } from '@/components/SchoolGate'
 
 const MapView = dynamic(() => import('@/components/MapView'), { ssr: false })
@@ -54,6 +55,9 @@ export default function CautaPage() {
   const [filtersOpen, setFiltersOpen] = useState(true)
   const [viewMode, setViewMode] = useState<ViewMode>('list')
 
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
+  const [userName, setUserName] = useState('')
+
   const [results, setResults] = useState<ProfileResult[]>([])
   const [searching, setSearching] = useState(false)
   const [selectedPeople, setSelectedPeople] = useState<Set<string>>(new Set())
@@ -67,7 +71,7 @@ export default function CautaPage() {
 
       const { data: profile } = await getSupabase()
         .from('profiles')
-        .select('id, highschool')
+        .select('id, highschool, name, avatar_url')
         .eq('id', user.id)
         .single()
 
@@ -75,6 +79,8 @@ export default function CautaPage() {
 
       setCurrentUserId(profile.id)
       setHighschool(profile.highschool)
+      setAvatarUrl(profile.avatar_url)
+      setUserName(profile.name ?? '')
       setLoading(false)
     }
     init()
@@ -231,6 +237,17 @@ export default function CautaPage() {
         <div className="flex items-center gap-2">
           <Logo size={28} />
           <span className="font-display text-xl" style={{ color: 'var(--ink)' }}>Cauta</span>
+          <div className="ml-auto">
+            <Link href="/setari" className="flex-shrink-0 w-9 h-9 rounded-full overflow-hidden block" style={{ border: '2px solid var(--border)' }}>
+              {avatarUrl ? (
+                <img src={avatarUrl} alt={userName} className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-xs font-bold" style={{ background: 'var(--cream2)', color: 'var(--ink2)' }}>
+                  {getInitials(userName)}
+                </div>
+              )}
+            </Link>
+          </div>
         </div>
 
         {/* View toggle */}
@@ -269,7 +286,7 @@ export default function CautaPage() {
           style={{ border: '1px solid var(--border)', background: 'var(--white)', color: 'var(--ink2)' }}
         >
           <Network size={15} style={{ color: 'var(--ink3)' }} />
-          Arbore de promoție
+          Diagramă radială de promoție
           <ChevronRight size={14} style={{ color: 'var(--ink3)' }} />
         </button>
 
