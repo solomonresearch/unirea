@@ -114,9 +114,9 @@ export default function CaruselPage() {
       .order('created_at', { ascending: false })
 
     if (dbScope === 'school') {
-      query = query.eq('highschool', profile.highschool).in('scope', ['school', 'promotion', 'class'])
+      query = query.eq('highschool', profile.highschool).eq('scope', 'school')
     } else if (dbScope === 'promotion') {
-      query = query.eq('highschool', profile.highschool).eq('graduation_year', profile.graduation_year).in('scope', ['promotion', 'class'])
+      query = query.eq('highschool', profile.highschool).eq('graduation_year', profile.graduation_year).eq('scope', 'promotion')
     } else {
       query = query.eq('highschool', profile.highschool).eq('graduation_year', profile.graduation_year).eq('class', profile.class).eq('scope', 'class')
     }
