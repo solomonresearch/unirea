@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { getSupabase } from '@/lib/supabase'
-import { Loader2, Search } from 'lucide-react'
+import { Loader2, Search, X } from 'lucide-react'
 import { Logo } from '@/components/Logo'
 import { BottomNav } from '@/components/BottomNav'
 import { NotificationBell } from '@/components/NotificationBell'
@@ -92,6 +92,11 @@ export default function CaruselPage() {
   const [userAvatar, setUserAvatar] = useState<string | null>(null)
   const [userName, setUserName] = useState('')
   const [userHighschool, setUserHighschool] = useState('')
+  const [likersModal, setLikersModal] = useState<{
+    postId: string
+    loading: boolean
+    likers: { name: string; username: string; avatar_url: string | null }[]
+  } | null>(null)
 
   const fetchPosts = useCallback(async (s: Scope) => {
     const supabase = getSupabase()
@@ -267,6 +272,16 @@ export default function CaruselPage() {
     setPosts(prev => prev.map(p =>
       p.id === postId ? { ...p, comments: p.comments.filter(c => c.id !== commentId) } : p
     ))
+  }
+
+  async function showLikers(postId: string) {
+    setLikersModal({ postId, loading: true, likers: [] })
+    const { data } = await getSupabase()
+      .from('carusel_likes')
+      .select('profiles(name, username, avatar_url)')
+      .eq('post_id', postId)
+    const likers = (data ?? []).map((r: any) => r.profiles as { name: string; username: string; avatar_url: string | null })
+    setLikersModal(prev => prev ? { ...prev, loading: false, likers } : null)
   }
 
   const top8 = useMemo(
@@ -467,6 +482,7 @@ export default function CaruselPage() {
                 top8Ids={top8Ids}
                 top8Ranks={top8Ranks}
                 onLike={toggleLike}
+                onShowLikers={showLikers}
                 onDelete={deletePost}
                 onImageClick={p => setSelectedPostId(p.id)}
               />
@@ -498,12 +514,77 @@ export default function CaruselPage() {
               isAdmin={isAdmin}
               onClose={() => setSelectedPostId(null)}
               onLike={() => toggleLike(selectedPost.id)}
+              onShowLikers={() => showLikers(selectedPost.id)}
               onDelete={() => deletePost(selectedPost.id)}
               onCommentAdded={c => handleCommentAdded(selectedPost.id, c)}
               onCommentDeleted={cId => handleCommentDeleted(selectedPost.id, cId)}
             />
           ) : null
         })()}
+
+        {/* Likers modal */}
+        {likersModal && (
+          <div
+            className="fixed inset-0 z-[70] bg-black/50 flex items-center justify-center p-4"
+            onClick={() => setLikersModal(null)}
+          >
+            <div
+              className="w-full max-w-sm rounded-xl overflow-hidden"
+              style={{ background: 'var(--white)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-m)' }}
+              onClick={e => e.stopPropagation()}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 16px 12px' }}>
+                <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--ink)' }}>
+                  Aprecieri {!likersModal.loading && `(${likersModal.likers.length})`}
+                </span>
+                <button onClick={() => setLikersModal(null)} style={{ color: 'var(--ink3)', display: 'flex' }}>
+                  <X size={18} />
+                </button>
+              </div>
+              <div style={{ maxHeight: '256px', overflowY: 'auto', paddingBottom: '8px' }}>
+                {likersModal.loading ? (
+                  <div style={{ display: 'flex', justifyContent: 'center', padding: '24px 0' }}>
+                    <Loader2 className="h-5 w-5 animate-spin" style={{ color: 'var(--ink3)' }} />
+                  </div>
+                ) : likersModal.likers.length === 0 ? (
+                  <p style={{ textAlign: 'center', padding: '24px 0', fontFamily: "'Space Mono', monospace", fontSize: '11px', color: 'var(--ink3)' }}>
+                    Niciun like încă
+                  </p>
+                ) : (
+                  likersModal.likers.map((liker, i) => (
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '8px 16px' }}>
+                      {liker.avatar_url ? (
+                        <img src={liker.avatar_url} alt={liker.name} style={{ width: '32px', height: '32px', borderRadius: '9px', objectFit: 'cover', flexShrink: 0 }} />
+                      ) : (
+                        <div
+                          style={{
+                            width: '32px',
+                            height: '32px',
+                            borderRadius: '9px',
+                            background: 'var(--amber-soft)',
+                            color: 'var(--amber-dark)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            flexShrink: 0,
+                          }}
+                        >
+                          {getInitials(liker.name)}
+                        </div>
+                      )}
+                      <div>
+                        <p style={{ fontSize: '13px', fontWeight: 600, color: 'var(--ink)' }}>{liker.name}</p>
+                        <p style={{ fontFamily: "'Space Mono', monospace", fontSize: '11px', color: 'var(--ink3)' }}>@{liker.username}</p>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Upload modal */}
         {showUpload && (

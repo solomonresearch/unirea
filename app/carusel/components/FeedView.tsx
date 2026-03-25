@@ -15,11 +15,12 @@ interface FeedViewProps {
   top8Ids: Set<string>
   top8Ranks: Map<string, number>
   onLike: (postId: string) => void
+  onShowLikers?: (postId: string) => void
   onDelete: (postId: string) => void
   onImageClick: (post: CaruselPost) => void
 }
 
-export function FeedView({ posts, userId, isAdmin, top8Ids, top8Ranks, onLike, onDelete, onImageClick }: FeedViewProps) {
+export function FeedView({ posts, userId, isAdmin, top8Ids, top8Ranks, onLike, onShowLikers, onDelete, onImageClick }: FeedViewProps) {
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null)
 
   if (posts.length === 0) {
@@ -148,26 +149,47 @@ export function FeedView({ posts, userId, isAdmin, top8Ids, top8Ranks, onLike, o
                 gap: '6px',
               }}
             >
-              <button
-                onClick={() => onLike(post.id)}
+              <div
                 style={{
                   display: 'flex',
-                  alignItems: 'center',
-                  gap: '4px',
                   border: '1px solid',
                   borderColor: post.liked ? '#FBCFCF' : 'var(--border)',
                   background: post.liked ? '#FEF2F2' : 'var(--cream2)',
                   borderRadius: '8px',
-                  padding: '5px 10px',
-                  fontFamily: "'Space Mono', monospace",
-                  fontSize: '11px',
-                  color: post.liked ? '#E05252' : 'var(--ink2)',
-                  cursor: 'pointer',
+                  overflow: 'hidden',
                 }}
               >
-                <Heart size={13} fill={post.liked ? '#E05252' : 'none'} />
-                {post.likes}
-              </button>
+                <button
+                  onClick={() => onLike(post.id)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    padding: '5px 8px',
+                    borderRight: '1px solid',
+                    borderColor: post.liked ? '#FBCFCF' : 'var(--border)',
+                    background: 'transparent',
+                    color: post.liked ? '#E05252' : 'var(--ink2)',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <Heart size={13} fill={post.liked ? '#E05252' : 'none'} />
+                </button>
+                <button
+                  onClick={() => onShowLikers?.(post.id)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    padding: '5px 8px',
+                    fontFamily: "'Space Mono', monospace",
+                    fontSize: '11px',
+                    background: 'transparent',
+                    color: post.liked ? '#E05252' : 'var(--ink2)',
+                    cursor: 'pointer',
+                  }}
+                >
+                  {post.likes}
+                </button>
+              </div>
 
               <button
                 onClick={() => onImageClick(post)}

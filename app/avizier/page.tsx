@@ -35,6 +35,8 @@ interface Comment {
   profiles: { name: string; username: string }
 }
 
+type VoterProfile = { name: string; username: string; avatar_url: string | null }
+
 interface Post {
   id: string
   content: string
@@ -185,6 +187,13 @@ export default function AvizierPage() {
   const [editingEvent, setEditingEvent] = useState<EvenimentDetail | null>(null)
   const [highlightPostId, setHighlightPostId] = useState<string | null>(null)
   const highlightScrolled = useRef(false)
+  const [votersModal, setVotersModal] = useState<{
+    postId: string
+    tab: 1 | -1
+    loading: boolean
+    upvoters: VoterProfile[]
+    downvoters: VoterProfile[]
+  } | null>(null)
   const { track, trackEngagement } = useTrack()
 
   useEffect(() => {
@@ -485,6 +494,18 @@ export default function AvizierPage() {
     }
 
     await loadPosts(profile, scope)
+  }
+
+  async function openVotersModal(postId: string) {
+    setVotersModal({ postId, tab: 1, loading: true, upvoters: [], downvoters: [] })
+    const { data } = await getSupabase()
+      .from('avizier_post_votes')
+      .select('vote, profiles(name, username, avatar_url)')
+      .eq('post_id', postId)
+    const rows = (data ?? []) as any[]
+    const upvoters: VoterProfile[] = rows.filter(r => r.vote === 1).map(r => r.profiles as VoterProfile)
+    const downvoters: VoterProfile[] = rows.filter(r => r.vote === -1).map(r => r.profiles as VoterProfile)
+    setVotersModal(prev => prev ? { ...prev, loading: false, upvoters, downvoters } : null)
   }
 
   async function handleComment(postId: string) {
@@ -939,14 +960,16 @@ export default function AvizierPage() {
                         >
                           <ChevronUp size={18} strokeWidth={post.user_vote === 1 ? 3 : 2} />
                         </button>
-                        <span
+                        <button
+                          type="button"
+                          onClick={() => openVotersModal(post.id)}
                           className="text-xxs font-semibold min-w-[20px] text-center"
                           style={{
                             color: score > 0 ? 'var(--teal)' : score < 0 ? 'var(--rose)' : 'var(--ink3)',
                           }}
                         >
                           {score}
-                        </span>
+                        </button>
                         <button
                           type="button"
                           onClick={() => handleVote(post.id, -1)}
@@ -1206,6 +1229,81 @@ export default function AvizierPage() {
           setEditingEvent(null)
         }}
       />
+
+      {/* Voters modal */}
+      {votersModal && (
+        <div
+          className="fixed inset-0 z-[70] bg-black/50 flex items-center justify-center p-4"
+          onClick={() => setVotersModal(null)}
+        >
+          <div
+            className="w-full max-w-sm rounded-xl overflow-hidden"
+            style={{ background: 'var(--white)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-m)' }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between px-4 pt-4 pb-2">
+              <span className="text-sm font-semibold" style={{ color: 'var(--ink)' }}>Voturi</span>
+              <button type="button" onClick={() => setVotersModal(null)} style={{ color: 'var(--ink3)' }}>
+                <Plus size={18} style={{ transform: 'rotate(45deg)' }} />
+              </button>
+            </div>
+            <div className="flex border-b" style={{ borderColor: 'var(--border)' }}>
+              <button
+                type="button"
+                className="flex-1 py-2 text-xxs font-semibold flex items-center justify-center gap-1"
+                style={{
+                  color: votersModal.tab === 1 ? 'var(--teal)' : 'var(--ink3)',
+                  borderBottom: votersModal.tab === 1 ? '2px solid var(--teal)' : '2px solid transparent',
+                }}
+                onClick={() => setVotersModal(prev => prev ? { ...prev, tab: 1 } : null)}
+              >
+                <ChevronUp size={14} /> Aprecieri ({votersModal.upvoters.length})
+              </button>
+              <button
+                type="button"
+                className="flex-1 py-2 text-xxs font-semibold flex items-center justify-center gap-1"
+                style={{
+                  color: votersModal.tab === -1 ? 'var(--rose)' : 'var(--ink3)',
+                  borderBottom: votersModal.tab === -1 ? '2px solid var(--rose)' : '2px solid transparent',
+                }}
+                onClick={() => setVotersModal(prev => prev ? { ...prev, tab: -1 } : null)}
+              >
+                <ChevronDown size={14} /> Contra ({votersModal.downvoters.length})
+              </button>
+            </div>
+            <div className="max-h-64 overflow-y-auto py-2">
+              {votersModal.loading ? (
+                <div className="flex justify-center py-6">
+                  <Loader2 size={18} className="animate-spin" style={{ color: 'var(--ink3)' }} />
+                </div>
+              ) : (() => {
+                const list = votersModal.tab === 1 ? votersModal.upvoters : votersModal.downvoters
+                if (list.length === 0) return (
+                  <p className="text-center text-xxs py-6" style={{ color: 'var(--ink3)' }}>Niciun vot</p>
+                )
+                return list.map((v, i) => (
+                  <div key={i} className="flex items-center gap-3 px-4 py-2">
+                    {v.avatar_url ? (
+                      <img src={v.avatar_url} alt={v.name} className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
+                    ) : (
+                      <div
+                        className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xxs font-bold flex-shrink-0"
+                        style={{ background: avatarColor(v.name) }}
+                      >
+                        {getInitials(v.name)}
+                      </div>
+                    )}
+                    <div>
+                      <p className="text-xs font-semibold" style={{ color: 'var(--ink)' }}>{v.name}</p>
+                      <p className="text-2xs" style={{ color: 'var(--ink3)' }}>@{v.username}</p>
+                    </div>
+                  </div>
+                ))
+              })()}
+            </div>
+          </div>
+        </div>
+      )}
 
       {selectedEvent && profile && (
         <EvenimentDetailModal

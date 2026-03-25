@@ -20,6 +20,7 @@ interface PostModalProps {
   isAdmin: boolean
   onClose: () => void
   onLike: () => void
+  onShowLikers?: () => void
   onDelete: () => void
   onCommentAdded: (comment: CaruselComment) => void
   onCommentDeleted: (commentId: string) => void
@@ -32,6 +33,7 @@ export function PostModal({
   isAdmin,
   onClose,
   onLike,
+  onShowLikers,
   onDelete,
   onCommentAdded,
   onCommentDeleted,
@@ -305,28 +307,50 @@ export function PostModal({
               borderBottom: '1px solid var(--border)',
             }}
           >
-            <motion.button
-              whileTap={{ scale: 0.88 }}
-              onClick={onLike}
+            <div
               style={{
                 display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
                 border: '1px solid',
                 borderColor: post.liked ? '#FBCFCF' : 'var(--border)',
                 background: post.liked ? '#FEF2F2' : 'var(--cream2)',
                 borderRadius: '9px',
-                padding: '7px 13px',
-                fontFamily: "'Space Mono', monospace",
-                fontSize: '12px',
-                fontWeight: 700,
-                color: post.liked ? '#E05252' : 'var(--ink2)',
-                cursor: 'pointer',
+                overflow: 'hidden',
               }}
             >
-              <Heart size={14} fill={post.liked ? '#E05252' : 'none'} />
-              {post.likes}
-            </motion.button>
+              <motion.button
+                whileTap={{ scale: 0.88 }}
+                onClick={onLike}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  padding: '7px 11px',
+                  borderRight: '1px solid',
+                  borderColor: post.liked ? '#FBCFCF' : 'var(--border)',
+                  background: 'transparent',
+                  color: post.liked ? '#E05252' : 'var(--ink2)',
+                  cursor: 'pointer',
+                }}
+              >
+                <Heart size={14} fill={post.liked ? '#E05252' : 'none'} />
+              </motion.button>
+              <motion.button
+                whileTap={{ scale: 0.88 }}
+                onClick={() => onShowLikers?.()}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  padding: '7px 11px',
+                  fontFamily: "'Space Mono', monospace",
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  background: 'transparent',
+                  color: post.liked ? '#E05252' : 'var(--ink2)',
+                  cursor: 'pointer',
+                }}
+              >
+                {post.likes}
+              </motion.button>
+            </div>
 
             <div
               style={{
