@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('highschool, graduation_year, class')
+    .select('highschool, graduation_year, class, name, avatar_url')
     .eq('id', user.id)
     .single()
 
@@ -163,13 +163,17 @@ export async function POST(request: NextRequest) {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
+  await supabase
+    .from('eveniment_participanti')
+    .insert({ eveniment_id: created.id, user_id: user.id })
+
   return NextResponse.json({
     event: {
       ...created,
       image_url: created.image_storage_path ? publicImageUrl(created.image_storage_path) : null,
-      participant_count: 0,
-      attending: false,
-      top_participants: [],
+      participant_count: 1,
+      attending: true,
+      top_participants: [{ id: user.id, name: profile.name, avatar_url: profile.avatar_url }],
     }
   }, { status: 201 })
 }
