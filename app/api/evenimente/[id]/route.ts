@@ -29,10 +29,18 @@ export async function GET(
 
   if (error || !event) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
-  const { data: participantsData } = await supabase
-    .from('eveniment_participanti')
-    .select('user_id, profiles!user_id(id, name, avatar_url)')
-    .eq('eveniment_id', params.id)
+  const [{ data: participantsData }, { data: commentsData }] = await Promise.all([
+    supabase
+      .from('eveniment_participanti')
+      .select('user_id, profiles!user_id(id, name, avatar_url)')
+      .eq('eveniment_id', params.id),
+    supabase
+      .from('eveniment_comentarii')
+      .select('id, content, created_at, user_id, profiles!user_id(name, username, avatar_url)')
+      .eq('eveniment_id', params.id)
+      .is('deleted_at', null)
+      .order('created_at', { ascending: true }),
+  ])
 
   const parts = participantsData || []
   const attending = parts.some(p => p.user_id === user.id)
@@ -40,6 +48,13 @@ export async function GET(
     id: p.profiles.id,
     name: p.profiles.name,
     avatar_url: p.profiles.avatar_url,
+  }))
+  const comments = (commentsData || []).map((c: any) => ({
+    id: c.id,
+    content: c.content,
+    created_at: c.created_at,
+    user_id: c.user_id,
+    profiles: c.profiles,
   }))
 
   return NextResponse.json({
@@ -50,6 +65,7 @@ export async function GET(
       attending,
       top_participants: participants.slice(0, 3),
       participants,
+      comments,
     }
   })
 }

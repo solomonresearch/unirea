@@ -1,9 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { X, Calendar, MapPin, Pencil, Trash2, Loader2, ExternalLink } from 'lucide-react'
-import { getInitials } from '@/lib/utils'
-import type { EvenimentDetail } from './types'
+import { X, Calendar, MapPin, Pencil, Trash2, Loader2, ExternalLink, Send } from 'lucide-react'
+import { getInitials, relativeTime } from '@/lib/utils'
+import type { EvenimentComment, EvenimentDetail } from './types'
 
 const SCOPE_LABELS: Record<string, string> = {
   class: 'Clasă',
@@ -120,6 +120,9 @@ export function EvenimentDetailModal({
   const [rsvpLoading, setRsvpLoading] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [comments, setComments] = useState<EvenimentComment[]>(event.comments ?? [])
+  const [commentText, setCommentText] = useState('')
+  const [commentSubmitting, setCommentSubmitting] = useState(false)
 
   const isOwner = event.user_id === currentUserId
   const canEdit = isOwner || isAdmin
@@ -134,6 +137,30 @@ export function EvenimentDetailModal({
       onRsvpToggle(json.attending)
     }
     setRsvpLoading(false)
+  }
+
+  async function submitComment() {
+    if (!commentText.trim() || commentSubmitting) return
+    setCommentSubmitting(true)
+    try {
+      const res = await fetch(`/api/evenimente/${event.id}/comment`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: commentText.trim() }),
+      })
+      if (res.ok) {
+        const json = await res.json()
+        setComments(prev => [...prev, json.comment])
+        setCommentText('')
+      }
+    } finally {
+      setCommentSubmitting(false)
+    }
+  }
+
+  async function deleteComment(commentId: string) {
+    const res = await fetch(`/api/evenimente/${event.id}/comment/${commentId}`, { method: 'DELETE' })
+    if (res.ok) setComments(prev => prev.filter(c => c.id !== commentId))
   }
 
   async function handleDelete() {
@@ -326,6 +353,81 @@ export function EvenimentDetailModal({
               'Merg!'
             )}
           </button>
+
+          {/* Comments */}
+          <div>
+            <p className="text-xxs font-bold uppercase tracking-wider mb-2" style={{ color: 'var(--ink3)' }}>
+              Comentarii ({comments.length})
+            </p>
+
+            {comments.length === 0 ? (
+              <p style={{ fontSize: '12px', color: 'var(--ink3)' }}>Niciun comentariu încă.</p>
+            ) : (
+              <div className="space-y-2 mb-3">
+                {comments.map(comment => (
+                  <div key={comment.id} className="flex gap-2 items-start">
+                    <div
+                      className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden"
+                      style={{ background: comment.profiles?.avatar_url ? undefined : avatarColor(comment.profiles?.name ?? '') }}
+                    >
+                      {comment.profiles?.avatar_url ? (
+                        <img src={comment.profiles.avatar_url} alt={comment.profiles.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <span style={{ fontSize: '8px', fontWeight: 700, color: 'white' }}>
+                          {getInitials(comment.profiles?.name ?? '?')}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex-1 rounded-lg px-2.5 py-2" style={{ background: 'var(--cream2)' }}>
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <span className="text-xxs font-semibold" style={{ color: 'var(--ink)' }}>
+                          {comment.profiles?.name}
+                        </span>
+                        <span className="text-2xs" style={{ color: 'var(--ink3)' }}>
+                          {relativeTime(comment.created_at, true)}
+                        </span>
+                        {(comment.user_id === currentUserId || isAdmin) && (
+                          <button
+                            type="button"
+                            onClick={() => deleteComment(comment.id)}
+                            className="ml-auto"
+                            style={{ color: 'var(--ink3)', display: 'flex' }}
+                          >
+                            <Trash2 size={11} />
+                          </button>
+                        )}
+                      </div>
+                      <p className="text-xs leading-relaxed" style={{ color: 'var(--ink2)' }}>
+                        {comment.content}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Comment input */}
+            <div className="flex gap-2 items-center mt-2">
+              <input
+                value={commentText}
+                onChange={e => setCommentText(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && submitComment()}
+                placeholder="Adaugă un comentariu..."
+                maxLength={500}
+                className="flex-1 rounded-sm px-3 py-2 text-xs outline-none"
+                style={{ background: 'var(--cream2)', border: '1.5px solid var(--border)', color: 'var(--ink)', fontFamily: 'inherit' }}
+              />
+              <button
+                type="button"
+                onClick={submitComment}
+                disabled={!commentText.trim() || commentSubmitting}
+                className="w-9 h-9 rounded-sm flex items-center justify-center flex-shrink-0 disabled:opacity-40 transition-opacity"
+                style={{ background: 'var(--ink)', color: 'var(--white)' }}
+              >
+                {commentSubmitting ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 

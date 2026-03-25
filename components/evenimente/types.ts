@@ -22,7 +22,16 @@ export interface Eveniment {
   created_at: string
 }
 
+export interface EvenimentComment {
+  id: string
+  content: string
+  created_at: string
+  user_id: string
+  profiles: { name: string; username: string; avatar_url: string | null }
+}
+
 export interface EvenimentDetail extends Eveniment {
   description: string | null
   participants: EvenimentParticipant[]
+  comments: EvenimentComment[]
 }
