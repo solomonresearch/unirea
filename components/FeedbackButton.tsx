@@ -8,6 +8,7 @@ import { getSupabase } from '@/lib/supabase'
 export function FeedbackButton() {
   const pathname = usePathname()
   const [visible, setVisible] = useState(false)
+  const [modalOpen, setModalOpen] = useState(false)
   const [open, setOpen] = useState(false)
   const [message, setMessage] = useState('')
   const [saving, setSaving] = useState(false)
@@ -21,7 +22,17 @@ export function FeedbackButton() {
     checkAuth()
   }, [])
 
-  if (!visible) return null
+  useEffect(() => {
+    function check() {
+      setModalOpen(document.body.classList.contains('modal-open'))
+    }
+    check()
+    const observer = new MutationObserver(check)
+    observer.observe(document.body, { attributes: true, attributeFilter: ['class'] })
+    return () => observer.disconnect()
+  }, [])
+
+  if (!visible || modalOpen) return null
 
   async function handleSubmit() {
     if (!message.trim()) return

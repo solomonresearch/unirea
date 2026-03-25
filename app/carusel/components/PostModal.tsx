@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   motion,
   AnimatePresence,
@@ -43,6 +43,31 @@ export function PostModal({
   const [zoomed, setZoomed] = useState(false)
   const [panConstraints, setPanConstraints] = useState({ left: 0, right: 0, top: 0, bottom: 0 })
   const [pendingDelete, setPendingDelete] = useState<'post' | string | null>(null)
+  const [keyboardOffset, setKeyboardOffset] = useState(0)
+
+  useEffect(() => {
+    document.body.classList.add('modal-open')
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.classList.remove('modal-open')
+      document.body.style.overflow = ''
+    }
+  }, [])
+
+  useEffect(() => {
+    const vv = window.visualViewport
+    if (!vv) return
+    function update() {
+      const gap = window.innerHeight - vv!.offsetTop - vv!.height
+      setKeyboardOffset(Math.max(0, gap))
+    }
+    vv.addEventListener('resize', update)
+    vv.addEventListener('scroll', update)
+    return () => {
+      vv.removeEventListener('resize', update)
+      vv.removeEventListener('scroll', update)
+    }
+  }, [])
 
   const ZOOM_SCALE = 2.4
   const scale = useMotionValue(1)
@@ -136,7 +161,7 @@ export function PostModal({
         key="sheet"
         className="fixed inset-x-0 z-[60] max-w-sm mx-auto"
         style={{
-          bottom: 68,
+          bottom: 68 + keyboardOffset,
           display: 'flex',
           flexDirection: 'column',
           maxHeight: 'calc(92dvh - 68px)',
