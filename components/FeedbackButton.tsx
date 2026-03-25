@@ -71,11 +71,11 @@ export function FeedbackButton() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="group fixed bottom-20 right-4 z-[140] w-10 h-10 rounded-full flex items-center justify-center transition-transform hover:scale-110"
+        className="group fixed bottom-20 left-4 z-[140] w-10 h-10 rounded-full flex items-center justify-center transition-transform hover:scale-110"
         style={{ background: 'var(--ink)', color: 'var(--white)', boxShadow: '0 4px 12px rgba(0,0,0,0.2)' }}
       >
         <MessageSquare size={18} />
-        <span className="absolute right-full mr-2 whitespace-nowrap rounded px-2 py-1 text-xs font-semibold opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity"
+        <span className="absolute left-full ml-2 whitespace-nowrap rounded px-2 py-1 text-xs font-semibold opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity"
           style={{ background: 'var(--ink)', color: 'var(--white)' }}>
           dă-ne feedback
         </span>
