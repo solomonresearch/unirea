@@ -5,8 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { getSupabase } from '@/lib/supabase'
 import { getInitials } from '@/lib/utils'
 import { BottomNav } from '@/components/BottomNav'
-import { Logo } from '@/components/Logo'
-import { NotificationBell } from '@/components/NotificationBell'
+import { TopBar } from '@/components/TopBar'
 import Link from 'next/link'
 import {
   Loader2, GraduationCap, MapPin, Briefcase, Layers,
@@ -148,37 +147,19 @@ export default function PublicProfilePage() {
   const location = [profile.city, profile.country].filter(Boolean).join(', ')
 
   return (
-    <main className="flex min-h-screen flex-col items-center px-6 py-6 pb-24" style={{ background: 'var(--cream2)' }}>
+    <>
+    <TopBar
+      title="Profil"
+      userAvatar={currentUserAvatar}
+      userName={currentUserName || ''}
+      rightSlot={
+        <button type="button" onClick={() => router.back()} style={{ color: 'var(--ink3)' }}>
+          <ArrowLeft size={20} />
+        </button>
+      }
+    />
+    <main className="flex min-h-screen flex-col items-center px-6 py-4 pb-24" style={{ background: 'var(--cream2)' }}>
       <div className="w-full max-w-sm space-y-3">
-        {/* Header */}
-        <div className="flex items-center gap-2">
-          <button type="button" onClick={() => router.back()} style={{ color: 'var(--ink3)' }}>
-            <ArrowLeft size={20} />
-          </button>
-          <Logo size={28} />
-          <span className="font-display text-xl" style={{ color: 'var(--ink)' }}>Profil</span>
-
-          <div className="flex items-center gap-2 ml-auto">
-            <Link
-              href="/cauta"
-              className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xxs font-semibold"
-              style={{ background: 'var(--white)', border: '1.5px solid var(--border)', color: 'var(--ink3)', boxShadow: 'var(--shadow-s)' }}
-            >
-              <Search size={14} strokeWidth={1.75} />
-              Cauta
-            </Link>
-            <NotificationBell />
-            <Link href="/setari" className="flex-shrink-0 w-9 h-9 rounded-full overflow-hidden" style={{ border: '2px solid var(--border)' }}>
-              {currentUserAvatar ? (
-                <img src={currentUserAvatar} alt={currentUserName} className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-xxs font-bold" style={{ background: 'var(--amber-soft)', color: 'var(--amber)' }}>
-                  {getInitials(currentUserName || '?')}
-                </div>
-              )}
-            </Link>
-          </div>
-        </div>
 
         {/* Profile card */}
         <div
@@ -368,5 +349,6 @@ export default function PublicProfilePage() {
 
       <BottomNav />
     </main>
+    </>
   )
 }

@@ -3,10 +3,9 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Logo } from '@/components/Logo'
+import { TopBar } from '@/components/TopBar'
 import { BottomNav } from '@/components/BottomNav'
 import { AvatarSettingsButton } from '@/components/AvatarSettingsButton'
-import { NotificationBell } from '@/components/NotificationBell'
 import { getSupabase } from '@/lib/supabase'
 import { Loader2, MessageCircle, Plus, Search, X, Users, Archive, ArchiveRestore, ChevronRight, ArrowLeft, Trash2 } from 'lucide-react'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
@@ -544,7 +543,8 @@ export default function MesajePage() {
         else handleDeleteConversation(pendingConfirm.id)
       }}
     />
-    <main className="flex min-h-screen flex-col items-center px-6 py-6 pb-24" style={{ background: 'var(--cream2)' }}>
+    <TopBar title="Mesaje" />
+    <main className="flex min-h-screen flex-col items-center px-6 py-4 pb-24" style={{ background: 'var(--cream2)' }}>
       <div className="w-full max-w-sm space-y-3">
         {showArchived ? (
           <div className="flex items-center gap-2">
@@ -560,10 +560,7 @@ export default function MesajePage() {
           </div>
         ) : (
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Logo size={32} />
-            <span className="font-display text-xl" style={{ color: 'var(--ink)' }}>Mesajele tale</span>
-          </div>
+          <span className="font-display text-xl" style={{ color: 'var(--ink)' }}>Mesajele tale</span>
           <div className="flex items-center gap-1">
             <div className="relative">
             <button
@@ -606,7 +603,6 @@ export default function MesajePage() {
               </>
             )}
             </div>
-            <NotificationBell />
             <AvatarSettingsButton />
           </div>
         </div>
