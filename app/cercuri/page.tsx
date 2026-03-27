@@ -6,8 +6,7 @@ import { BottomNav } from '@/components/BottomNav'
 import { getSupabase } from '@/lib/supabase'
 import { getInitials } from '@/lib/utils'
 import { Loader2, MessageCircle, ChevronRight, Users, X, Calendar, Search, Check, UsersRound } from 'lucide-react'
-import { Logo } from '@/components/Logo'
-import { NotificationBell } from '@/components/NotificationBell'
+import { TopBar } from '@/components/TopBar'
 import Link from 'next/link'
 import { VennCanvas } from '@/components/circles/VennCanvas'
 import { CircleChips } from '@/components/circles/CircleChips'
@@ -216,29 +215,12 @@ export default function CercuriPage() {
   return (
     <SchoolGate>
     <main className="min-h-screen pb-24" style={{ background: 'var(--cream)' }}>
-      {/* Sticky topbar */}
-      <header
-        className="sticky top-0 z-50 px-5 border-b"
-        style={{
-          background: 'var(--cream)',
-          borderColor: 'var(--border)',
-          paddingTop: '8px',
-          paddingBottom: '14px',
-        }}
-      >
-        <div className="max-w-sm mx-auto flex items-center justify-between">
-          <div>
-            <div className="flex items-center gap-2">
-              <Logo size={32} />
-              <span className="font-display text-xl" style={{ color: 'var(--ink)' }}>Cercuri</span>
-            </div>
-            {data?.user_info.highschool && (
-              <p className="text-xxs mt-1 ml-10" style={{ color: 'var(--ink3)' }}>
-                {data.user_info.highschool}
-              </p>
-            )}
-          </div>
-          <div className="flex items-center gap-2">
+      <TopBar
+        title="Cercuri"
+        institutionName={data?.user_info.highschool}
+        userAvatar={userAvatar}
+        userName={userName}
+        rightSlot={
           <Link
             href="/cauta"
             className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xxs font-semibold"
@@ -247,19 +229,8 @@ export default function CercuriPage() {
             <Search size={14} strokeWidth={1.75} />
             Cauta
           </Link>
-          <NotificationBell />
-          <Link href="/setari" className="flex-shrink-0 w-9 h-9 rounded-full overflow-hidden" style={{ border: '2px solid var(--border)' }}>
-            {userAvatar ? (
-              <img src={userAvatar} alt={userName} className="w-full h-full object-cover" />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-xxs font-bold" style={{ background: 'var(--cream2)', color: 'var(--ink2)' }}>
-                {getInitials(userName)}
-              </div>
-            )}
-          </Link>
-          </div>
-        </div>
-      </header>
+        }
+      />
 
       <div className="max-w-sm mx-auto px-4 py-4 space-y-3">
         {/* Venn Canvas */}
