@@ -16,7 +16,7 @@ export const LEVELS = [
   {
     short: 'F',
     label: 'FACULTATE',
-    inst:  'Univ. Alexandru I. Cuza',
+    inst:  'Facultatea ta',
     color: '#2D9B6F',
     soft:  'rgba(45,155,111,0.12)',
     grad:  'linear-gradient(135deg,#2D9B6F,#1A6B4A)',
@@ -25,7 +25,7 @@ export const LEVELS = [
   {
     short: 'M',
     label: 'MASTER',
-    inst:  'Master · UAIC',
+    inst:  'Masterul tău',
     color: '#C94F7A',
     soft:  'rgba(201,79,122,0.12)',
     grad:  'linear-gradient(135deg,#C94F7A,#8B2A50)',
