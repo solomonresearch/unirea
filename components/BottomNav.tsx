@@ -6,6 +6,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { Newspaper, CircleDot, MessageCircle, Bell, Plus, Camera, Send, BarChart2, Calendar } from 'lucide-react'
 import { getSupabase } from '@/lib/supabase'
 import { useTrack } from '@/lib/analytics'
+import { useLevelContext } from '@/contexts/LevelContext'
 
 const LEFT_NAV = [
   { href: '/avizier', label: 'Avizier', icon: Newspaper },
@@ -31,6 +32,7 @@ export function BottomNav() {
   const [fabOpen, setFabOpen] = useState(false)
   const fabRef = useRef<HTMLDivElement>(null)
   const { track } = useTrack()
+  const { level } = useLevelContext()
 
   const loadUnread = useCallback(async () => {
     const supabase = getSupabase()
@@ -238,11 +240,11 @@ export function BottomNav() {
               style={{
                 width: '52px',
                 height: '52px',
-                background: 'var(--ink)',
+                background: level.color,
                 color: 'var(--white)',
                 marginBottom: '2px',
                 transform: fabOpen ? 'rotate(45deg)' : 'rotate(0deg)',
-                transition: 'transform 0.2s ease',
+                transition: 'background 0.4s ease, transform 0.2s ease',
               }}
             >
               <Plus size={22} strokeWidth={2.5} />
