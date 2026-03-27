@@ -1,7 +1,7 @@
 'use client'
 
 import { createContext, useContext, useState, useEffect, useCallback } from 'react'
-import { useRouter, usePathname } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 
 export const LEVELS = [
   {
@@ -51,7 +51,6 @@ const NON_LICEU_ROUTES: Record<number, string> = {
 
 export function LevelProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter()
-  const pathname = usePathname()
   const [levelIndex, setLevelIndexState] = useState(0)
   const [mounted, setMounted] = useState(false)
 
@@ -72,14 +71,11 @@ export function LevelProvider({ children }: { children: React.ReactNode }) {
   const switchLevel = useCallback((i: number) => {
     setLevelIndex(i)
     if (i === 0) {
-      // Stay on current page unless we're on a non-liceu landing
-      if (pathname === '/facultate' || pathname === '/master') {
-        router.push('/avizier')
-      }
+      router.push('/avizier')
     } else {
       router.push(NON_LICEU_ROUTES[i])
     }
-  }, [setLevelIndex, router, pathname])
+  }, [setLevelIndex, router])
 
   const level = LEVELS[mounted ? levelIndex : 0]
 
