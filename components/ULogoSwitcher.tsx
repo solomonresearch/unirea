@@ -6,18 +6,16 @@ import { motion, AnimatePresence, useAnimation } from 'framer-motion'
 import { useRouter } from 'next/navigation'
 import { LEVELS, useLevelContext } from '@/contexts/LevelContext'
 
-const LOGO_CX = 32
-const LOGO_CY = 28
 const ARC_R = 118
 const ANGLES = [18, 48, 76]
 const HOLD_MS = 500
 const CIRCUMFERENCE = 2 * Math.PI * 17 // ≈ 107
 
-function nodeCenter(i: number) {
+function nodeCenter(logoCx: number, logoCy: number, i: number) {
   const rad = ANGLES[i] * (Math.PI / 180)
   return {
-    x: LOGO_CX + ARC_R * Math.cos(rad),
-    y: LOGO_CY + ARC_R * Math.sin(rad),
+    x: logoCx + ARC_R * Math.cos(rad),
+    y: logoCy + ARC_R * Math.sin(rad),
   }
 }
 
@@ -31,6 +29,9 @@ export function ULogoSwitcher() {
   const holdStartRef = useRef<number>(0)
   const discOpenRef = useRef(false)
   const shimmerTimersRef = useRef<ReturnType<typeof setTimeout>[]>([])
+  // Logo center in viewport coords — captured on pointerdown so disc follows the real position
+  const logoCxRef = useRef(32)
+  const logoCyRef = useRef(28)
 
   const [discOpen, setDiscOpen] = useState(false)
   const [hoveredNode, setHoveredNode] = useState<number | null>(null)
@@ -121,6 +122,12 @@ export function ULogoSwitcher() {
 
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
     e.currentTarget.setPointerCapture(e.pointerId)
+    // Capture real logo center position so disc fans from the actual logo on any screen size
+    if (logoRef.current) {
+      const rect = logoRef.current.getBoundingClientRect()
+      logoCxRef.current = rect.left + rect.width / 2
+      logoCyRef.current = rect.top + rect.height / 2
+    }
     holdStartRef.current = performance.now()
 
     if (logoRef.current) {
@@ -157,7 +164,7 @@ export function ULogoSwitcher() {
     let nearestDist = 65 // threshold px
 
     LEVELS.forEach((_, i) => {
-      const c = nodeCenter(i)
+      const c = nodeCenter(logoCxRef.current, logoCyRef.current, i)
       const dist = Math.hypot(px - c.x, py - c.y)
       if (dist < nearestDist) {
         nearest = i
@@ -272,7 +279,7 @@ export function ULogoSwitcher() {
                   }}
                 />
 
-                {/* Quarter disc */}
+                {/* Quarter disc — anchored to logo top-left corner */}
                 <motion.div
                   key="disc"
                   initial={{ opacity: 0, scale: 0.4 }}
@@ -280,7 +287,9 @@ export function ULogoSwitcher() {
                   exit={{ opacity: 0, scale: 0.4 }}
                   transition={{ duration: 0.32, ease: [0.34, 1.56, 0.64, 1] }}
                   style={{
-                    position: 'fixed', top: 0, left: 0,
+                    position: 'fixed',
+                    top: logoCyRef.current - 18,
+                    left: logoCxRef.current - 18,
                     width: 200, height: 200,
                     transformOrigin: 'top left',
                     zIndex: 9999,
@@ -305,7 +314,7 @@ export function ULogoSwitcher() {
 
                 {/* Nodes */}
                 {LEVELS.map((lv, i) => {
-                  const c = nodeCenter(i)
+                  const c = nodeCenter(logoCxRef.current, logoCyRef.current, i)
                   const isHovered = hoveredNode === i
                   const isDimmed = hoveredNode !== null && !isHovered
                   const isCurrent = levelIndex === i
