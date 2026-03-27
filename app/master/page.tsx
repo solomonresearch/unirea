@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { ULogoSwitcher } from '@/components/ULogoSwitcher'
 import { LEVELS, useLevelContext } from '@/contexts/LevelContext'
@@ -10,13 +9,13 @@ const LEVEL_INDEX = 2
 const lv = LEVELS[LEVEL_INDEX]
 
 export default function MasterPage() {
-  const { levelIndex, setLevelIndex, switchLevel } = useLevelContext()
-  const router = useRouter()
+  const { setLevelIndex, switchLevel } = useLevelContext()
 
-  // Ensure correct level is active when landing here
+  // Sync level to MASTER on first mount (handles direct URL navigation)
   useEffect(() => {
-    if (levelIndex !== LEVEL_INDEX) setLevelIndex(LEVEL_INDEX)
-  }, [levelIndex, setLevelIndex])
+    setLevelIndex(LEVEL_INDEX)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   function handleBackToLiceu() {
     switchLevel(0)
