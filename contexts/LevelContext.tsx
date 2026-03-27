@@ -69,10 +69,14 @@ export function LevelProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const switchLevel = useCallback((i: number) => {
-    setLevelIndex(i)
     if (i === 0) {
+      // Update immediately — staying within liceu pages, no flash risk
+      setLevelIndex(i)
       router.push('/avizier')
     } else {
+      // Navigate first; the landing page sets levelIndex on mount
+      // Updating here would cause the current page to briefly render
+      // the new level's tab labels before navigation completes
       router.push(NON_LICEU_ROUTES[i])
     }
   }, [setLevelIndex, router])
