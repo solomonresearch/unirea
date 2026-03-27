@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { TopBar } from '@/components/TopBar'
 import { BottomNav } from '@/components/BottomNav'
-import { AvatarSettingsButton } from '@/components/AvatarSettingsButton'
 import { getSupabase } from '@/lib/supabase'
 import { Loader2, MessageCircle, Plus, Search, X, Users, Archive, ArchiveRestore, ChevronRight, ArrowLeft, Trash2 } from 'lucide-react'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
@@ -66,6 +65,8 @@ export default function MesajePage() {
   const [loadingArchived, setLoadingArchived] = useState(false)
   const [unarchivingId, setUnarchivingId] = useState<string | null>(null)
   const [archivedCount, setArchivedCount] = useState(0)
+  const [currentUserName, setCurrentUserName] = useState('')
+  const [currentUserAvatar, setCurrentUserAvatar] = useState<string | null>(null)
 
   useEffect(() => {
     async function load() {
@@ -73,6 +74,16 @@ export default function MesajePage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/autentificare'); return }
       setCurrentUserId(user.id)
+
+      const { data: myProfile } = await supabase
+        .from('profiles')
+        .select('name, avatar_url')
+        .eq('id', user.id)
+        .single()
+      if (myProfile) {
+        setCurrentUserName(myProfile.name || '')
+        setCurrentUserAvatar(myProfile.avatar_url)
+      }
 
       const { data: participations } = await supabase
         .from('conversation_participants')
@@ -543,7 +554,7 @@ export default function MesajePage() {
         else handleDeleteConversation(pendingConfirm.id)
       }}
     />
-    <TopBar title="Mesaje" />
+    <TopBar title="Mesaje" userAvatar={currentUserAvatar} userName={currentUserName} />
     <main className="flex min-h-screen flex-col items-center px-6 py-4 pb-24" style={{ background: 'var(--cream2)' }}>
       <div className="w-full max-w-sm space-y-3">
         {showArchived ? (
@@ -603,7 +614,6 @@ export default function MesajePage() {
               </>
             )}
             </div>
-            <AvatarSettingsButton />
           </div>
         </div>
         )}
