@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import { SkinProvider } from '@/components/SkinProvider'
+import { LevelProvider } from '@/contexts/LevelContext'
 import { FeedbackButton } from '@/components/FeedbackButton'
 import { Analytics } from '@/components/Analytics'
 
@@ -24,9 +25,11 @@ export default function RootLayout({
     <html lang="ro">
       <body className="min-h-screen">
         <SkinProvider>
-          {children}
-          <FeedbackButton />
-          <Analytics />
+          <LevelProvider>
+            {children}
+            <FeedbackButton />
+            <Analytics />
+          </LevelProvider>
         </SkinProvider>
       </body>
     </html>
