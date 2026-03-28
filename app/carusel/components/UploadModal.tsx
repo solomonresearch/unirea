@@ -160,6 +160,7 @@ export function UploadModal({ currentScope, onClose, onUploaded }: UploadModalPr
         created_at: inserted.created_at,
         photo_date: inserted.photo_date,
         location_text: inserted.location_text,
+        scope: inserted.scope,
       })
     } catch {
       setUploadError('Eroare la încărcare')
