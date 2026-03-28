@@ -7,7 +7,7 @@ import {
   useMotionValue,
   animate,
 } from 'framer-motion'
-import { X, Heart, MessageCircle, Trash2, Share2, Send } from 'lucide-react'
+import { X, Heart, MessageCircle, Trash2, Share2, Send, Pencil } from 'lucide-react'
 import { getSupabase } from '@/lib/supabase'
 import { relativeTime, getInitials } from '@/lib/utils'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
@@ -24,6 +24,7 @@ interface PostModalProps {
   onDelete: () => void
   onCommentAdded: (comment: CaruselComment) => void
   onCommentDeleted: (commentId: string) => void
+  onEdit?: () => void
 }
 
 export function PostModal({
@@ -37,6 +38,7 @@ export function PostModal({
   onDelete,
   onCommentAdded,
   onCommentDeleted,
+  onEdit,
 }: PostModalProps) {
   const [newComment, setNewComment] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -392,6 +394,25 @@ export function PostModal({
               {post.comments.length}
             </div>
 
+            {post.user_id === userId && (
+              <motion.button
+                whileTap={{ scale: 0.88 }}
+                onClick={onEdit}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  border: '1px solid var(--border)',
+                  background: 'var(--cream2)',
+                  borderRadius: '9px',
+                  padding: '7px 11px',
+                  color: 'var(--ink3)',
+                  cursor: 'pointer',
+                }}
+              >
+                <Pencil size={14} />
+              </motion.button>
+            )}
             {(post.user_id === userId || isAdmin) && (
               <motion.button
                 whileTap={{ scale: 0.88 }}

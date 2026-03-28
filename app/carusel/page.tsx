@@ -15,6 +15,7 @@ import { FeedView } from './components/FeedView'
 import { CronologieView } from './components/CronologieView'
 import { UploadModal } from './components/UploadModal'
 import { PostModal } from './components/PostModal'
+import { EditPostModal } from './components/EditPostModal'
 import { SCOPE_LABELS, SCOPE_DB_MAP } from './types'
 import type { Scope, CaruselPost, CaruselComment } from './types'
 
@@ -88,6 +89,7 @@ export default function CaruselPage() {
   const [scope, setScope] = useState<Scope>('promotie')
   const [view, setView] = useState<View>('feed')
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null)
+  const [editingPostId, setEditingPostId] = useState<string | null>(null)
   const [userAvatar, setUserAvatar] = useState<string | null>(null)
   const [userName, setUserName] = useState('')
   const [userHighschool, setUserHighschool] = useState('')
@@ -159,6 +161,7 @@ export default function CaruselPage() {
         created_at: p.created_at,
         photo_date: p.photo_date ?? null,
         location_text: p.location_text ?? null,
+        scope: p.scope,
       }
     })
 
@@ -271,6 +274,10 @@ export default function CaruselPage() {
     setPosts(prev => prev.map(p =>
       p.id === postId ? { ...p, comments: p.comments.filter(c => c.id !== commentId) } : p
     ))
+  }
+
+  function handlePostEdited(postId: string, updates: Partial<CaruselPost>) {
+    setPosts(prev => prev.map(p => p.id === postId ? { ...p, ...updates } : p))
   }
 
   async function showLikers(postId: string) {
@@ -475,6 +482,20 @@ export default function CaruselPage() {
               onDelete={() => deletePost(selectedPost.id)}
               onCommentAdded={c => handleCommentAdded(selectedPost.id, c)}
               onCommentDeleted={cId => handleCommentDeleted(selectedPost.id, cId)}
+              onEdit={() => setEditingPostId(selectedPost.id)}
+            />
+          ) : null
+        })()}
+
+        {/* Edit post modal */}
+        {(() => {
+          const editingPost = editingPostId ? posts.find(p => p.id === editingPostId) : null
+          return editingPost && userId ? (
+            <EditPostModal
+              post={editingPost}
+              userId={userId}
+              onClose={() => setEditingPostId(null)}
+              onSaved={(updates) => { handlePostEdited(editingPost.id, updates); setEditingPostId(null) }}
             />
           ) : null
         })()}

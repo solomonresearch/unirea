@@ -33,6 +33,7 @@ export interface CaruselPost {
   created_at: string
   photo_date: string | null
   location_text: string | null
+  scope: string
 }
 
 export function getRotation(id: string): number {
