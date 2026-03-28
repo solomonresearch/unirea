@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
-import { Logo } from '@/components/Logo'
+import { TopBar } from '@/components/TopBar'
 import { BottomNav } from '@/components/BottomNav'
 import { SearchSelect } from '@/components/SearchSelect'
 import { PROFESSIONS } from '@/lib/professions'
@@ -231,24 +231,10 @@ export default function CautaPage() {
 
   return (
     <SchoolGate>
-    <main className="min-h-screen py-6 pb-24" style={{ background: 'var(--cream2)' }}>
+    <>
+    <TopBar title="Cauta" userAvatar={avatarUrl} userName={userName} />
+    <main className="min-h-screen py-4 pb-24" style={{ background: 'var(--cream2)' }}>
       <div className="max-w-sm mx-auto px-5 space-y-3">
-        {/* Header */}
-        <div className="flex items-center gap-2">
-          <Logo size={28} />
-          <span className="font-display text-xl" style={{ color: 'var(--ink)' }}>Cauta</span>
-          <div className="ml-auto">
-            <Link href="/setari" className="flex-shrink-0 w-9 h-9 rounded-full overflow-hidden block" style={{ border: '2px solid var(--border)' }}>
-              {avatarUrl ? (
-                <img src={avatarUrl} alt={userName} className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-xs font-bold" style={{ background: 'var(--cream2)', color: 'var(--ink2)' }}>
-                  {getInitials(userName)}
-                </div>
-              )}
-            </Link>
-          </div>
-        </div>
 
         {/* View toggle */}
         <div className="flex rounded-lg p-0.5" style={{ border: '1px solid var(--border)', background: 'var(--white)' }}>
@@ -545,6 +531,7 @@ export default function CautaPage() {
 
       <BottomNav />
     </main>
+    </>
     </SchoolGate>
   )
 }

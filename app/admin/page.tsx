@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { getSupabase } from '@/lib/supabase'
 import { Shield, ChevronDown } from 'lucide-react'
-import { Logo } from '@/components/Logo'
+import { TopBar } from '@/components/TopBar'
 import { BottomNav } from '@/components/BottomNav'
 
 interface User {
@@ -91,14 +91,8 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--cream2)' }}>
-      <div className="max-w-sm mx-auto px-6 py-6 pb-24">
-        <div className="flex items-center gap-3 mb-6">
-          <Logo />
-          <div className="flex items-center gap-2">
-            <Shield className="w-5 h-5 text-red-600" />
-            <h1 className="font-display text-xl" style={{ color: 'var(--ink)' }}>Admin</h1>
-          </div>
-        </div>
+      <TopBar title="Admin" />
+      <div className="max-w-sm mx-auto px-6 py-4 pb-24">
 
         <p className="text-sm mb-4" style={{ color: 'var(--ink3)' }}>
           {users.length} utilizatori înregistrați

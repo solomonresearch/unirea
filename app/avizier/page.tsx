@@ -11,8 +11,7 @@ import { QuizOverlay } from '@/components/sondaje/QuizOverlay'
 import { QuizCreateDialog } from '@/components/sondaje/QuizCreateDialog'
 import { QuizEditDialog } from '@/components/sondaje/QuizEditDialog'
 import { BottomNav } from '@/components/BottomNav'
-import { Logo } from '@/components/Logo'
-import { NotificationBell } from '@/components/NotificationBell'
+import { TopBar } from '@/components/TopBar'
 import { MentionInput } from '@/components/MentionInput'
 import { MentionText } from '@/components/MentionText'
 import { relativeTime, getInitials } from '@/lib/utils'
@@ -603,74 +602,24 @@ export default function AvizierPage() {
         <TutorialModal profile={profile} onDismiss={handleTutorialDismiss} />
       )}
       <main className="flex flex-col min-h-screen pb-24" style={{ background: 'var(--cream2)' }}>
-        {/* Sticky topbar */}
-        <header
-          className="sticky top-0 z-50 border-b"
-          style={{
-            background: 'var(--cream)',
-            borderColor: 'var(--border)',
-            paddingTop: '8px',
-            paddingBottom: '12px',
-          }}
-        >
-          <div className="max-w-sm mx-auto px-4 flex items-center justify-between">
-            <div>
-              <div className="flex items-center gap-2">
-                <Logo size={32} />
-                <span className="font-display text-xl" style={{ color: 'var(--ink)' }}>Avizier</span>
-              </div>
-              <p className="text-xxs mt-1 ml-10" style={{ color: 'var(--ink3)' }}>
-                {profile.highschool}
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              <Link
-                href="/cauta"
-                className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xxs font-semibold"
-                style={{ background: 'var(--white)', border: '1.5px solid var(--border)', color: 'var(--ink3)', boxShadow: 'var(--shadow-s)' }}
-              >
-                <Search size={14} strokeWidth={1.75} />
-                Cauta
-              </Link>
-              <NotificationBell />
-              <Link href="/setari" className="flex-shrink-0 w-9 h-9 rounded-full overflow-hidden" style={{ border: '2px solid var(--border)' }}>
-                {profile.avatar_url ? (
-                  <img src={profile.avatar_url} alt={profile.name} className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-xxs font-bold" style={{ background: 'var(--cream2)', color: 'var(--ink2)' }}>
-                    {getInitials(profile.name || '')}
-                  </div>
-                )}
-              </Link>
-            </div>
-          </div>
-
-          {/* Ring selector */}
-          <div className="max-w-sm mx-auto px-4 mt-3">
-            <div
-              className="flex rounded-md p-[3px]"
-              style={{ background: 'var(--cream2)' }}
+        <TopBar
+          title="Avizier"
+          institutionName={profile.highschool}
+          scope={scope}
+          onScopeChange={handleScopeChange}
+          userAvatar={profile.avatar_url}
+          userName={profile.name || ''}
+          rightSlot={
+            <Link
+              href="/cauta"
+              className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xxs font-semibold"
+              style={{ background: 'var(--white)', border: '1.5px solid var(--border)', color: 'var(--ink3)', boxShadow: 'var(--shadow-s)' }}
             >
-              {(['liceu', 'promotie', 'clasa'] as const).map(s => (
-                <button
-                  key={s}
-                  type="button"
-                  onClick={() => handleScopeChange(s)}
-                  className="flex-1 py-[7px] rounded-sm text-xxs font-semibold transition-all"
-                  style={scope === s ? {
-                    background: 'var(--white)',
-                    color: 'var(--ink)',
-                    boxShadow: 'var(--shadow-s)',
-                  } : {
-                    color: 'var(--ink3)',
-                  }}
-                >
-                  {s === 'clasa' ? 'Clasă' : s === 'promotie' ? 'Promoție' : 'Liceu'}
-                </button>
-              ))}
-            </div>
-          </div>
-        </header>
+              <Search size={14} strokeWidth={1.75} />
+              Cauta
+            </Link>
+          }
+        />
 
         {/* Events strip */}
         <div className="pt-3 pb-1 border-b" style={{ borderColor: 'var(--border)' }}>

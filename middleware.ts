@@ -14,6 +14,8 @@ const PROTECTED_ROUTES = [
   '/setari',
   '/admin',
   '/config',
+  '/facultate',
+  '/master',
 ]
 
 const AUTH_ROUTES = ['/autentificare', '/inregistrare']

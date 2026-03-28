@@ -5,9 +5,8 @@ import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { getSupabase } from '@/lib/supabase'
 import { Loader2, Search, X } from 'lucide-react'
-import { Logo } from '@/components/Logo'
 import { BottomNav } from '@/components/BottomNav'
-import { NotificationBell } from '@/components/NotificationBell'
+import { TopBar } from '@/components/TopBar'
 import Link from 'next/link'
 import { getInitials } from '@/lib/utils'
 import { SchoolGate } from '@/components/SchoolGate'
@@ -321,66 +320,24 @@ export default function CaruselPage() {
     <SchoolGate>
       <div className="min-h-screen pb-24" style={{ background: 'var(--cream2)' }}>
 
-        {/* Sticky header */}
-        <header
-          className="sticky top-0 z-50 border-b"
-          style={{ background: 'var(--cream)', borderColor: 'var(--border)', paddingTop: '8px', paddingBottom: '10px' }}
-        >
-          <div className="max-w-sm mx-auto px-5 flex items-center justify-between">
-            <div>
-              <div className="flex items-center gap-2">
-                <Logo size={32} />
-                <span className="font-display text-xl" style={{ color: 'var(--ink)' }}>Amintiri</span>
-              </div>
-              {userHighschool && (
-                <p className="text-xxs mt-1 ml-10" style={{ color: 'var(--ink3)' }}>{userHighschool}</p>
-              )}
-            </div>
-            <div className="flex items-center gap-2">
-              <Link
-                href="/cauta"
-                className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xxs font-semibold"
-                style={{ background: 'var(--white)', border: '1.5px solid var(--border)', color: 'var(--ink3)', boxShadow: 'var(--shadow-s)' }}
-              >
-                <Search size={14} strokeWidth={1.75} />
-                Caută
-              </Link>
-              <NotificationBell />
-              <Link href="/setari" className="flex-shrink-0 w-9 h-9 rounded-full overflow-hidden" style={{ border: '2px solid var(--border)' }}>
-                {userAvatar ? (
-                  <img src={userAvatar} alt={userName} className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-xxs font-bold" style={{ background: 'var(--cream2)', color: 'var(--ink2)' }}>
-                    {getInitials(userName)}
-                  </div>
-                )}
-              </Link>
-            </div>
-          </div>
-
-          {/* Scope tabs */}
-          <div className="max-w-sm mx-auto mt-3 px-4">
-            <div className="flex rounded-md p-[3px]" style={{ background: 'var(--cream2)' }}>
-              {(['liceu', 'promotie', 'clasa'] as Scope[]).map(s => (
-                <button
-                  key={s}
-                  type="button"
-                  onClick={() => handleScopeChange(s)}
-                  className="flex-1 py-[7px] rounded-sm text-xxs font-semibold transition-all"
-                  style={scope === s ? {
-                    background: 'var(--white)',
-                    color: 'var(--ink)',
-                    boxShadow: 'var(--shadow-s)',
-                  } : {
-                    color: 'var(--ink3)',
-                  }}
-                >
-                  {s === 'clasa' ? 'Clasă' : s === 'promotie' ? 'Promoție' : 'Liceu'}
-                </button>
-              ))}
-            </div>
-          </div>
-        </header>
+        <TopBar
+          title="Amintiri"
+          institutionName={userHighschool ?? undefined}
+          scope={scope}
+          onScopeChange={handleScopeChange}
+          userAvatar={userAvatar}
+          userName={userName}
+          rightSlot={
+            <Link
+              href="/cauta"
+              className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xxs font-semibold"
+              style={{ background: 'var(--white)', border: '1.5px solid var(--border)', color: 'var(--ink3)', boxShadow: 'var(--shadow-s)' }}
+            >
+              <Search size={14} strokeWidth={1.75} />
+              Caută
+            </Link>
+          }
+        />
 
         {/* Constrained content column */}
         <div className="max-w-sm mx-auto w-full">
