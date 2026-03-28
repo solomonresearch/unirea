@@ -117,6 +117,7 @@ export function EvenimentDetailModal({
 }: Props) {
   const [attending, setAttending] = useState(event.attending)
   const [participantCount, setParticipantCount] = useState(event.participant_count)
+  const [participants, setParticipants] = useState(event.participants)
   const [rsvpLoading, setRsvpLoading] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState(false)
   const [deleting, setDeleting] = useState(false)
@@ -135,6 +136,11 @@ export function EvenimentDetailModal({
       setAttending(json.attending)
       setParticipantCount(prev => json.attending ? prev + 1 : Math.max(0, prev - 1))
       onRsvpToggle(json.attending)
+      const detailRes = await fetch(`/api/evenimente/${event.id}`)
+      if (detailRes.ok) {
+        const detail = await detailRes.json()
+        setParticipants(detail.event.participants)
+      }
     }
     setRsvpLoading(false)
   }
@@ -298,10 +304,10 @@ export function EvenimentDetailModal({
             <p className="text-xxs font-bold uppercase tracking-wider mb-2" style={{ color: 'var(--ink3)' }}>
               Participanți confirmați ({participantCount})
             </p>
-            {event.participants.length > 0 ? (
+            {participants.length > 0 ? (
               <div className="flex items-center gap-2">
                 <div className="flex -space-x-2">
-                  {event.participants.slice(0, 6).map(p => (
+                  {participants.slice(0, 6).map(p => (
                     <div
                       key={p.id}
                       className="w-7 h-7 rounded-full border-2 border-white flex items-center justify-center overflow-hidden flex-shrink-0"
@@ -318,9 +324,9 @@ export function EvenimentDetailModal({
                     </div>
                   ))}
                 </div>
-                {event.participants.length > 6 && (
+                {participants.length > 6 && (
                   <span style={{ fontSize: '11px', color: 'var(--ink3)', fontWeight: 600 }}>
-                    +{event.participants.length - 6} alții
+                    +{participants.length - 6} alții
                   </span>
                 )}
               </div>

@@ -54,7 +54,13 @@ export default function EvenimentePage() {
   const router = useRouter()
   const [userId, setUserId] = useState<string | null>(null)
   const [userRole, setUserRole] = useState<string>('user')
-  const [scope, setScope] = useState<Scope>('promotie')
+  const [scope, setScope] = useState<Scope>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('evenimente_scope') as Scope | null
+      if (saved && ['liceu', 'promotie', 'clasa'].includes(saved)) return saved
+    }
+    return 'promotie'
+  })
   const [events, setEvents] = useState<Eveniment[]>([])
   const [loading, setLoading] = useState(true)
   const [showCreate, setShowCreate] = useState(false)
@@ -138,7 +144,7 @@ export default function EvenimentePage() {
               <button
                 key={s}
                 type="button"
-                onClick={() => setScope(s)}
+                onClick={() => { setScope(s); localStorage.setItem('evenimente_scope', s) }}
                 className="flex-1 py-[7px] rounded-sm text-xxs font-semibold transition-all"
                 style={scope === s ? {
                   background: 'var(--white)',
