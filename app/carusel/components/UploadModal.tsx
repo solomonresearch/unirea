@@ -8,6 +8,46 @@ import { SCOPE_LABELS, SCOPE_DB_MAP } from '../types'
 import type { Scope, CaruselPost } from '../types'
 import exifr from 'exifr'
 
+async function compressToWebP(file: File, maxDimension = 1920, quality = 0.82): Promise<File> {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    const objectUrl = URL.createObjectURL(file)
+
+    img.onload = () => {
+      URL.revokeObjectURL(objectUrl)
+
+      let { width, height } = img
+      if (width > maxDimension || height > maxDimension) {
+        if (width > height) {
+          height = Math.round((height * maxDimension) / width)
+          width = maxDimension
+        } else {
+          width = Math.round((width * maxDimension) / height)
+          height = maxDimension
+        }
+      }
+
+      const canvas = document.createElement('canvas')
+      canvas.width = width
+      canvas.height = height
+      canvas.getContext('2d')!.drawImage(img, 0, 0, width, height)
+
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) { reject(new Error('Canvas toBlob failed')); return }
+          const stem = file.name.replace(/\.[^.]+$/, '')
+          resolve(new File([blob], `${stem}.webp`, { type: 'image/webp' }))
+        },
+        'image/webp',
+        quality
+      )
+    }
+
+    img.onerror = () => { URL.revokeObjectURL(objectUrl); reject(new Error('Image load failed')) }
+    img.src = objectUrl
+  })
+}
+
 interface UploadModalProps {
   currentScope: Scope
   onClose: () => void
@@ -29,17 +69,23 @@ export function UploadModal({ currentScope, onClose, onUploaded }: UploadModalPr
   async function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
-    setUploadFile(file)
-    setUploadPreview(URL.createObjectURL(file))
     setUploadError(null)
 
     setExifLoading(true)
     const exif = await exifr.parse(file, ['DateTimeOriginal']).catch(() => null)
     if (exif?.DateTimeOriginal) {
-      const d = new Date(exif.DateTimeOriginal)
-      setPhotoDate(d.toISOString().slice(0, 10))
+      setPhotoDate(new Date(exif.DateTimeOriginal).toISOString().slice(0, 10))
     }
     setExifLoading(false)
+
+    try {
+      const compressed = await compressToWebP(file)
+      setUploadFile(compressed)
+      setUploadPreview(URL.createObjectURL(compressed))
+    } catch {
+      setUploadFile(file)
+      setUploadPreview(URL.createObjectURL(file))
+    }
   }
 
   function clearPreview() {
@@ -67,18 +113,6 @@ export function UploadModal({ currentScope, onClose, onUploaded }: UploadModalPr
         .eq('id', user.id)
         .single()
       if (!profile) { setUploadError('Profil negăsit'); setUploading(false); return }
-
-      const allowedTypes = ['image/jpeg', 'image/png', 'image/webp']
-      if (!allowedTypes.includes(uploadFile.type)) {
-        setUploadError('Format invalid. Doar JPEG, PNG sau WebP.')
-        setUploading(false)
-        return
-      }
-      if (uploadFile.size > 4 * 1024 * 1024) {
-        setUploadError('Fișierul depășește 4MB.')
-        setUploading(false)
-        return
-      }
 
       const storagePath = `${user.id}/${Date.now()}-${uploadFile.name}`
       const { error: uploadErr } = await supabase.storage.from('carusel').upload(storagePath, uploadFile)
@@ -138,7 +172,7 @@ export function UploadModal({ currentScope, onClose, onUploaded }: UploadModalPr
       <input
         ref={fileInputRef}
         type="file"
-        accept="image/jpeg,image/png,image/webp"
+        accept="image/jpeg,image/png,image/webp,image/heic"
         onChange={handleFileSelect}
         className="hidden"
       />
@@ -168,7 +202,7 @@ export function UploadModal({ currentScope, onClose, onUploaded }: UploadModalPr
           >
             <ImageIcon size={32} style={{ color: 'var(--ink3)' }} />
             <p className="text-sm" style={{ color: 'var(--ink2)' }}>Alege o fotografie</p>
-            <p className="text-[11px]" style={{ color: 'var(--ink3)' }}>JPEG, PNG sau WebP (max 4MB)</p>
+            <p className="text-[11px]" style={{ color: 'var(--ink3)' }}>JPEG, PNG, WebP sau HEIC — optimizat automat</p>
           </button>
         )}
 
