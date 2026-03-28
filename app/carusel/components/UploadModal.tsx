@@ -136,7 +136,7 @@ export function UploadModal({ currentScope, onClose, onUploaded }: UploadModalPr
           photo_date: new Date(photoDate).toISOString(),
           location_text: locationText.trim() || null,
         })
-        .select('id, caption, storage_path, user_id, created_at, photo_date, location_text')
+        .select('id, caption, storage_path, user_id, created_at, photo_date, location_text, scope')
         .single()
 
       if (insertErr || !inserted) {
