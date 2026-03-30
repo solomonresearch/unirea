@@ -764,16 +764,22 @@ export default function ConfigPage() {
                             </div>
                             {/* Shared slugs */}
                             <div className="flex flex-wrap gap-1">
+                              {conn.shared_slugs.length === 0 && (
+                                <span className="text-xs italic" style={{ color: 'var(--ink3)' }}>
+                                  Activi, fără text completat încă
+                                </span>
+                              )}
                               {conn.shared_slugs.map(slug => {
                                 const cat = TAXONOMY.find(c => c.slug === slug)
                                 const col = cat ? GROUP_COLORS[cat.group] : GROUP_COLORS.mentorat
                                 return (
                                   <span
                                     key={slug}
-                                    className="px-2 py-0.5 rounded-full"
+                                    className="flex items-center gap-1 px-2 py-0.5 rounded-full"
                                     style={{ fontSize: 11, background: col.bg, border: `1px solid ${col.border}`, color: col.text }}
                                   >
-                                    {slug}
+                                    <span className="font-semibold">{cat?.label ?? slug}</span>
+                                    <code style={{ fontSize: 10, opacity: 0.7 }}>{slug}</code>
                                   </span>
                                 )
                               })}
