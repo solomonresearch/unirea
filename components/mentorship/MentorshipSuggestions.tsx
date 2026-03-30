@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { HeartHandshake, Info } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { HeartHandshake, Info, MessageCircle, Loader2 } from 'lucide-react'
 import { TAXONOMY } from '@/lib/taxonomy'
 import { MentorshipInfoModal } from './MentorshipInfoModal'
 
@@ -52,7 +53,7 @@ function ScoreBadge({ score }: { score: number }) {
 
   return (
     <span
-      className="self-start rounded-full px-1.5 py-0.5 font-bold mt-auto"
+      className="self-start rounded-full px-1.5 py-0.5 font-bold"
       style={{ fontSize: 9, ...style }}
     >
       {pct}% potrivire
@@ -61,6 +62,29 @@ function ScoreBadge({ score }: { score: number }) {
 }
 
 function SuggestionCard({ s }: { s: MentorSuggestion }) {
+  const router = useRouter()
+  const [starting, setStarting] = useState(false)
+
+  async function handleMessage(e: React.MouseEvent) {
+    e.preventDefault()
+    e.stopPropagation()
+    if (starting) return
+    setStarting(true)
+    try {
+      const res = await fetch('/api/mesaje/start-dm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ targetUserId: s.user_id }),
+      })
+      if (res.ok) {
+        const { conversationId } = await res.json()
+        router.push(`/mesaje/${conversationId}`)
+      }
+    } finally {
+      setStarting(false)
+    }
+  }
+
   const preview = s.offer_text
     ? s.offer_text.slice(0, 80) + (s.offer_text.length > 80 ? '…' : '')
     : null
@@ -138,8 +162,23 @@ function SuggestionCard({ s }: { s: MentorSuggestion }) {
         <p className="text-xs italic flex-1" style={{ color: 'var(--ink3)' }}>Fără descriere</p>
       )}
 
-      {/* Match score badge */}
-      <ScoreBadge score={s.score} />
+      {/* Bottom row: score + message button */}
+      <div className="flex items-center justify-between mt-auto">
+        <ScoreBadge score={s.score} />
+        <button
+          type="button"
+          onClick={handleMessage}
+          disabled={starting}
+          className="flex items-center justify-center rounded-full flex-shrink-0 transition-opacity hover:opacity-70 disabled:opacity-40"
+          style={{ width: 24, height: 24, background: '#111', color: '#fff' }}
+          title="Trimite mesaj"
+        >
+          {starting
+            ? <Loader2 size={11} className="animate-spin" />
+            : <MessageCircle size={11} />
+          }
+        </button>
+      </div>
     </Link>
   )
 }
