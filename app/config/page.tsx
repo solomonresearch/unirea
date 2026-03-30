@@ -581,6 +581,33 @@ export default function ConfigPage() {
               {/* ── Categorii tab ── */}
               {taxoTab === 'categorii' && (
                 <div className="p-4 space-y-5">
+
+                  {/* Categorii explanation — top */}
+                  <div className="rounded-lg border overflow-hidden" style={{ borderColor: 'var(--border)' }}>
+                    <button
+                      type="button"
+                      onClick={() => setCategoriiExplOpen(p => !p)}
+                      className="w-full flex items-center justify-between px-3 py-2 text-left transition-opacity hover:opacity-70"
+                      style={{ background: 'var(--cream2)' }}
+                    >
+                      <span className="text-xs font-semibold" style={{ color: 'var(--ink2)' }}>Cum funcționează taxonomia?</span>
+                      <ChevronDown size={14} style={{ color: 'var(--ink3)', transform: categoriiExplOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s', flexShrink: 0 }} />
+                    </button>
+                    {categoriiExplOpen && (
+                      <div className="px-3 py-3 space-y-2" style={{ borderTop: '1px solid var(--border)' }}>
+                        <p className="text-xs leading-relaxed" style={{ color: 'var(--ink3)' }}>
+                          Taxonomia este un dicționar cu <strong style={{ color: 'var(--ink2)' }}>80 de categorii</strong> grupate în 4 piloni: situații de mentorat, hobby-uri, domenii profesionale și profesii. Fiecare categorie are un <em>slug</em> unic (ex: <code style={{ fontSize: 10 }}>fitness-gym</code>) și o listă de cuvinte-cheie asociate.
+                        </p>
+                        <p className="text-xs leading-relaxed" style={{ color: 'var(--ink3)' }}>
+                          Când un utilizator salvează textul din secțiunea Mentor sau Mentee, aplicația scanează automat textul și identifică categoriile ale căror cuvinte-cheie apar în el. Același proces rulează și pe hobby-urile, domeniile și profesiile selectate în profil — acestea generează <em>profile_slugs</em> fără ca utilizatorul să scrie nimic.
+                        </p>
+                        <p className="text-xs leading-relaxed" style={{ color: 'var(--ink3)' }}>
+                          Rezultatul este un array de slug-uri per utilizator, stocat în tabelul <code style={{ fontSize: 10 }}>mentorship_profiles</code>: <code style={{ fontSize: 10 }}>mentor_slugs</code>, <code style={{ fontSize: 10 }}>mentee_slugs</code>, <code style={{ fontSize: 10 }}>profile_slugs</code>. Testul de mai jos simulează exact această extragere.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
                   {(['mentorat', 'hobby', 'domeniu', 'profesie'] as TaxonomyGroup[]).map(group => {
                     const cats = TAXONOMY_BY_GROUP[group]
                     const col = GROUP_COLORS[group]
@@ -710,37 +737,43 @@ export default function ConfigPage() {
                     )}
                   </div>
 
-                  {/* Categorii explanation */}
-                  <div className="rounded-lg border overflow-hidden" style={{ borderColor: 'var(--border)' }}>
-                    <button
-                      type="button"
-                      onClick={() => setCategoriiExplOpen(p => !p)}
-                      className="w-full flex items-center justify-between px-3 py-2 text-left transition-opacity hover:opacity-70"
-                      style={{ background: 'var(--cream2)' }}
-                    >
-                      <span className="text-xs font-semibold" style={{ color: 'var(--ink2)' }}>Cum funcționează taxonomia?</span>
-                      <ChevronDown size={14} style={{ color: 'var(--ink3)', transform: categoriiExplOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s', flexShrink: 0 }} />
-                    </button>
-                    {categoriiExplOpen && (
-                      <div className="px-3 py-3 space-y-2" style={{ borderTop: '1px solid var(--border)' }}>
-                        <p className="text-xs leading-relaxed" style={{ color: 'var(--ink3)' }}>
-                          Taxonomia este un dicționar cu <strong style={{ color: 'var(--ink2)' }}>80 de categorii</strong> grupate în 4 piloni: situații de mentorat, hobby-uri, domenii profesionale și profesii. Fiecare categorie are un <em>slug</em> unic (ex: <code style={{ fontSize: 10 }}>fitness-gym</code>) și o listă de cuvinte-cheie asociate.
-                        </p>
-                        <p className="text-xs leading-relaxed" style={{ color: 'var(--ink3)' }}>
-                          Când un utilizator salvează textul din secțiunea Mentor sau Mentee, aplicația scanează automat textul și identifică categoriile ale căror cuvinte-cheie apar în el. Același proces rulează și pe hobby-urile, domeniile și profesiile selectate în profil — acestea generează <em>profile_slugs</em> fără ca utilizatorul să scrie nimic.
-                        </p>
-                        <p className="text-xs leading-relaxed" style={{ color: 'var(--ink3)' }}>
-                          Rezultatul este un array de slug-uri per utilizator, stocat în tabelul <code style={{ fontSize: 10 }}>mentorship_profiles</code>: <code style={{ fontSize: 10 }}>mentor_slugs</code>, <code style={{ fontSize: 10 }}>mentee_slugs</code>, <code style={{ fontSize: 10 }}>profile_slugs</code>. Testul de mai sus simulează exact această extragere.
-                        </p>
-                      </div>
-                    )}
-                  </div>
                 </div>
               )}
 
               {/* ── Conexiuni tab ── */}
               {taxoTab === 'conexiuni' && (
-                <div className="p-4">
+                <div className="p-4 space-y-4">
+
+                  {/* Conexiuni explanation — top */}
+                  <div className="rounded-lg border overflow-hidden" style={{ borderColor: 'var(--border)' }}>
+                    <button
+                      type="button"
+                      onClick={() => setConexiuniExplOpen(p => !p)}
+                      className="w-full flex items-center justify-between px-3 py-2 text-left transition-opacity hover:opacity-70"
+                      style={{ background: 'var(--cream2)' }}
+                    >
+                      <span className="text-xs font-semibold" style={{ color: 'var(--ink2)' }}>Cum sunt calculate conexiunile?</span>
+                      <ChevronDown size={14} style={{ color: 'var(--ink3)', transform: conexiuniExplOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s', flexShrink: 0 }} />
+                    </button>
+                    {conexiuniExplOpen && (
+                      <div className="px-3 py-3 space-y-2" style={{ borderTop: '1px solid var(--border)' }}>
+                        <p className="text-xs leading-relaxed" style={{ color: 'var(--ink3)' }}>
+                          O conexiune apare când un utilizator cu <strong style={{ color: 'var(--ink2)' }}>mentor_active = true</strong> și un altul cu <strong style={{ color: 'var(--ink2)' }}>mentee_active = true</strong> sunt în aceeași școală și au cel puțin un slug comun.
+                        </p>
+                        <p className="text-xs leading-relaxed" style={{ color: 'var(--ink3)' }}>
+                          Slugurile efective ale mentorului sunt <code style={{ fontSize: 10 }}>mentor_slugs ∪ profile_slugs</code>. Ale mentee-ului: <code style={{ fontSize: 10 }}>mentee_slugs ∪ profile_slugs</code>. Intersecția lor determină categoriile comune afișate în card.
+                        </p>
+                        <p className="text-xs leading-relaxed" style={{ color: 'var(--ink3)' }}>
+                          <strong style={{ color: 'var(--ink2)' }}>Scorul</strong> = categorii comune ÷ totalul categoriilor mentee-ului. Măsoară câte din nevoile mentee-ului sunt acoperite de mentor — nu similaritatea globală a profilelor. Un scor de 100% înseamnă că mentorul acoperă tot ce caută mentee-ul.
+                        </p>
+                        <p className="text-xs leading-relaxed" style={{ color: 'var(--ink3)' }}>
+                          Perechile sunt sortate descrescător după scor. Perechile cu 0% (nicio categorie comună) nu apar.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
                   {connectionsLoading ? (
                     <div className="flex justify-center py-8">
                       <Loader2 size={20} className="animate-spin" style={{ color: 'var(--ink3)' }} />
@@ -828,33 +861,6 @@ export default function ConfigPage() {
                     </div>
                   )}
 
-                  {/* Conexiuni explanation */}
-                  <div className="rounded-lg border overflow-hidden mt-4" style={{ borderColor: 'var(--border)' }}>
-                    <button
-                      type="button"
-                      onClick={() => setConexiuniExplOpen(p => !p)}
-                      className="w-full flex items-center justify-between px-3 py-2 text-left transition-opacity hover:opacity-70"
-                      style={{ background: 'var(--cream2)' }}
-                    >
-                      <span className="text-xs font-semibold" style={{ color: 'var(--ink2)' }}>Cum sunt calculate conexiunile?</span>
-                      <ChevronDown size={14} style={{ color: 'var(--ink3)', transform: conexiuniExplOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s', flexShrink: 0 }} />
-                    </button>
-                    {conexiuniExplOpen && (
-                      <div className="px-3 py-3 space-y-2" style={{ borderTop: '1px solid var(--border)' }}>
-                        <p className="text-xs leading-relaxed" style={{ color: 'var(--ink3)' }}>
-                          O conexiune apare când un utilizator cu <strong style={{ color: 'var(--ink2)' }}>mentor_active = true</strong> și un altul cu <strong style={{ color: 'var(--ink2)' }}>mentee_active = true</strong> sunt în aceeași școală și au cel puțin un slug comun.
-                        </p>
-                        <p className="text-xs leading-relaxed" style={{ color: 'var(--ink3)' }}>
-                          Slugurile efective ale mentorului sunt <code style={{ fontSize: 10 }}>mentor_slugs ∪ profile_slugs</code>. Ale mentee-ului: <code style={{ fontSize: 10 }}>mentee_slugs ∪ profile_slugs</code>. Intersecția lor determină categoriile comune afișate în card.
-                        </p>
-                        <p className="text-xs leading-relaxed" style={{ color: 'var(--ink3)' }}>
-                          <strong style={{ color: 'var(--ink2)' }}>Scorul</strong> = categorii comune ÷ totalul categoriilor mentee-ului. Măsoară câte din nevoile mentee-ului sunt acoperite de mentor — nu similaritatea globală a profilelor. Un scor de 100% înseamnă că mentorul acoperă tot ce caută mentee-ul.
-                        </p>
-                        <p className="text-xs leading-relaxed" style={{ color: 'var(--ink3)' }}>
-                          Perechile sunt sortate descrescător după scor. Perechile cu 0% (nicio categorie comună) nu apar.
-                        </p>
-                      </div>
-                    )}
                   </div>
                 </div>
               )}
