@@ -113,15 +113,16 @@ function SuggestionCard({ s }: { s: MentorSuggestion }) {
           {preview}
         </p>
       ) : s.shared_slugs?.length > 0 ? (
-        <div className="flex flex-wrap gap-1 flex-1">
+        <div className="flex flex-wrap gap-1">
           {s.shared_slugs.slice(0, 4).map(slug => {
             const label = TAXONOMY.find(c => c.slug === slug)?.label ?? slug
             return (
               <span
                 key={slug}
-                className="px-1.5 py-0.5 rounded-full leading-tight"
+                className="rounded-full leading-tight"
                 style={{
-                  fontSize: 10,
+                  fontSize: 9,
+                  padding: '2px 6px',
                   background: 'var(--amber-soft)',
                   color: 'var(--amber-dark)',
                   border: '1px solid var(--amber)',
