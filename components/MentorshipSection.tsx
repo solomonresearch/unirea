@@ -79,7 +79,7 @@ function TabBar({ activeTab, setActiveTab }: { activeTab: Tab; setActiveTab: (t:
                 }
           }
         >
-          {tab === 'mentor' ? 'Ce pot oferi' : 'Ce încerc să rezolv'}
+          {tab === 'mentor' ? 'Mentor' : 'Mentee'}
         </button>
       ))}
     </div>
@@ -133,7 +133,7 @@ export function MentorshipSection({ data, readOnly = false, onSave }: Mentorship
                   : { background: 'var(--cream2)', border: '1px solid var(--border)', color: 'var(--ink3)' }
               }
             >
-              {mentorActive ? 'Disponibil ca mentor' : 'Indisponibil ca mentor'}
+              {mentorActive ? 'Disponibil' : 'Indisponibil'}
             </span>
           </div>
         </div>
@@ -155,7 +155,7 @@ export function MentorshipSection({ data, readOnly = false, onSave }: Mentorship
                   : { background: 'var(--cream2)', border: '1px solid var(--border)', color: 'var(--ink3)' }
               }
             >
-              {menteeActive ? 'Caut mentor activ' : 'Nu caut mentor acum'}
+              {menteeActive ? 'Disponibil' : 'Indisponibil'}
             </span>
           </div>
         </div>
@@ -184,7 +184,7 @@ export function MentorshipSection({ data, readOnly = false, onSave }: Mentorship
           <AvailabilityToggle
             active={draftMentorActive}
             onToggle={() => setDraftMentorActive(v => !v)}
-            label={draftMentorActive ? 'Disponibil pentru match' : 'Indisponibil pentru match'}
+            label={draftMentorActive ? 'Disponibil' : 'Indisponibil'}
           />
         </div>
       ) : (
@@ -205,7 +205,7 @@ export function MentorshipSection({ data, readOnly = false, onSave }: Mentorship
           <AvailabilityToggle
             active={draftMenteeActive}
             onToggle={() => setDraftMenteeActive(v => !v)}
-            label={draftMenteeActive ? 'Disponibil pentru match' : 'Indisponibil pentru match'}
+            label={draftMenteeActive ? 'Disponibil' : 'Indisponibil'}
           />
         </div>
       )}
