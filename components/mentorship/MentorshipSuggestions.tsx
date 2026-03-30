@@ -120,32 +120,16 @@ function SuggestionCard({ s }: { s: MentorSuggestion }) {
           {preview}
         </p>
       ) : s.slug_details?.length > 0 ? (
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-1 flex-1">
           {s.slug_details.slice(0, 3).map(({ slug, keywords }) => {
-            const label = TAXONOMY.find(c => c.slug === slug)?.label ?? slug
+            const capitalized = keywords
+              .slice(0, 3)
+              .map(kw => kw.charAt(0).toUpperCase() + kw.slice(1))
             return (
-              <div key={slug}>
-                <span
-                  className="rounded-full leading-tight"
-                  style={{
-                    fontSize: 9,
-                    padding: '2px 6px',
-                    background: 'var(--amber-soft)',
-                    color: 'var(--amber-dark)',
-                    border: '1px solid var(--amber)',
-                  }}
-                >
-                  {label}
-                </span>
-                {keywords.length > 0 && (
-                  <p
-                    className="mt-0.5 leading-tight truncate"
-                    style={{ fontSize: 9, color: 'var(--ink3)', paddingLeft: 2 }}
-                  >
-                    {keywords.slice(0, 3).join(', ')}
-                  </p>
-                )}
-              </div>
+              <p key={slug} className="leading-tight" style={{ fontSize: 10, color: 'var(--ink3)' }}>
+                <span className="font-semibold" style={{ color: 'var(--ink2)' }}>Topic:</span>{' '}
+                {capitalized.length > 0 ? capitalized.join(', ') : slug}
+              </p>
             )
           })}
         </div>
