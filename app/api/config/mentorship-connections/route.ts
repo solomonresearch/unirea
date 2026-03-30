@@ -76,8 +76,8 @@ export async function GET() {
       ])
       const intersection = [...mSet].filter(s => tSet.has(s))
 
-      const union = new Set([...mSet, ...tSet])
-      const score = union.size > 0 ? intersection.length / union.size : 0
+      // Seeker coverage: what fraction of the mentee's needs does this mentor cover?
+      const score = tSet.size > 0 ? intersection.length / tSet.size : 0
 
       const mp = (mentor.profiles as unknown) as ProfileRow | null
       const tp = (mentee.profiles as unknown) as ProfileRow | null

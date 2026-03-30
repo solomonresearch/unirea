@@ -912,15 +912,13 @@ export function extractSlugsFromProfile(
   return extractSlugs(combined)
 }
 
-// scoreSlugs(aSlugs, bSlugs) — Jaccard-style overlap score [0, 1]
-// between two slug arrays (e.g. mentor offer vs mentee need).
-// Returns 0 when either array is empty.
+// scoreSlugs(offerSlugs, seekerSlugs) — seeker coverage score [0, 1]
+// "What fraction of the seeker's slugs does the offer side cover?"
+// Returns 0 when the seeker array is empty.
 
-export function scoreSlugs(aSlugs: string[], bSlugs: string[]): number {
-  if (aSlugs.length === 0 || bSlugs.length === 0) return 0
-  const setA = new Set(aSlugs)
-  const setB = new Set(bSlugs)
-  const intersection = [...setA].filter(s => setB.has(s)).length
-  const union = new Set([...setA, ...setB]).size
-  return intersection / union
+export function scoreSlugs(offerSlugs: string[], seekerSlugs: string[]): number {
+  if (seekerSlugs.length === 0) return 0
+  const offerSet = new Set(offerSlugs)
+  const intersection = seekerSlugs.filter(s => offerSet.has(s)).length
+  return intersection / seekerSlugs.length
 }
