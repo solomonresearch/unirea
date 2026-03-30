@@ -776,15 +776,21 @@ export default function ConfigPage() {
                                   .slice(0, 4)
                                   .map(kw => kw.charAt(0).toUpperCase() + kw.slice(1))
                                 const label = cat?.label ?? slug
-                                const parts = [label, ...allKeywords]
                                 return (
-                                  <span
+                                  <div
                                     key={slug}
-                                    className="px-2 py-0.5 rounded-full leading-tight"
-                                    style={{ fontSize: 11, background: col.bg, border: `1px solid ${col.border}`, color: col.text }}
+                                    className="flex flex-col px-2 py-1 rounded-lg"
+                                    style={{ background: col.bg, border: `1px solid ${col.border}` }}
                                   >
-                                    {parts.join(', ')}
-                                  </span>
+                                    <span style={{ fontSize: 10, color: col.text }}>
+                                      <span className="font-semibold">Categorie:</span> {label}
+                                    </span>
+                                    {allKeywords.length > 0 && (
+                                      <span style={{ fontSize: 10, color: col.text, opacity: 0.8 }}>
+                                        <span className="font-semibold">Topic:</span> {allKeywords.join(', ')}
+                                      </span>
+                                    )}
+                                  </div>
                                 )
                               })}
                             </div>
