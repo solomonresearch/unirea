@@ -65,7 +65,9 @@ export default function CercuriPage() {
   const [showGroupConfirm, setShowGroupConfirm] = useState(false)
   const [creatingGroup, setCreatingGroup] = useState(false)
   const [mentorshipRole, setMentorshipRole] = useState<'mentor' | 'mentee' | 'both' | null>(null)
-  const [mentorshipSuggestions, setMentorshipSuggestions] = useState<MentorSuggestion[]>([])
+  // When role=both, mentorSuggestions = mentors for me; menteeSuggestions = mentees I can help
+  const [mentorSuggestions, setMentorSuggestions] = useState<MentorSuggestion[]>([])
+  const [menteeSuggestions, setMenteeSuggestions] = useState<MentorSuggestion[]>([])
 
   useEffect(() => {
     async function init() {
@@ -106,16 +108,28 @@ export default function CercuriPage() {
       const role = isMentor && isMentee ? 'both' : isMentor ? 'mentor' : 'mentee'
       setMentorshipRole(role)
 
-      // Demo suggestion — real matching comes later
-      setMentorshipSuggestions([
-        {
-          id: 'demo',
-          name: 'Ion Popescu',
-          username: 'ion.popescu',
-          avatar_url: null,
-          offer_text: 'Am trecut prin primul job în tech, mutarea în altă țară și schimbarea domeniului. Pot oferi perspectivă pentru oricine navighează o tranziție.',
-        },
-      ])
+      // Fetch ranked suggestions from the API in parallel where applicable
+      const fetches: Promise<void>[] = []
+
+      if (isMentee) {
+        fetches.push(
+          fetch('/api/mentorship/suggestions?for=mentors')
+            .then(r => r.json())
+            .then(({ suggestions }) => setMentorSuggestions(suggestions ?? []))
+            .catch(() => {})
+        )
+      }
+
+      if (isMentor) {
+        fetches.push(
+          fetch('/api/mentorship/suggestions?for=mentees')
+            .then(r => r.json())
+            .then(({ suggestions }) => setMenteeSuggestions(suggestions ?? []))
+            .catch(() => {})
+        )
+      }
+
+      await Promise.all(fetches)
     }
     init()
   }, [router])
@@ -266,11 +280,13 @@ export default function CercuriPage() {
         {mentorshipRole && (
           mentorshipRole === 'both' ? (
             <div className="space-y-3">
-              <MentorshipSuggestions role="mentee" suggestions={mentorshipSuggestions} />
-              <MentorshipSuggestions role="mentor" suggestions={[]} />
+              <MentorshipSuggestions role="mentee" suggestions={mentorSuggestions} />
+              <MentorshipSuggestions role="mentor" suggestions={menteeSuggestions} />
             </div>
+          ) : mentorshipRole === 'mentee' ? (
+            <MentorshipSuggestions role="mentee" suggestions={mentorSuggestions} />
           ) : (
-            <MentorshipSuggestions role={mentorshipRole} suggestions={mentorshipSuggestions} />
+            <MentorshipSuggestions role="mentor" suggestions={menteeSuggestions} />
           )
         )}
 

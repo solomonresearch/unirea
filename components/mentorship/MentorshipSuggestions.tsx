@@ -4,17 +4,17 @@ import Link from 'next/link'
 import { HeartHandshake } from 'lucide-react'
 
 export interface MentorSuggestion {
-  id: string
+  user_id: string
   name: string
   username: string
   avatar_url: string | null
-  /** Text shown on the card — mentor_text or mentee_text depending on context */
   offer_text: string | null
+  score: number // Jaccard overlap [0, 1]
 }
 
 interface MentorshipSuggestionsProps {
   /** 'mentor' = show available mentors (current user is a mentee) */
-  /** 'mentee' = show available mentees (current user is a mentor) */
+  /** 'mentee' = show available mentees (current user is a mentor)  */
   role: 'mentor' | 'mentee'
   suggestions: MentorSuggestion[]
 }
@@ -27,23 +27,41 @@ function avatarColor(name: string): string {
 }
 
 function getInitials(name: string): string {
-  return name
-    .split(' ')
-    .map(w => w[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2)
+  return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)
+}
+
+function ScoreBadge({ score }: { score: number }) {
+  if (score === 0) return null
+  const pct = Math.round(score * 100)
+  // Color ramp: low (<30%) amber, mid (30–60%) teal, high (>60%) green
+  const style =
+    pct >= 60
+      ? { background: '#dcfce7', color: '#15803d', border: '1px solid #86efac' }
+      : pct >= 30
+      ? { background: 'var(--teal-soft)', color: 'var(--teal)', border: '1px solid var(--teal)' }
+      : { background: 'var(--amber-soft)', color: 'var(--amber-dark)', border: '1px solid var(--amber)' }
+
+  return (
+    <span
+      className="self-start rounded-full px-1.5 py-0.5 font-bold"
+      style={{ fontSize: 9, ...style }}
+    >
+      {pct}% potrivire
+    </span>
+  )
 }
 
 function SuggestionCard({ s }: { s: MentorSuggestion }) {
-  const preview = s.offer_text ? s.offer_text.slice(0, 72) + (s.offer_text.length > 72 ? '…' : '') : null
+  const preview = s.offer_text
+    ? s.offer_text.slice(0, 80) + (s.offer_text.length > 80 ? '…' : '')
+    : null
 
   return (
     <Link
       href={`/profil/${s.username}`}
       className="flex-shrink-0 flex flex-col rounded-xl p-3 gap-2"
       style={{
-        width: 152,
+        width: 160,
         background: 'var(--white)',
         border: '1px solid var(--border)',
         boxShadow: 'var(--shadow-s)',
@@ -62,12 +80,9 @@ function SuggestionCard({ s }: { s: MentorSuggestion }) {
           <div
             className="rounded-full flex items-center justify-center flex-shrink-0"
             style={{
-              width: 32,
-              height: 32,
+              width: 32, height: 32,
               background: avatarColor(s.name),
-              color: '#fff',
-              fontSize: 11,
-              fontWeight: 700,
+              color: '#fff', fontSize: 11, fontWeight: 700,
             }}
           >
             {getInitials(s.name)}
@@ -84,14 +99,23 @@ function SuggestionCard({ s }: { s: MentorSuggestion }) {
       {/* Text preview */}
       {preview ? (
         <p
-          className="text-xs leading-snug"
-          style={{ color: 'var(--ink3)', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}
+          className="text-xs leading-snug flex-1"
+          style={{
+            color: 'var(--ink3)',
+            display: '-webkit-box',
+            WebkitLineClamp: 3,
+            WebkitBoxOrient: 'vertical',
+            overflow: 'hidden',
+          }}
         >
           {preview}
         </p>
       ) : (
-        <p className="text-xs italic" style={{ color: 'var(--ink3)' }}>Fără descriere</p>
+        <p className="text-xs italic flex-1" style={{ color: 'var(--ink3)' }}>Fără descriere</p>
       )}
+
+      {/* Match score badge */}
+      <ScoreBadge score={s.score} />
     </Link>
   )
 }
@@ -112,14 +136,14 @@ export function MentorshipSuggestions({ role, suggestions }: MentorshipSuggestio
       </div>
 
       <div className="flex gap-2.5 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
-        {suggestions.map(s => (
-          <SuggestionCard key={s.id} s={s} />
-        ))}
-        {suggestions.length === 0 && (
-          <p className="text-xs italic py-1" style={{ color: 'var(--ink3)' }}>
-            Nimeni disponibil momentan.
-          </p>
-        )}
+        {suggestions.length > 0
+          ? suggestions.map(s => <SuggestionCard key={s.user_id} s={s} />)
+          : (
+            <p className="text-xs italic py-1" style={{ color: 'var(--ink3)' }}>
+              Nimeni disponibil momentan.
+            </p>
+          )
+        }
       </div>
     </div>
   )
