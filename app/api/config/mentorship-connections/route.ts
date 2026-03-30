@@ -76,6 +76,8 @@ export async function GET() {
       ])
       const intersection = [...mSet].filter(s => tSet.has(s))
 
+      if (intersection.length === 0) continue
+
       // Seeker coverage: what fraction of the mentee's needs does this mentor cover?
       const score = tSet.size > 0 ? intersection.length / tSet.size : 0
 
