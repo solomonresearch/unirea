@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { Lightbulb, Loader2, Pencil } from 'lucide-react'
 import { ProfileSection } from '@/components/ProfileSection'
 
 export interface MentorshipData {
@@ -22,67 +21,84 @@ type Tab = 'mentor' | 'mentee'
 function AvailabilityToggle({
   active,
   onToggle,
-  label,
+  readOnly = false,
 }: {
   active: boolean
   onToggle: () => void
-  label: string
+  readOnly?: boolean
 }) {
   return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={active}
-      onClick={onToggle}
-      className="flex items-center gap-1.5"
-    >
-      <div
-        className="relative w-8 h-[18px] rounded-full transition-colors duration-200 flex-shrink-0"
-        style={{ background: active ? 'var(--amber)' : 'var(--border)' }}
+    <div className="flex items-center justify-between pt-2" style={{ borderTop: '1px solid var(--border)' }}>
+      <span className="text-sm font-medium" style={{ color: 'var(--ink2)' }}>
+        Disponibil acum
+      </span>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={active}
+        onClick={readOnly ? undefined : onToggle}
+        disabled={readOnly}
+        className="relative flex-shrink-0"
+        style={{ width: 44, height: 26, cursor: readOnly ? 'default' : 'pointer' }}
       >
         <div
-          className="absolute top-[2px] w-[14px] h-[14px] rounded-full transition-transform duration-200"
+          className="absolute inset-0 rounded-full transition-colors duration-200"
+          style={{ background: active ? '#22c55e' : 'var(--border)' }}
+        />
+        <div
+          className="absolute top-[3px] w-5 h-5 rounded-full transition-transform duration-200"
           style={{
             background: 'var(--white)',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
-            transform: active ? 'translateX(16px)' : 'translateX(2px)',
+            boxShadow: '0 1px 4px rgba(0,0,0,0.25)',
+            transform: active ? 'translateX(21px)' : 'translateX(3px)',
           }}
         />
-      </div>
-      <span className="text-xxs" style={{ color: active ? 'var(--amber-dark)' : 'var(--ink3)' }}>
-        {label}
-      </span>
-    </button>
+      </button>
+    </div>
   )
 }
 
 function TabBar({ activeTab, setActiveTab }: { activeTab: Tab; setActiveTab: (t: Tab) => void }) {
   return (
     <div className="flex gap-2 mb-3">
-      {(['mentor', 'mentee'] as const).map(tab => (
-        <button
-          key={tab}
-          type="button"
-          onClick={() => setActiveTab(tab)}
-          className="flex-1 rounded-full py-1.5 text-xs font-semibold transition-all"
-          style={
-            activeTab === tab
-              ? {
-                  background: 'var(--amber-soft)',
-                  border: '1.5px solid var(--amber)',
-                  color: 'var(--amber-dark)',
-                }
-              : {
-                  background: 'var(--white)',
-                  border: '1.5px solid var(--border)',
-                  color: 'var(--ink3)',
-                }
-          }
-        >
-          {tab === 'mentor' ? 'Mentor' : 'Mentee'}
-        </button>
-      ))}
+      {(['mentor', 'mentee'] as const).map(tab => {
+        const isActive = activeTab === tab
+        return (
+          <button
+            key={tab}
+            type="button"
+            onClick={() => setActiveTab(tab)}
+            className="flex-1 rounded-full py-1.5 text-xs font-bold tracking-wide uppercase transition-all"
+            style={
+              isActive
+                ? {
+                    background: 'var(--amber-soft)',
+                    border: '1.5px solid var(--amber)',
+                    color: 'var(--amber-dark)',
+                  }
+                : {
+                    background: 'var(--white)',
+                    border: '1.5px solid var(--border)',
+                    color: 'var(--ink3)',
+                  }
+            }
+          >
+            {isActive ? `✓ ${tab === 'mentor' ? 'Mentor' : 'Mentee'}` : tab === 'mentor' ? 'Mentor' : 'Mentee'}
+          </button>
+        )
+      })}
     </div>
+  )
+}
+
+function SubLabel({ children }: { children: string }) {
+  return (
+    <p
+      className="text-[10px] font-bold uppercase tracking-widest mb-1.5"
+      style={{ color: 'var(--ink3)' }}
+    >
+      {children}
+    </p>
   )
 }
 
@@ -109,55 +125,41 @@ export function MentorshipSection({ data, readOnly = false, onSave }: Mentorship
     })
   }
 
-  const mentorActive = data?.mentor_active ?? false
-  const menteeActive = data?.mentee_active ?? false
+  const sublabel = activeTab === 'mentor' ? 'Ce pot oferi' : 'Ce am nevoie'
 
   const viewContent = (
     <>
       <TabBar activeTab={activeTab} setActiveTab={setActiveTab} />
+      <SubLabel>{sublabel}</SubLabel>
       {activeTab === 'mentor' ? (
-        <div className="space-y-2">
+        <div className="space-y-3">
           {data?.mentor_text ? (
-            <p className="text-xs leading-relaxed" style={{ color: 'var(--ink2)' }}>
-              {data.mentor_text}
+            <p className="text-sm leading-relaxed italic" style={{ color: 'var(--ink2)' }}>
+              &ldquo;{data.mentor_text}&rdquo;
             </p>
           ) : (
             <p className="text-xs italic" style={{ color: 'var(--ink3)' }}>Necompletat</p>
           )}
-          <div className="pt-1">
-            <span
-              className="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium"
-              style={
-                mentorActive
-                  ? { background: 'var(--teal-soft)', border: '1px solid var(--teal)', color: 'var(--teal)' }
-                  : { background: 'var(--cream2)', border: '1px solid var(--border)', color: 'var(--ink3)' }
-              }
-            >
-              {mentorActive ? 'Disponibil' : 'Indisponibil'}
-            </span>
-          </div>
+          <AvailabilityToggle
+            active={data?.mentor_active ?? false}
+            onToggle={() => {}}
+            readOnly
+          />
         </div>
       ) : (
-        <div className="space-y-2">
+        <div className="space-y-3">
           {data?.mentee_text ? (
-            <p className="text-xs leading-relaxed" style={{ color: 'var(--ink2)' }}>
-              {data.mentee_text}
+            <p className="text-sm leading-relaxed italic" style={{ color: 'var(--ink2)' }}>
+              &ldquo;{data.mentee_text}&rdquo;
             </p>
           ) : (
             <p className="text-xs italic" style={{ color: 'var(--ink3)' }}>Necompletat</p>
           )}
-          <div className="pt-1">
-            <span
-              className="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium"
-              style={
-                menteeActive
-                  ? { background: 'var(--teal-soft)', border: '1px solid var(--teal)', color: 'var(--teal)' }
-                  : { background: 'var(--cream2)', border: '1px solid var(--border)', color: 'var(--ink3)' }
-              }
-            >
-              {menteeActive ? 'Disponibil' : 'Indisponibil'}
-            </span>
-          </div>
+          <AvailabilityToggle
+            active={data?.mentee_active ?? false}
+            onToggle={() => {}}
+            readOnly
+          />
         </div>
       )}
     </>
@@ -168,49 +170,55 @@ export function MentorshipSection({ data, readOnly = false, onSave }: Mentorship
       <TabBar activeTab={activeTab} setActiveTab={setActiveTab} />
       {activeTab === 'mentor' ? (
         <div className="space-y-3">
-          <textarea
-            rows={4}
-            value={draftMentorText}
-            onChange={e => setDraftMentorText(e.target.value)}
-            placeholder="Ex: pot ajuta cu primul job, anxietatea schimbării carierei, mutatul în altă țară sau co-fondatul unui proiect..."
-            className="w-full rounded-sm px-3 py-2.5 text-sm resize-none"
-            style={{
-              background: 'var(--cream2)',
-              border: '1.5px solid var(--border)',
-              color: 'var(--ink)',
-              outline: 'none',
-            }}
-          />
+          <div>
+            <SubLabel>Ce pot oferi</SubLabel>
+            <textarea
+              rows={4}
+              value={draftMentorText}
+              onChange={e => setDraftMentorText(e.target.value)}
+              placeholder="Ex: pot ajuta cu primul job, anxietatea schimbării carierei, mutatul în altă țară sau co-fondatul unui proiect..."
+              className="w-full rounded-sm px-3 py-2.5 text-sm resize-none"
+              style={{
+                background: 'var(--cream2)',
+                border: '1.5px solid var(--border)',
+                color: 'var(--ink)',
+                outline: 'none',
+              }}
+            />
+          </div>
           <AvailabilityToggle
             active={draftMentorActive}
             onToggle={() => setDraftMentorActive(v => !v)}
-            label={draftMentorActive ? 'Disponibil' : 'Indisponibil'}
           />
         </div>
       ) : (
         <div className="space-y-3">
-          <textarea
-            rows={4}
-            value={draftMenteeText}
-            onChange={e => setDraftMenteeText(e.target.value)}
-            placeholder="Ce situație încerc să navighez acum și ce fel de perspectivă ar fi utilă..."
-            className="w-full rounded-sm px-3 py-2.5 text-sm resize-none"
-            style={{
-              background: 'var(--cream2)',
-              border: '1.5px solid var(--border)',
-              color: 'var(--ink)',
-              outline: 'none',
-            }}
-          />
+          <div>
+            <SubLabel>Ce am nevoie</SubLabel>
+            <textarea
+              rows={4}
+              value={draftMenteeText}
+              onChange={e => setDraftMenteeText(e.target.value)}
+              placeholder="Ce situație încerc să navighez acum și ce fel de perspectivă ar fi utilă..."
+              className="w-full rounded-sm px-3 py-2.5 text-sm resize-none"
+              style={{
+                background: 'var(--cream2)',
+                border: '1.5px solid var(--border)',
+                color: 'var(--ink)',
+                outline: 'none',
+              }}
+            />
+          </div>
           <AvailabilityToggle
             active={draftMenteeActive}
             onToggle={() => setDraftMenteeActive(v => !v)}
-            label={draftMenteeActive ? 'Disponibil' : 'Indisponibil'}
           />
         </div>
       )}
     </>
   )
+
+  const headerIcon = <span style={{ fontSize: 16 }}>🤝</span>
 
   if (readOnly) {
     return (
@@ -219,9 +227,9 @@ export function MentorshipSection({ data, readOnly = false, onSave }: Mentorship
         style={{ background: 'var(--white)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-s)' }}
       >
         <div className="flex items-center gap-2 mb-3">
-          <Lightbulb size={14} style={{ color: 'var(--amber)' }} />
-          <span className="text-xxs font-bold uppercase tracking-wider" style={{ color: 'var(--ink3)' }}>
-            Mentorat
+          {headerIcon}
+          <span className="text-sm font-semibold" style={{ color: 'var(--ink)' }}>
+            Mentorship
           </span>
         </div>
         {viewContent}
@@ -231,8 +239,8 @@ export function MentorshipSection({ data, readOnly = false, onSave }: Mentorship
 
   return (
     <ProfileSection
-      title="Mentorat"
-      icon={<Lightbulb size={16} style={{ color: 'var(--amber)' }} />}
+      title="Mentorship"
+      icon={headerIcon}
       editContent={editContent}
       onSave={handleSave}
       onEditOpen={initDrafts}
