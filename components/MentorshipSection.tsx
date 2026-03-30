@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { HeartHandshake } from 'lucide-react'
 import { ProfileSection } from '@/components/ProfileSection'
 
 export interface MentorshipData {
@@ -68,7 +69,7 @@ function TabBar({ activeTab, setActiveTab }: { activeTab: Tab; setActiveTab: (t:
             key={tab}
             type="button"
             onClick={() => setActiveTab(tab)}
-            className="flex-1 rounded-full py-1.5 text-xs font-bold tracking-wide uppercase transition-all"
+            className="flex-1 rounded-full py-1.5 text-sm font-semibold transition-all"
             style={
               isActive
                 ? {
@@ -83,7 +84,7 @@ function TabBar({ activeTab, setActiveTab }: { activeTab: Tab; setActiveTab: (t:
                   }
             }
           >
-            {isActive ? `✓ ${tab === 'mentor' ? 'Mentor' : 'Mentee'}` : tab === 'mentor' ? 'Mentor' : 'Mentee'}
+            {tab === 'mentor' ? 'Mentor' : 'Mentee'}
           </button>
         )
       })}
@@ -94,8 +95,8 @@ function TabBar({ activeTab, setActiveTab }: { activeTab: Tab; setActiveTab: (t:
 function SubLabel({ children }: { children: string }) {
   return (
     <p
-      className="text-[10px] font-bold uppercase tracking-widest mb-1.5"
-      style={{ color: 'var(--ink3)' }}
+      className="font-bold uppercase tracking-widest mb-1.5"
+      style={{ color: 'var(--ink3)', fontSize: 10 }}
     >
       {children}
     </p>
@@ -218,7 +219,7 @@ export function MentorshipSection({ data, readOnly = false, onSave }: Mentorship
     </>
   )
 
-  const headerIcon = <span style={{ fontSize: 16 }}>🤝</span>
+  const headerIcon = <HeartHandshake size={16} style={{ color: 'var(--amber)' }} />
 
   if (readOnly) {
     return (
@@ -229,7 +230,7 @@ export function MentorshipSection({ data, readOnly = false, onSave }: Mentorship
         <div className="flex items-center gap-2 mb-3">
           {headerIcon}
           <span className="text-sm font-semibold" style={{ color: 'var(--ink)' }}>
-            Mentorship
+            Mentorat
           </span>
         </div>
         {viewContent}
@@ -239,7 +240,7 @@ export function MentorshipSection({ data, readOnly = false, onSave }: Mentorship
 
   return (
     <ProfileSection
-      title="Mentorship"
+      title="Mentorat"
       icon={headerIcon}
       editContent={editContent}
       onSave={handleSave}
