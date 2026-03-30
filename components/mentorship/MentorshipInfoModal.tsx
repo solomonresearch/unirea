@@ -54,7 +54,7 @@ export function MentorshipInfoModal({ open, onClose }: MentorshipInfoModalProps)
           <Step
             icon={<Sparkles size={14} />}
             title="Ce poți oferi / ce cauți"
-            body="Dacă completezi textul din secțiunea Mentor sau Mentee, aplicația detectează categorii relevante (ex: primul job, startup, fitness). Cu cât descrii mai clar, cu atât potrivirea e mai precisă."
+            body="Dacă vei completa textul din secțiunea Mentor sau Mentee, aplicația detectează categorii relevante (ex: primul job, startup, fitness). Cu cât descrii mai clar, cu atât potrivirea e mai precisă."
           />
           <Step
             icon={<Users size={14} />}
