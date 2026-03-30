@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
       .single(),
     supabase
       .from('mentorship_profiles')
-      .select('mentor_slugs, mentee_slugs, mentor_active, mentee_active')
+      .select('mentor_slugs, mentee_slugs, mentor_active, mentee_active, profile_slugs')
       .eq('user_id', user.id)
       .maybeSingle(),
   ])
@@ -40,13 +40,18 @@ export async function GET(req: NextRequest) {
 
   const myMentorship = mentorshipResult.data
 
-  // Determine which slug array we're searching with
-  // - looking for mentors  → we're the mentee  → use our mentee_slugs to match mentor_slugs
-  // - looking for mentees  → we're the mentor  → use our mentor_slugs to match mentee_slugs
-  const seekerSlugs: string[] =
+  // Determine which slug array we're searching with, always union with profile_slugs
+  // so the seeker side is computed identically to how Conexiuni computes it.
+  // - looking for mentors  → we're the mentee  → use mentee_slugs ∪ profile_slugs
+  // - looking for mentees  → we're the mentor  → use mentor_slugs ∪ profile_slugs
+  const textSlugs: string[] =
     forParam === 'mentors'
       ? (myMentorship?.mentee_slugs ?? [])
       : (myMentorship?.mentor_slugs ?? [])
+
+  const seekerSlugs: string[] = [
+    ...new Set([...textSlugs, ...(myMentorship?.profile_slugs ?? [])]),
+  ]
 
   const offerRole = forParam === 'mentors' ? 'mentor' : 'mentee'
 
