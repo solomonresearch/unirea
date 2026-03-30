@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { HeartHandshake } from 'lucide-react'
 import { ProfileSection } from '@/components/ProfileSection'
 
@@ -105,24 +105,52 @@ function SubLabel({ children }: { children: string }) {
 
 export function MentorshipSection({ data, readOnly = false, onSave }: MentorshipSectionProps) {
   const [activeTab, setActiveTab] = useState<Tab>('mentor')
+  // Live toggle state — can be flipped directly without entering edit mode
+  const [mentorActive, setMentorActive] = useState(data?.mentor_active ?? false)
+  const [menteeActive, setMenteeActive] = useState(data?.mentee_active ?? false)
+  // Draft text state — only used inside edit mode
   const [draftMentorText, setDraftMentorText] = useState(data?.mentor_text ?? '')
-  const [draftMentorActive, setDraftMentorActive] = useState(data?.mentor_active ?? false)
   const [draftMenteeText, setDraftMenteeText] = useState(data?.mentee_text ?? '')
-  const [draftMenteeActive, setDraftMenteeActive] = useState(data?.mentee_active ?? false)
+
+  // Sync live toggle state when parent data changes
+  useEffect(() => {
+    setMentorActive(data?.mentor_active ?? false)
+    setMenteeActive(data?.mentee_active ?? false)
+  }, [data?.mentor_active, data?.mentee_active])
 
   function initDrafts() {
     setDraftMentorText(data?.mentor_text ?? '')
-    setDraftMentorActive(data?.mentor_active ?? false)
     setDraftMenteeText(data?.mentee_text ?? '')
-    setDraftMenteeActive(data?.mentee_active ?? false)
+  }
+
+  async function handleToggle(tab: Tab) {
+    if (tab === 'mentor') {
+      const next = !mentorActive
+      setMentorActive(next)
+      await onSave?.({
+        mentor_text: data?.mentor_text ?? null,
+        mentor_active: next,
+        mentee_text: data?.mentee_text ?? null,
+        mentee_active: menteeActive,
+      })
+    } else {
+      const next = !menteeActive
+      setMenteeActive(next)
+      await onSave?.({
+        mentor_text: data?.mentor_text ?? null,
+        mentor_active: mentorActive,
+        mentee_text: data?.mentee_text ?? null,
+        mentee_active: next,
+      })
+    }
   }
 
   async function handleSave() {
     await onSave?.({
       mentor_text: draftMentorText || null,
-      mentor_active: draftMentorActive,
+      mentor_active: mentorActive,
       mentee_text: draftMenteeText || null,
-      mentee_active: draftMenteeActive,
+      mentee_active: menteeActive,
     })
   }
 
@@ -142,9 +170,9 @@ export function MentorshipSection({ data, readOnly = false, onSave }: Mentorship
             <p className="text-xs italic" style={{ color: 'var(--ink3)' }}>Necompletat</p>
           )}
           <AvailabilityToggle
-            active={data?.mentor_active ?? false}
-            onToggle={() => {}}
-            readOnly
+            active={mentorActive}
+            onToggle={readOnly ? () => {} : () => handleToggle('mentor')}
+            readOnly={readOnly}
           />
         </div>
       ) : (
@@ -157,9 +185,9 @@ export function MentorshipSection({ data, readOnly = false, onSave }: Mentorship
             <p className="text-xs italic" style={{ color: 'var(--ink3)' }}>Necompletat</p>
           )}
           <AvailabilityToggle
-            active={data?.mentee_active ?? false}
-            onToggle={() => {}}
-            readOnly
+            active={menteeActive}
+            onToggle={readOnly ? () => {} : () => handleToggle('mentee')}
+            readOnly={readOnly}
           />
         </div>
       )}
@@ -188,8 +216,8 @@ export function MentorshipSection({ data, readOnly = false, onSave }: Mentorship
             />
           </div>
           <AvailabilityToggle
-            active={draftMentorActive}
-            onToggle={() => setDraftMentorActive(v => !v)}
+            active={mentorActive}
+            onToggle={() => setMentorActive(v => !v)}
           />
         </div>
       ) : (
@@ -211,8 +239,8 @@ export function MentorshipSection({ data, readOnly = false, onSave }: Mentorship
             />
           </div>
           <AvailabilityToggle
-            active={draftMenteeActive}
-            onToggle={() => setDraftMenteeActive(v => !v)}
+            active={menteeActive}
+            onToggle={() => setMenteeActive(v => !v)}
           />
         </div>
       )}
