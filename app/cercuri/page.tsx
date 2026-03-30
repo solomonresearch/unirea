@@ -15,6 +15,7 @@ import {
   CIRCLE_CONFIG, CIRCLE_COLORS, ALL_CIRCLES, ALL_POSITIONS, ALL_DOTS,
 } from '@/components/circles/circleConfig'
 import { SchoolGate } from '@/components/SchoolGate'
+import { MentorshipSuggestions, type MentorSuggestion } from '@/components/mentorship/MentorshipSuggestions'
 
 interface CirclesData {
   circles: Record<string, number>
@@ -63,6 +64,8 @@ export default function CercuriPage() {
   const [selectedPeople, setSelectedPeople] = useState<Set<string>>(new Set())
   const [showGroupConfirm, setShowGroupConfirm] = useState(false)
   const [creatingGroup, setCreatingGroup] = useState(false)
+  const [mentorshipRole, setMentorshipRole] = useState<'mentor' | 'mentee' | 'both' | null>(null)
+  const [mentorshipSuggestions, setMentorshipSuggestions] = useState<MentorSuggestion[]>([])
 
   useEffect(() => {
     async function init() {
@@ -87,6 +90,32 @@ export default function CercuriPage() {
       if (error) { console.error(error); setLoading(false); return }
       setData(result as CirclesData)
       setLoading(false)
+
+      // Load mentorship suggestions (non-blocking)
+      const { data: myMentorship } = await supabase
+        .from('mentorship_profiles')
+        .select('mentor_active, mentee_active')
+        .eq('user_id', user.id)
+        .maybeSingle()
+
+      const isMentor = myMentorship?.mentor_active ?? false
+      const isMentee = myMentorship?.mentee_active ?? false
+
+      if (!isMentor && !isMentee) return
+
+      const role = isMentor && isMentee ? 'both' : isMentor ? 'mentor' : 'mentee'
+      setMentorshipRole(role)
+
+      // Demo suggestion — real matching comes later
+      setMentorshipSuggestions([
+        {
+          id: 'demo',
+          name: 'Ion Popescu',
+          username: 'ion.popescu',
+          avatar_url: null,
+          offer_text: 'Am trecut prin primul job în tech, mutarea în altă țară și schimbarea domeniului. Pot oferi perspectivă pentru oricine navighează o tranziție.',
+        },
+      ])
     }
     init()
   }, [router])
@@ -233,6 +262,18 @@ export default function CercuriPage() {
       />
 
       <div className="max-w-sm mx-auto px-4 py-4 space-y-3">
+        {/* Mentorship suggestions */}
+        {mentorshipRole && (
+          mentorshipRole === 'both' ? (
+            <div className="space-y-3">
+              <MentorshipSuggestions role="mentee" suggestions={mentorshipSuggestions} />
+              <MentorshipSuggestions role="mentor" suggestions={[]} />
+            </div>
+          ) : (
+            <MentorshipSuggestions role={mentorshipRole} suggestions={mentorshipSuggestions} />
+          )
+        )}
+
         {/* Venn Canvas */}
         <VennCanvas
           circles={ALL_CIRCLES}
