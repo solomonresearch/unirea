@@ -885,6 +885,18 @@ export function extractSlugs(text: string): string[] {
     .map(h => h.slug)
 }
 
+// getMatchingKeywords(slug, text)
+// Returns the specific keywords from a category that appear in the given text.
+// Useful for showing users *why* a slug was matched ("fitness", "gym", etc.)
+
+export function getMatchingKeywords(slug: string, text: string): string[] {
+  if (!text) return []
+  const cat = TAXONOMY_BY_SLUG.get(slug)
+  if (!cat) return []
+  const lower = text.toLowerCase()
+  return cat.keywords.filter(kw => lower.includes(kw.toLowerCase()))
+}
+
 // extractSlugsFromProfile(hobbies, domains, professions)
 // Derives taxonomy slugs from the structured profile fields (hobby tags,
 // domain tags, profession tags). Joins all labels into a single text and

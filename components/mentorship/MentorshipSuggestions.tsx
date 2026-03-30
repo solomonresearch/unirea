@@ -6,6 +6,11 @@ import { HeartHandshake, Info } from 'lucide-react'
 import { TAXONOMY } from '@/lib/taxonomy'
 import { MentorshipInfoModal } from './MentorshipInfoModal'
 
+export interface SlugMatch {
+  slug: string
+  keywords: string[]
+}
+
 export interface MentorSuggestion {
   user_id: string
   name: string
@@ -13,7 +18,7 @@ export interface MentorSuggestion {
   avatar_url: string | null
   offer_text: string | null
   score: number        // Jaccard overlap [0, 1]
-  shared_slugs: string[]
+  slug_details: SlugMatch[]
 }
 
 interface MentorshipSuggestionsProps {
@@ -114,24 +119,33 @@ function SuggestionCard({ s }: { s: MentorSuggestion }) {
         >
           {preview}
         </p>
-      ) : s.shared_slugs?.length > 0 ? (
-        <div className="flex flex-wrap gap-1">
-          {s.shared_slugs.slice(0, 4).map(slug => {
+      ) : s.slug_details?.length > 0 ? (
+        <div className="flex flex-col gap-1">
+          {s.slug_details.slice(0, 3).map(({ slug, keywords }) => {
             const label = TAXONOMY.find(c => c.slug === slug)?.label ?? slug
             return (
-              <span
-                key={slug}
-                className="rounded-full leading-tight"
-                style={{
-                  fontSize: 9,
-                  padding: '2px 6px',
-                  background: 'var(--amber-soft)',
-                  color: 'var(--amber-dark)',
-                  border: '1px solid var(--amber)',
-                }}
-              >
-                {label}
-              </span>
+              <div key={slug}>
+                <span
+                  className="rounded-full leading-tight"
+                  style={{
+                    fontSize: 9,
+                    padding: '2px 6px',
+                    background: 'var(--amber-soft)',
+                    color: 'var(--amber-dark)',
+                    border: '1px solid var(--amber)',
+                  }}
+                >
+                  {label}
+                </span>
+                {keywords.length > 0 && (
+                  <p
+                    className="mt-0.5 leading-tight truncate"
+                    style={{ fontSize: 9, color: 'var(--ink3)', paddingLeft: 2 }}
+                  >
+                    {keywords.slice(0, 3).join(', ')}
+                  </p>
+                )}
+              </div>
             )
           })}
         </div>

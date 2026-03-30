@@ -1,5 +1,12 @@
 import { NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { getMatchingKeywords } from '@/lib/taxonomy'
+
+export interface SlugDetail {
+  slug: string
+  mentorKeywords: string[]
+  menteeKeywords: string[]
+}
 
 export interface MentorshipConnection {
   mentor_id: string
@@ -8,8 +15,16 @@ export interface MentorshipConnection {
   mentee_id: string
   mentee_name: string
   mentee_username: string
-  shared_slugs: string[]
+  slug_details: SlugDetail[]
   score: number
+}
+
+type ProfileRow = {
+  name: string
+  username: string
+  hobbies: string[] | null
+  domain: string[] | null
+  profession: string[] | null
 }
 
 export async function GET() {
@@ -29,14 +44,18 @@ export async function GET() {
 
   const { data: rows, error } = await supabase
     .from('mentorship_profiles')
-    .select('user_id, highschool, mentor_active, mentor_slugs, mentee_active, mentee_slugs, profile_slugs, profiles(name, username)')
+    .select(`
+      user_id, highschool,
+      mentor_active, mentor_slugs, mentor_text,
+      mentee_active, mentee_slugs, mentee_text,
+      profile_slugs,
+      profiles(name, username, hobbies, domain, profession)
+    `)
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
   const all = rows ?? []
 
-  // Include all active mentors/mentees regardless of whether they have slugs —
-  // pairs without slug overlap are shown with score=0 so the admin can see them too
   const mentors = all.filter(p => p.mentor_active)
   const mentees = all.filter(p => p.mentee_active)
 
@@ -60,8 +79,29 @@ export async function GET() {
       const union = new Set([...mSet, ...tSet])
       const score = union.size > 0 ? intersection.length / union.size : 0
 
-      const mp = (mentor.profiles as unknown) as { name: string; username: string } | null
-      const tp = (mentee.profiles as unknown) as { name: string; username: string } | null
+      const mp = (mentor.profiles as unknown) as ProfileRow | null
+      const tp = (mentee.profiles as unknown) as ProfileRow | null
+
+      // Build the text corpus for each side (free text + profile labels)
+      const mentorCorpus = [
+        mentor.mentor_text ?? '',
+        ...(mp?.hobbies ?? []),
+        ...(mp?.domain ?? []),
+        ...(mp?.profession ?? []),
+      ].join(' ')
+
+      const menteeCorpus = [
+        mentee.mentee_text ?? '',
+        ...(tp?.hobbies ?? []),
+        ...(tp?.domain ?? []),
+        ...(tp?.profession ?? []),
+      ].join(' ')
+
+      const slug_details: SlugDetail[] = intersection.map(slug => ({
+        slug,
+        mentorKeywords: getMatchingKeywords(slug, mentorCorpus),
+        menteeKeywords: getMatchingKeywords(slug, menteeCorpus),
+      }))
 
       connections.push({
         mentor_id: mentor.user_id,
@@ -70,13 +110,12 @@ export async function GET() {
         mentee_id: mentee.user_id,
         mentee_name: tp?.name ?? '—',
         mentee_username: tp?.username ?? '',
-        shared_slugs: intersection,
+        slug_details,
         score,
       })
     }
   }
 
-  // Scored pairs first, then unscored (active but no text yet)
   connections.sort((a, b) => b.score - a.score)
 
   return NextResponse.json({ connections })

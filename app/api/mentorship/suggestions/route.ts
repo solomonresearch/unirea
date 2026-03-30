@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { getMatchingKeywords } from '@/lib/taxonomy'
 
 // GET /api/mentorship/suggestions?for=mentors|mentees
 //
@@ -60,28 +61,41 @@ export async function GET(req: NextRequest) {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   if (!suggestions?.length) return NextResponse.json({ suggestions: [] })
 
-  // Fetch the effective slugs for each suggested user so we can compute
-  // which slugs are actually shared (shown in the card when text is missing)
+  // Fetch slugs + text + profile fields for each suggested user
   const suggestedIds = suggestions.map((s: { user_id: string }) => s.user_id)
   const { data: slugRows } = await supabase
     .from('mentorship_profiles')
-    .select('user_id, mentor_slugs, mentee_slugs, profile_slugs')
+    .select('user_id, mentor_slugs, mentor_text, mentee_slugs, mentee_text, profile_slugs, profiles(hobbies, domain, profession)')
     .in('user_id', suggestedIds)
 
-  const slugMap = new Map(
-    (slugRows ?? []).map(r => [r.user_id, {
-      mentor: [...(r.mentor_slugs ?? []), ...(r.profile_slugs ?? [])],
-      mentee: [...(r.mentee_slugs ?? []), ...(r.profile_slugs ?? [])],
-    }])
+  const candidateMap = new Map(
+    (slugRows ?? []).map(r => {
+      const p = (r.profiles as unknown) as { hobbies?: string[]; domain?: string[]; profession?: string[] } | null
+      const profileText = [...(p?.hobbies ?? []), ...(p?.domain ?? []), ...(p?.profession ?? [])].join(' ')
+      return [r.user_id, {
+        effectiveSlugs: {
+          mentor: [...new Set([...(r.mentor_slugs ?? []), ...(r.profile_slugs ?? [])])],
+          mentee: [...new Set([...(r.mentee_slugs ?? []), ...(r.profile_slugs ?? [])])],
+        },
+        corpus: {
+          mentor: [r.mentor_text ?? '', profileText].join(' '),
+          mentee: [r.mentee_text ?? '', profileText].join(' '),
+        },
+      }]
+    })
   )
 
   const seekerSet = new Set(seekerSlugs)
   const offerKey = offerRole === 'mentor' ? 'mentor' : 'mentee'
 
   const enriched = suggestions.map((s: { user_id: string }) => {
-    const candidateSlugs = slugMap.get(s.user_id)?.[offerKey] ?? []
-    const shared_slugs = [...new Set(candidateSlugs)].filter(slug => seekerSet.has(slug))
-    return { ...s, shared_slugs }
+    const candidate = candidateMap.get(s.user_id)
+    const sharedSlugs = (candidate?.effectiveSlugs[offerKey] ?? []).filter(slug => seekerSet.has(slug))
+    const slug_details = sharedSlugs.map(slug => ({
+      slug,
+      keywords: getMatchingKeywords(slug, candidate?.corpus[offerKey] ?? ''),
+    }))
+    return { ...s, slug_details }
   })
 
   return NextResponse.json({ suggestions: enriched })

@@ -762,25 +762,35 @@ export default function ConfigPage() {
                                 {pct}%
                               </span>
                             </div>
-                            {/* Shared slugs */}
-                            <div className="flex flex-wrap gap-1">
-                              {conn.shared_slugs.length === 0 && (
+                            {/* Shared slugs with keywords */}
+                            <div className="flex flex-wrap gap-2">
+                              {conn.slug_details.length === 0 && (
                                 <span className="text-xs italic" style={{ color: 'var(--ink3)' }}>
                                   Activi, fără text completat încă
                                 </span>
                               )}
-                              {conn.shared_slugs.map(slug => {
+                              {conn.slug_details.map(({ slug, mentorKeywords, menteeKeywords }) => {
                                 const cat = TAXONOMY.find(c => c.slug === slug)
                                 const col = cat ? GROUP_COLORS[cat.group] : GROUP_COLORS.mentorat
+                                const allKeywords = [...new Set([...mentorKeywords, ...menteeKeywords])]
                                 return (
-                                  <span
-                                    key={slug}
-                                    className="flex items-center gap-1 px-2 py-0.5 rounded-full"
-                                    style={{ fontSize: 11, background: col.bg, border: `1px solid ${col.border}`, color: col.text }}
-                                  >
-                                    <span className="font-semibold">{cat?.label ?? slug}</span>
-                                    <code style={{ fontSize: 10, opacity: 0.7 }}>{slug}</code>
-                                  </span>
+                                  <div key={slug} className="flex flex-col gap-0.5">
+                                    <span
+                                      className="flex items-center gap-1 px-2 py-0.5 rounded-full"
+                                      style={{ fontSize: 11, background: col.bg, border: `1px solid ${col.border}`, color: col.text }}
+                                    >
+                                      <span className="font-semibold">{cat?.label ?? slug}</span>
+                                      <code style={{ fontSize: 10, opacity: 0.7 }}>{slug}</code>
+                                    </span>
+                                    {allKeywords.length > 0 && (
+                                      <span
+                                        className="px-2 leading-tight"
+                                        style={{ fontSize: 10, color: 'var(--ink3)' }}
+                                      >
+                                        {allKeywords.slice(0, 4).join(' · ')}
+                                      </span>
+                                    )}
+                                  </div>
                                 )
                               })}
                             </div>
