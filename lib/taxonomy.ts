@@ -885,6 +885,21 @@ export function extractSlugs(text: string): string[] {
     .map(h => h.slug)
 }
 
+// extractSlugsFromProfile(hobbies, domains, professions)
+// Derives taxonomy slugs from the structured profile fields (hobby tags,
+// domain tags, profession tags). Joins all labels into a single text and
+// runs extractSlugs on it — so "Fitness" → "fitness-gym", "Gaming" → "gaming", etc.
+// Used to augment mentor_slugs with implicit expertise from the profile.
+
+export function extractSlugsFromProfile(
+  hobbies: string[],
+  domains: string[],
+  professions: string[],
+): string[] {
+  const combined = [...hobbies, ...domains, ...professions].join(' ')
+  return extractSlugs(combined)
+}
+
 // scoreSlugs(aSlugs, bSlugs) — Jaccard-style overlap score [0, 1]
 // between two slug arrays (e.g. mentor offer vs mentee need).
 // Returns 0 when either array is empty.

@@ -594,7 +594,10 @@ export default function SetariPage() {
                 </div>
               </div>
             }
-            onSave={async () => { await updateProfile({ profession: editProfession, domain: editDomain, company: editCompany || null }) }}
+            onSave={async () => {
+              await updateProfile({ profession: editProfession, domain: editDomain, company: editCompany || null })
+              fetch('/api/mentorship/sync-profile-slugs', { method: 'POST' })
+            }}
           >
             {(profile.profession?.length > 0 || profile.domain?.length > 0 || profile.company) ? (
               <div className="space-y-1.5">
@@ -650,7 +653,10 @@ export default function SetariPage() {
                 })}
               </div>
             }
-            onSave={async () => { await updateProfile({ hobbies: editHobbies }) }}
+            onSave={async () => {
+              await updateProfile({ hobbies: editHobbies })
+              fetch('/api/mentorship/sync-profile-slugs', { method: 'POST' })
+            }}
           >
             {profile.hobbies?.length > 0 ? (
               <div className="flex flex-wrap gap-1.5">
