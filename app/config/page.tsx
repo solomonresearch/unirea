@@ -773,24 +773,18 @@ export default function ConfigPage() {
                                 const cat = TAXONOMY.find(c => c.slug === slug)
                                 const col = cat ? GROUP_COLORS[cat.group] : GROUP_COLORS.mentorat
                                 const allKeywords = [...new Set([...mentorKeywords, ...menteeKeywords])]
+                                  .slice(0, 4)
+                                  .map(kw => kw.charAt(0).toUpperCase() + kw.slice(1))
+                                const label = cat?.label ?? slug
+                                const parts = [label, ...allKeywords]
                                 return (
-                                  <div key={slug} className="flex flex-col gap-0.5">
-                                    <span
-                                      className="flex items-center gap-1 px-2 py-0.5 rounded-full"
-                                      style={{ fontSize: 11, background: col.bg, border: `1px solid ${col.border}`, color: col.text }}
-                                    >
-                                      <span className="font-semibold">{cat?.label ?? slug}</span>
-                                      <code style={{ fontSize: 10, opacity: 0.7 }}>{slug}</code>
-                                    </span>
-                                    {allKeywords.length > 0 && (
-                                      <span
-                                        className="px-2 leading-tight"
-                                        style={{ fontSize: 10, color: 'var(--ink3)' }}
-                                      >
-                                        {allKeywords.slice(0, 4).join(' · ')}
-                                      </span>
-                                    )}
-                                  </div>
+                                  <span
+                                    key={slug}
+                                    className="px-2 py-0.5 rounded-full leading-tight"
+                                    style={{ fontSize: 11, background: col.bg, border: `1px solid ${col.border}`, color: col.text }}
+                                  >
+                                    {parts.join(', ')}
+                                  </span>
                                 )
                               })}
                             </div>
