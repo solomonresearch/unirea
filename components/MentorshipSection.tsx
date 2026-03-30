@@ -163,7 +163,7 @@ export function MentorshipSection({ data, readOnly = false, onSave }: Mentorship
       {activeTab === 'mentor' ? (
         <div className="space-y-3">
           {data?.mentor_text ? (
-            <p className="text-sm leading-relaxed italic" style={{ color: 'var(--ink2)' }}>
+            <p className="text-sm leading-relaxed italic" style={{ color: 'var(--ink2)', whiteSpace: 'pre-wrap' }}>
               &ldquo;{data.mentor_text}&rdquo;
             </p>
           ) : (
@@ -178,7 +178,7 @@ export function MentorshipSection({ data, readOnly = false, onSave }: Mentorship
       ) : (
         <div className="space-y-3">
           {data?.mentee_text ? (
-            <p className="text-sm leading-relaxed italic" style={{ color: 'var(--ink2)' }}>
+            <p className="text-sm leading-relaxed italic" style={{ color: 'var(--ink2)', whiteSpace: 'pre-wrap' }}>
               &ldquo;{data.mentee_text}&rdquo;
             </p>
           ) : (
