@@ -29,7 +29,7 @@ export async function GET() {
 
   const { data: rows, error } = await supabase
     .from('mentorship_profiles')
-    .select('user_id, highschool, mentor_active, mentor_slugs, mentee_active, mentee_slugs, profiles(name, username)')
+    .select('user_id, highschool, mentor_active, mentor_slugs, mentee_active, mentee_slugs, profile_slugs, profiles(name, username)')
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
@@ -47,8 +47,14 @@ export async function GET() {
       if (mentor.user_id === mentee.user_id) continue
       if (mentor.highschool !== mentee.highschool) continue
 
-      const mSet = new Set(mentor.mentor_slugs as string[])
-      const tSet = new Set(mentee.mentee_slugs as string[])
+      const mSet = new Set([
+        ...(mentor.mentor_slugs as string[] ?? []),
+        ...(mentor.profile_slugs as string[] ?? []),
+      ])
+      const tSet = new Set([
+        ...(mentee.mentee_slugs as string[] ?? []),
+        ...(mentee.profile_slugs as string[] ?? []),
+      ])
       const intersection = [...mSet].filter(s => tSet.has(s))
 
       const union = new Set([...mSet, ...tSet])
