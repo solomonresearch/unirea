@@ -35,8 +35,10 @@ export async function GET() {
 
   const all = rows ?? []
 
-  const mentors = all.filter(p => p.mentor_active && (p.mentor_slugs as string[])?.length > 0)
-  const mentees = all.filter(p => p.mentee_active && (p.mentee_slugs as string[])?.length > 0)
+  // Include all active mentors/mentees regardless of whether they have slugs —
+  // pairs without slug overlap are shown with score=0 so the admin can see them too
+  const mentors = all.filter(p => p.mentor_active)
+  const mentees = all.filter(p => p.mentee_active)
 
   const connections: MentorshipConnection[] = []
 
@@ -49,10 +51,8 @@ export async function GET() {
       const tSet = new Set(mentee.mentee_slugs as string[])
       const intersection = [...mSet].filter(s => tSet.has(s))
 
-      if (intersection.length === 0) continue
-
       const union = new Set([...mSet, ...tSet])
-      const score = intersection.length / union.size
+      const score = union.size > 0 ? intersection.length / union.size : 0
 
       const mp = (mentor.profiles as unknown) as { name: string; username: string } | null
       const tp = (mentee.profiles as unknown) as { name: string; username: string } | null
@@ -70,6 +70,7 @@ export async function GET() {
     }
   }
 
+  // Scored pairs first, then unscored (active but no text yet)
   connections.sort((a, b) => b.score - a.score)
 
   return NextResponse.json({ connections })
