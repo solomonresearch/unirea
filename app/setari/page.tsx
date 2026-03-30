@@ -28,6 +28,7 @@ import {
   Gift,
 } from 'lucide-react'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
+import { MentorshipSection, type MentorshipData } from '@/components/MentorshipSection'
 
 interface Profile {
   id: string
@@ -88,6 +89,8 @@ export default function SetariPage() {
   const [deleteConfirmText, setDeleteConfirmText] = useState('')
   const [deleting, setDeleting] = useState(false)
   const [deleteError, setDeleteError] = useState('')
+  const [mentorship, setMentorship] = useState<MentorshipData | null>(null)
+  const [mentorshipLoading, setMentorshipLoading] = useState(true)
 
   useEffect(() => {
     async function loadProfile() {
@@ -122,6 +125,12 @@ export default function SetariPage() {
       setEditUsername(data.username || '')
       setLoading(false)
 
+      // Load mentorship profile (non-blocking)
+      fetch('/api/mentorship')
+        .then(r => r.json())
+        .then(({ data: mData }) => { setMentorship(mData); setMentorshipLoading(false) })
+        .catch(() => setMentorshipLoading(false))
+
       // Load user's carusel photos
       const supabaseForPhotos = getSupabase()
       const { data: photos } = await supabaseForPhotos
@@ -152,6 +161,18 @@ export default function SetariPage() {
 
     if (!error) {
       setProfile(prev => prev ? { ...prev, ...fields } : prev)
+    }
+  }
+
+  async function handleSaveMentorship(patch: MentorshipData) {
+    const res = await fetch('/api/mentorship', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(patch),
+    })
+    if (res.ok) {
+      const { data: mData } = await res.json()
+      setMentorship(mData)
     }
   }
 
@@ -674,6 +695,11 @@ export default function SetariPage() {
               )}
             </div>
           </ProfileSection>
+
+          {/* Mentorat */}
+          {!mentorshipLoading && (
+            <MentorshipSection data={mentorship} onSave={handleSaveMentorship} />
+          )}
 
           {/* Invite section */}
           <div className="rounded-xl border px-3 py-2.5" style={{ background: 'var(--white)', borderColor: 'var(--border)' }}>

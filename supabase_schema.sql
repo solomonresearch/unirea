@@ -93,3 +93,45 @@ create policy "Schools are publicly readable"
 create index idx_schools_judet on public.schools (judet_pj);
 create index idx_schools_denumire on public.schools (denumire_lunga_unitate);
 create index idx_schools_localitate on public.schools (localitate_unitate);
+
+-- ============================================
+-- Mentorship Profiles
+-- ============================================
+
+create table if not exists public.mentorship_profiles (
+  id            uuid primary key default gen_random_uuid(),
+  user_id       uuid not null references public.profiles(id) on delete cascade,
+  highschool    text not null,
+
+  mentor_text   text,
+  mentor_active boolean not null default false,
+  mentee_text   text,
+  mentee_active boolean not null default false,
+
+  created_at    timestamptz not null default now(),
+  updated_at    timestamptz not null default now(),
+
+  constraint mentorship_profiles_user_id_key unique (user_id)
+);
+
+alter table public.mentorship_profiles enable row level security;
+
+create trigger on_mentorship_profile_updated
+  before update on public.mentorship_profiles
+  for each row execute function public.handle_updated_at();
+
+create policy "Mentorship profiles are publicly readable"
+  on public.mentorship_profiles for select
+  using (true);
+
+create policy "Users can insert own mentorship profile"
+  on public.mentorship_profiles for insert
+  with check (auth.uid() = user_id);
+
+create policy "Users can update own mentorship profile"
+  on public.mentorship_profiles for update
+  using (auth.uid() = user_id);
+
+create index idx_mentorship_highschool on public.mentorship_profiles (highschool);
+create index idx_mentorship_mentor_active on public.mentorship_profiles (mentor_active) where mentor_active = true;
+create index idx_mentorship_mentee_active on public.mentorship_profiles (mentee_active) where mentee_active = true;
