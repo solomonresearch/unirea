@@ -52,7 +52,7 @@ function ScoreBadge({ score }: { score: number }) {
 
   return (
     <span
-      className="self-start rounded-full px-1.5 py-0.5 font-bold"
+      className="self-start rounded-full px-1.5 py-0.5 font-bold mt-auto"
       style={{ fontSize: 9, ...style }}
     >
       {pct}% potrivire
@@ -71,6 +71,7 @@ function SuggestionCard({ s }: { s: MentorSuggestion }) {
       className="flex-shrink-0 flex flex-col rounded-xl p-3 gap-2"
       style={{
         width: 160,
+        height: 150,
         background: 'var(--white)',
         border: '1px solid var(--border)',
         boxShadow: 'var(--shadow-s)',
