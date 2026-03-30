@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { HeartHandshake } from 'lucide-react'
+import { TAXONOMY } from '@/lib/taxonomy'
 
 export interface MentorSuggestion {
   user_id: string
@@ -9,7 +10,8 @@ export interface MentorSuggestion {
   username: string
   avatar_url: string | null
   offer_text: string | null
-  score: number // Jaccard overlap [0, 1]
+  score: number        // Jaccard overlap [0, 1]
+  shared_slugs: string[]
 }
 
 interface MentorshipSuggestionsProps {
@@ -96,7 +98,7 @@ function SuggestionCard({ s }: { s: MentorSuggestion }) {
         </span>
       </div>
 
-      {/* Text preview */}
+      {/* Text preview or shared slug pills */}
       {preview ? (
         <p
           className="text-xs leading-snug flex-1"
@@ -110,6 +112,26 @@ function SuggestionCard({ s }: { s: MentorSuggestion }) {
         >
           {preview}
         </p>
+      ) : s.shared_slugs?.length > 0 ? (
+        <div className="flex flex-wrap gap-1 flex-1">
+          {s.shared_slugs.slice(0, 4).map(slug => {
+            const label = TAXONOMY.find(c => c.slug === slug)?.label ?? slug
+            return (
+              <span
+                key={slug}
+                className="px-1.5 py-0.5 rounded-full leading-tight"
+                style={{
+                  fontSize: 10,
+                  background: 'var(--amber-soft)',
+                  color: 'var(--amber-dark)',
+                  border: '1px solid var(--amber)',
+                }}
+              >
+                {label}
+              </span>
+            )
+          })}
+        </div>
       ) : (
         <p className="text-xs italic flex-1" style={{ color: 'var(--ink3)' }}>Fără descriere</p>
       )}

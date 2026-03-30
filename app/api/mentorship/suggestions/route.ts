@@ -58,6 +58,31 @@ export async function GET(req: NextRequest) {
   })
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (!suggestions?.length) return NextResponse.json({ suggestions: [] })
 
-  return NextResponse.json({ suggestions: suggestions ?? [] })
+  // Fetch the effective slugs for each suggested user so we can compute
+  // which slugs are actually shared (shown in the card when text is missing)
+  const suggestedIds = suggestions.map((s: { user_id: string }) => s.user_id)
+  const { data: slugRows } = await supabase
+    .from('mentorship_profiles')
+    .select('user_id, mentor_slugs, mentee_slugs, profile_slugs')
+    .in('user_id', suggestedIds)
+
+  const slugMap = new Map(
+    (slugRows ?? []).map(r => [r.user_id, {
+      mentor: [...(r.mentor_slugs ?? []), ...(r.profile_slugs ?? [])],
+      mentee: [...(r.mentee_slugs ?? []), ...(r.profile_slugs ?? [])],
+    }])
+  )
+
+  const seekerSet = new Set(seekerSlugs)
+  const offerKey = offerRole === 'mentor' ? 'mentor' : 'mentee'
+
+  const enriched = suggestions.map((s: { user_id: string }) => {
+    const candidateSlugs = slugMap.get(s.user_id)?.[offerKey] ?? []
+    const shared_slugs = [...new Set(candidateSlugs)].filter(slug => seekerSet.has(slug))
+    return { ...s, shared_slugs }
+  })
+
+  return NextResponse.json({ suggestions: enriched })
 }
