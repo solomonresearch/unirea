@@ -1,8 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { HeartHandshake } from 'lucide-react'
+import { HeartHandshake, Info } from 'lucide-react'
 import { ProfileSection } from '@/components/ProfileSection'
+import { MentorshipInfoModal } from '@/components/mentorship/MentorshipInfoModal'
 
 export interface MentorshipData {
   mentor_text: string | null
@@ -105,6 +106,7 @@ function SubLabel({ children }: { children: string }) {
 
 export function MentorshipSection({ data, readOnly = false, onSave }: MentorshipSectionProps) {
   const [activeTab, setActiveTab] = useState<Tab>('mentor')
+  const [infoOpen, setInfoOpen] = useState(false)
   // Live toggle state — can be flipped directly without entering edit mode
   const [mentorActive, setMentorActive] = useState(data?.mentor_active ?? false)
   const [menteeActive, setMenteeActive] = useState(data?.mentee_active ?? false)
@@ -266,15 +268,31 @@ export function MentorshipSection({ data, readOnly = false, onSave }: Mentorship
     )
   }
 
-  return (
-    <ProfileSection
-      title="Mentorat"
-      icon={headerIcon}
-      editContent={editContent}
-      onSave={handleSave}
-      onEditOpen={initDrafts}
+  const infoButton = (
+    <button
+      type="button"
+      onClick={() => setInfoOpen(true)}
+      className="flex items-center justify-center transition-opacity hover:opacity-70"
+      style={{ color: 'var(--ink3)' }}
+      title="Cum funcționează?"
     >
-      {viewContent}
-    </ProfileSection>
+      <Info size={15} />
+    </button>
+  )
+
+  return (
+    <>
+      <ProfileSection
+        title="Mentorat"
+        icon={headerIcon}
+        editContent={editContent}
+        onSave={handleSave}
+        onEditOpen={initDrafts}
+        headerExtra={infoButton}
+      >
+        {viewContent}
+      </ProfileSection>
+      <MentorshipInfoModal open={infoOpen} onClose={() => setInfoOpen(false)} />
+    </>
   )
 }

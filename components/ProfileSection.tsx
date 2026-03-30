@@ -10,9 +10,10 @@ interface ProfileSectionProps {
   editContent: React.ReactNode
   onSave: () => Promise<void>
   onEditOpen?: () => void
+  headerExtra?: React.ReactNode
 }
 
-export function ProfileSection({ title, icon, children, editContent, onSave, onEditOpen }: ProfileSectionProps) {
+export function ProfileSection({ title, icon, children, editContent, onSave, onEditOpen, headerExtra }: ProfileSectionProps) {
   const [editing, setEditing] = useState(false)
   const [saving, setSaving] = useState(false)
 
@@ -36,13 +37,16 @@ export function ProfileSection({ title, icon, children, editContent, onSave, onE
           {title}
         </h3>
         {!editing && (
-          <button
-            type="button"
-            onClick={handleEditOpen}
-            className="text-gray-400 hover:text-primary-700 transition-colors"
-          >
-            <Pencil size={16} />
-          </button>
+          <div className="flex items-center gap-1.5">
+            {headerExtra}
+            <button
+              type="button"
+              onClick={handleEditOpen}
+              className="text-gray-400 hover:text-primary-700 transition-colors"
+            >
+              <Pencil size={16} />
+            </button>
+          </div>
         )}
       </div>
 

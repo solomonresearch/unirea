@@ -1,8 +1,10 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
-import { HeartHandshake } from 'lucide-react'
+import { HeartHandshake, Info } from 'lucide-react'
 import { TAXONOMY } from '@/lib/taxonomy'
+import { MentorshipInfoModal } from './MentorshipInfoModal'
 
 export interface MentorSuggestion {
   user_id: string
@@ -145,6 +147,7 @@ function SuggestionCard({ s }: { s: MentorSuggestion }) {
 
 export function MentorshipSuggestions({ role, suggestions }: MentorshipSuggestionsProps) {
   const title = role === 'mentee' ? 'Mentori disponibili' : 'Mentee care caută'
+  const [infoOpen, setInfoOpen] = useState(false)
 
   return (
     <div className="space-y-2">
@@ -156,7 +159,17 @@ export function MentorshipSuggestions({ role, suggestions }: MentorshipSuggestio
         >
           {title}
         </span>
+        <button
+          type="button"
+          onClick={() => setInfoOpen(true)}
+          className="flex items-center justify-center ml-0.5 transition-opacity hover:opacity-70"
+          style={{ color: 'var(--ink3)' }}
+          title="Cum funcționează?"
+        >
+          <Info size={12} />
+        </button>
       </div>
+      <MentorshipInfoModal open={infoOpen} onClose={() => setInfoOpen(false)} />
 
       <div className="flex gap-2.5 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
         {suggestions.length > 0
