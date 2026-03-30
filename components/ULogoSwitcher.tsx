@@ -384,12 +384,12 @@ export function ULogoSwitcher() {
             {toast && (
               <motion.div
                 key="toast"
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 8 }}
+                initial={{ opacity: 0, y: 8, x: '-50%' }}
+                animate={{ opacity: 1, y: 0, x: '-50%' }}
+                exit={{ opacity: 0, y: 8, x: '-50%' }}
                 style={{
                   position: 'fixed', bottom: 90,
-                  left: '50%', transform: 'translateX(-50%)',
+                  left: '50%',
                   background: level.color, color: 'white',
                   borderRadius: 20, padding: '6px 16px',
                   fontSize: 13, fontWeight: 600, zIndex: 99999,
