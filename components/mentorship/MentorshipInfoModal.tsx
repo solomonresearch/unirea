@@ -1,6 +1,6 @@
 'use client'
 
-import { X, HeartHandshake, Tags, Sparkles, Users } from 'lucide-react'
+import { X, HeartHandshake, Tags, Sparkles, Users, Percent } from 'lucide-react'
 
 interface MentorshipInfoModalProps {
   open: boolean
@@ -59,7 +59,12 @@ export function MentorshipInfoModal({ open, onClose }: MentorshipInfoModalProps)
           <Step
             icon={<Users size={14} />}
             title="Scor de potrivire"
-            body="Categoriile tale sunt comparate cu ale celorlalți colegi din aceeași școală. Scorul (0–100%) reflectă câte categorii aveți în comun față de total — cu cât mai mari, cu atât mai relevanți unul pentru celălalt."
+            body="Categoriile tale sunt comparate cu ale celorlalți colegi din aceeași școală. Scorul arată câte din nevoile tale sunt acoperite de celălalt utilizator."
+          />
+          <Step
+            icon={<Percent size={14} />}
+            title="Cum se calculează scorul"
+            body={`Scor = categorii comune ÷ categoriile tale × 100\n\nEx: cauți ajutor în 4 domenii, mentorul acoperă 3 → scor 75%. Un mentor cu experiență vastă dar care acoperă toate nevoile tale → 100%, indiferent de câte altele știe.`}
           />
         </div>
 
@@ -87,7 +92,7 @@ function Step({ icon, title, body }: { icon: React.ReactNode; title: string; bod
       </div>
       <div>
         <p className="text-xs font-semibold mb-0.5" style={{ color: 'var(--ink)' }}>{title}</p>
-        <p className="text-xs leading-relaxed" style={{ color: 'var(--ink3)' }}>{body}</p>
+        <p className="text-xs leading-relaxed" style={{ color: 'var(--ink3)', whiteSpace: 'pre-line' }}>{body}</p>
       </div>
     </div>
   )
