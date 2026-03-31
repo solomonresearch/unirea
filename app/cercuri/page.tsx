@@ -15,6 +15,7 @@ import {
   CIRCLE_CONFIG, CIRCLE_COLORS, ALL_CIRCLES, ALL_POSITIONS, ALL_DOTS,
 } from '@/components/circles/circleConfig'
 import { SchoolGate } from '@/components/SchoolGate'
+import { MentorshipSuggestions, type MentorSuggestion } from '@/components/mentorship/MentorshipSuggestions'
 
 interface CirclesData {
   circles: Record<string, number>
@@ -63,6 +64,10 @@ export default function CercuriPage() {
   const [selectedPeople, setSelectedPeople] = useState<Set<string>>(new Set())
   const [showGroupConfirm, setShowGroupConfirm] = useState(false)
   const [creatingGroup, setCreatingGroup] = useState(false)
+  const [mentorshipRole, setMentorshipRole] = useState<'mentor' | 'mentee' | 'both' | null>(null)
+  // When role=both, mentorSuggestions = mentors for me; menteeSuggestions = mentees I can help
+  const [mentorSuggestions, setMentorSuggestions] = useState<MentorSuggestion[]>([])
+  const [menteeSuggestions, setMenteeSuggestions] = useState<MentorSuggestion[]>([])
 
   useEffect(() => {
     async function init() {
@@ -87,6 +92,44 @@ export default function CercuriPage() {
       if (error) { console.error(error); setLoading(false); return }
       setData(result as CirclesData)
       setLoading(false)
+
+      // Load mentorship suggestions (non-blocking)
+      const { data: myMentorship } = await supabase
+        .from('mentorship_profiles')
+        .select('mentor_active, mentee_active')
+        .eq('user_id', user.id)
+        .maybeSingle()
+
+      const isMentor = myMentorship?.mentor_active ?? false
+      const isMentee = myMentorship?.mentee_active ?? false
+
+      if (!isMentor && !isMentee) return
+
+      const role = isMentor && isMentee ? 'both' : isMentor ? 'mentor' : 'mentee'
+      setMentorshipRole(role)
+
+      // Fetch ranked suggestions from the API in parallel where applicable
+      const fetches: Promise<void>[] = []
+
+      if (isMentee) {
+        fetches.push(
+          fetch('/api/mentorship/suggestions?for=mentors')
+            .then(r => r.json())
+            .then(({ suggestions }) => setMentorSuggestions(suggestions ?? []))
+            .catch(() => {})
+        )
+      }
+
+      if (isMentor) {
+        fetches.push(
+          fetch('/api/mentorship/suggestions?for=mentees')
+            .then(r => r.json())
+            .then(({ suggestions }) => setMenteeSuggestions(suggestions ?? []))
+            .catch(() => {})
+        )
+      }
+
+      await Promise.all(fetches)
     }
     init()
   }, [router])
@@ -233,6 +276,20 @@ export default function CercuriPage() {
       />
 
       <div className="max-w-sm mx-auto px-4 py-4 space-y-3">
+        {/* Mentorship suggestions */}
+        {mentorshipRole && (
+          mentorshipRole === 'both' ? (
+            <div className="space-y-3">
+              <MentorshipSuggestions role="mentee" suggestions={mentorSuggestions} />
+              <MentorshipSuggestions role="mentor" suggestions={menteeSuggestions} />
+            </div>
+          ) : mentorshipRole === 'mentee' ? (
+            <MentorshipSuggestions role="mentee" suggestions={mentorSuggestions} />
+          ) : (
+            <MentorshipSuggestions role="mentor" suggestions={menteeSuggestions} />
+          )
+        )}
+
         {/* Venn Canvas */}
         <VennCanvas
           circles={ALL_CIRCLES}

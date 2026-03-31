@@ -9,9 +9,11 @@ interface ProfileSectionProps {
   children: React.ReactNode
   editContent: React.ReactNode
   onSave: () => Promise<void>
+  onEditOpen?: () => void
+  headerExtra?: React.ReactNode
 }
 
-export function ProfileSection({ title, icon, children, editContent, onSave }: ProfileSectionProps) {
+export function ProfileSection({ title, icon, children, editContent, onSave, onEditOpen, headerExtra }: ProfileSectionProps) {
   const [editing, setEditing] = useState(false)
   const [saving, setSaving] = useState(false)
 
@@ -22,6 +24,11 @@ export function ProfileSection({ title, icon, children, editContent, onSave }: P
     setEditing(false)
   }
 
+  function handleEditOpen() {
+    onEditOpen?.()
+    setEditing(true)
+  }
+
   return (
     <div className="rounded-xl border border-gray-200 bg-white px-3 py-2.5">
       <div className="flex items-center justify-between mb-2">
@@ -30,13 +37,16 @@ export function ProfileSection({ title, icon, children, editContent, onSave }: P
           {title}
         </h3>
         {!editing && (
-          <button
-            type="button"
-            onClick={() => setEditing(true)}
-            className="text-gray-400 hover:text-primary-700 transition-colors"
-          >
-            <Pencil size={16} />
-          </button>
+          <div className="flex items-center gap-1.5">
+            {headerExtra}
+            <button
+              type="button"
+              onClick={handleEditOpen}
+              className="text-gray-400 hover:text-primary-700 transition-colors"
+            >
+              <Pencil size={16} />
+            </button>
+          </div>
         )}
       </div>
 

@@ -3,8 +3,10 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { getSupabase } from '@/lib/supabase'
-import { Shield, Search, Loader2, Check, X, Users, ChevronDown, ChevronUp, ArrowLeft, Inbox, SlidersHorizontal } from 'lucide-react'
+import { Shield, Search, Loader2, Check, X, Users, ChevronDown, ChevronUp, ArrowLeft, Inbox, SlidersHorizontal, HeartHandshake, FlaskConical } from 'lucide-react'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
+import { TAXONOMY, TAXONOMY_BY_GROUP, extractSlugs, type TaxonomyGroup } from '@/lib/taxonomy'
+import type { MentorshipConnection } from '@/app/api/config/mentorship-connections/route'
 
 interface School {
   id: number
@@ -20,6 +22,21 @@ type StatusFilter = 'all' | 'enabled' | 'disabled'
 type SortOrder = 'name_asc' | 'name_desc' | 'requests_desc' | 'requests_asc'
 
 const COLLAPSED_KEY = 'config-schools-collapsed'
+const TAXO_COLLAPSED_KEY = 'config-taxo-collapsed'
+
+const GROUP_LABELS: Record<TaxonomyGroup, string> = {
+  mentorat: 'Situații de mentorat',
+  hobby: 'Hobby-uri',
+  domeniu: 'Domenii profesionale',
+  profesie: 'Profesii',
+}
+
+const GROUP_COLORS: Record<TaxonomyGroup, { bg: string; border: string; text: string }> = {
+  mentorat: { bg: 'var(--amber-soft)', border: 'var(--amber)', text: 'var(--amber-dark)' },
+  hobby:    { bg: 'rgba(91,142,109,0.12)', border: '#5B8E6D', text: '#3d6b4f' },
+  domeniu:  { bg: 'var(--teal-soft)', border: 'var(--teal)', text: 'var(--teal)' },
+  profesie: { bg: 'rgba(123,109,158,0.12)', border: '#7B6D9E', text: '#5a4e8a' },
+}
 
 export default function ConfigPage() {
   const router = useRouter()
@@ -42,6 +59,22 @@ export default function ConfigPage() {
   const [thresh, setThresh] = useState<number | ''>('')
   const [threshLoading, setThreshLoading] = useState(false)
   const [threshSaved, setThreshSaved] = useState(false)
+
+  const [maxMentor, setMaxMentor] = useState<number | ''>(10)
+  const [maxMentee, setMaxMentee] = useState<number | ''>(10)
+  const [maxSugLoading, setMaxSugLoading] = useState(false)
+  const [maxSugSaved, setMaxSugSaved] = useState(false)
+
+  // Taxonomy & Mentorship section
+  const [taxoCollapsed, setTaxoCollapsed] = useState(true)
+  const [taxoTab, setTaxoTab] = useState<'categorii' | 'conexiuni'>('categorii')
+  const [expandedSlug, setExpandedSlug] = useState<string | null>(null)
+  const [connections, setConnections] = useState<MentorshipConnection[]>([])
+  const [connectionsLoading, setConnectionsLoading] = useState(false)
+  const [connectionsFetched, setConnectionsFetched] = useState(false)
+  const [testText, setTestText] = useState('')
+  const [categoriiExplOpen, setCategoriiExplOpen] = useState(false)
+  const [conexiuniExplOpen, setConexiuniExplOpen] = useState(false)
 
   // Admin check
   useEffect(() => {
@@ -69,6 +102,7 @@ export default function ConfigPage() {
   // Restore collapsed state from localStorage
   useEffect(() => {
     setCollapsed(localStorage.getItem(COLLAPSED_KEY) === 'true')
+    setTaxoCollapsed(localStorage.getItem(TAXO_COLLAPSED_KEY) !== 'false')
   }, [])
 
   // Load threshold once admin is confirmed
@@ -79,6 +113,8 @@ export default function ConfigPage() {
       if (res.ok) {
         const data = await res.json()
         setThresh(data.thresh_enable_school)
+        setMaxMentor(data.max_mentor_suggestions)
+        setMaxMentee(data.max_mentee_suggestions)
       }
     }
     loadThresh()
@@ -131,6 +167,24 @@ export default function ConfigPage() {
     localStorage.setItem(COLLAPSED_KEY, String(next))
   }
 
+  function toggleTaxoCollapsed() {
+    const next = !taxoCollapsed
+    setTaxoCollapsed(next)
+    localStorage.setItem(TAXO_COLLAPSED_KEY, String(next))
+  }
+
+  async function fetchConnections() {
+    if (connectionsFetched) return
+    setConnectionsLoading(true)
+    const res = await fetch('/api/config/mentorship-connections')
+    if (res.ok) {
+      const { connections: data } = await res.json()
+      setConnections(data ?? [])
+    }
+    setConnectionsLoading(false)
+    setConnectionsFetched(true)
+  }
+
   async function handleToggle(school: School) {
     setToggling(school.id)
     setSchools(prev => prev.map(s => s.id === school.id ? { ...s, enabled: !s.enabled } : s))
@@ -174,6 +228,21 @@ export default function ConfigPage() {
       await fetchSchools()
     }
     setThreshLoading(false)
+  }
+
+  async function handleSaveMaxSug() {
+    if (typeof maxMentor !== 'number' || typeof maxMentee !== 'number') return
+    setMaxSugLoading(true)
+    const res = await fetch('/api/config/app-config', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ max_mentor_suggestions: maxMentor, max_mentee_suggestions: maxMentee }),
+    })
+    if (res.ok) {
+      setMaxSugSaved(true)
+      setTimeout(() => setMaxSugSaved(false), 2000)
+    }
+    setMaxSugLoading(false)
   }
 
   async function handleDisableAll() {
@@ -470,6 +539,394 @@ export default function ConfigPage() {
               </button>
             </div>
           </div>
+        </div>
+
+        {/* Taxonomy & Mentorship section */}
+        <div
+          className="rounded-xl border overflow-hidden"
+          style={{ background: 'var(--white)', borderColor: 'var(--border)', boxShadow: 'var(--shadow-s)' }}
+        >
+          {/* Header */}
+          <div
+            className="flex items-center justify-between gap-3 px-4 py-3"
+            style={{ borderBottom: taxoCollapsed ? 'none' : '1px solid var(--border)' }}
+          >
+            <div className="flex items-center gap-3">
+              <div
+                className="flex items-center justify-center w-8 h-8 rounded-lg flex-shrink-0"
+                style={{ background: 'rgba(91,142,109,0.12)', border: '1px solid #5B8E6D' }}
+              >
+                <HeartHandshake size={15} style={{ color: '#3d6b4f' }} />
+              </div>
+              <div>
+                <p className="text-sm font-bold" style={{ color: 'var(--ink)' }}>Taxonomie & Mentorat</p>
+                <p className="text-xs" style={{ color: 'var(--ink3)' }}>
+                  {TAXONOMY.length} categorii · potrivire bazată pe slug-uri
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={toggleTaxoCollapsed}
+              className="flex items-center justify-center w-8 h-8 rounded-md transition-colors hover:opacity-70"
+              style={{ background: 'var(--cream2)', color: 'var(--ink3)' }}
+              title={taxoCollapsed ? 'Extinde' : 'Restrânge'}
+            >
+              {taxoCollapsed ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
+            </button>
+          </div>
+
+          {!taxoCollapsed && (
+            <>
+              {/* Max suggestions config */}
+              <div className="px-4 py-3 flex flex-wrap items-center gap-4" style={{ borderBottom: '1px solid var(--border)' }}>
+                <p className="text-xs font-semibold flex-shrink-0" style={{ color: 'var(--ink2)' }}>Sugestii maxime</p>
+                <div className="flex items-center gap-2">
+                  <label className="text-xs" style={{ color: 'var(--ink3)' }}>Mentori</label>
+                  <input
+                    type="number"
+                    min={0}
+                    max={10}
+                    value={maxMentor}
+                    onChange={e => setMaxMentor(e.target.value === '' ? '' : Math.min(10, Math.max(0, parseInt(e.target.value))))}
+                    className="w-16 px-2 py-1.5 text-sm rounded-md outline-none"
+                    style={{ background: 'var(--cream2)', border: '1.5px solid var(--border)', color: 'var(--ink)', fontFamily: 'inherit' }}
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <label className="text-xs" style={{ color: 'var(--ink3)' }}>Mentee</label>
+                  <input
+                    type="number"
+                    min={0}
+                    max={10}
+                    value={maxMentee}
+                    onChange={e => setMaxMentee(e.target.value === '' ? '' : Math.min(10, Math.max(0, parseInt(e.target.value))))}
+                    className="w-16 px-2 py-1.5 text-sm rounded-md outline-none"
+                    style={{ background: 'var(--cream2)', border: '1.5px solid var(--border)', color: 'var(--ink)', fontFamily: 'inherit' }}
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={handleSaveMaxSug}
+                  disabled={maxSugLoading || typeof maxMentor !== 'number' || typeof maxMentee !== 'number'}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold disabled:opacity-40 transition-opacity hover:opacity-80"
+                  style={{ background: 'var(--amber-soft)', border: '1px solid var(--amber)', color: 'var(--amber-dark)' }}
+                >
+                  {maxSugLoading ? <Loader2 size={13} className="animate-spin" /> : maxSugSaved ? <Check size={13} /> : null}
+                  {maxSugSaved ? 'Salvat!' : 'Salvează'}
+                </button>
+              </div>
+
+              {/* Tab bar */}
+              <div className="flex border-b" style={{ borderColor: 'var(--border)' }}>
+                {(['categorii', 'conexiuni'] as const).map(tab => (
+                  <button
+                    key={tab}
+                    type="button"
+                    onClick={() => {
+                      setTaxoTab(tab)
+                      if (tab === 'conexiuni') fetchConnections()
+                    }}
+                    className="px-4 py-2.5 text-xs font-semibold capitalize transition-colors"
+                    style={{
+                      background: taxoTab === tab ? 'var(--white)' : 'var(--cream2)',
+                      color: taxoTab === tab ? 'var(--ink)' : 'var(--ink3)',
+                      borderBottom: taxoTab === tab ? '2px solid #5B8E6D' : '2px solid transparent',
+                    }}
+                  >
+                    {tab === 'categorii' ? `Categorii (${TAXONOMY.length})` : 'Conexiuni'}
+                  </button>
+                ))}
+              </div>
+
+              {/* ── Categorii tab ── */}
+              {taxoTab === 'categorii' && (
+                <div className="p-4 space-y-5">
+
+                  {/* Categorii explanation — top */}
+                  <div className="rounded-lg border overflow-hidden" style={{ borderColor: 'var(--border)' }}>
+                    <button
+                      type="button"
+                      onClick={() => setCategoriiExplOpen(p => !p)}
+                      className="w-full flex items-center justify-between px-3 py-2 text-left transition-opacity hover:opacity-70"
+                      style={{ background: 'var(--cream2)' }}
+                    >
+                      <span className="text-xs font-semibold" style={{ color: 'var(--ink2)' }}>Cum funcționează taxonomia?</span>
+                      <ChevronDown size={14} style={{ color: 'var(--ink3)', transform: categoriiExplOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s', flexShrink: 0 }} />
+                    </button>
+                    {categoriiExplOpen && (
+                      <div className="px-3 py-3 space-y-2" style={{ borderTop: '1px solid var(--border)' }}>
+                        <p className="text-xs leading-relaxed" style={{ color: 'var(--ink3)' }}>
+                          Taxonomia este un dicționar cu <strong style={{ color: 'var(--ink2)' }}>80 de categorii</strong> grupate în 4 piloni: situații de mentorat, hobby-uri, domenii profesionale și profesii. Fiecare categorie are un <em>slug</em> unic (ex: <code style={{ fontSize: 10 }}>fitness-gym</code>) și o listă de cuvinte-cheie asociate.
+                        </p>
+                        <p className="text-xs leading-relaxed" style={{ color: 'var(--ink3)' }}>
+                          Când un utilizator salvează textul din secțiunea Mentor sau Mentee, aplicația scanează automat textul și identifică categoriile ale căror cuvinte-cheie apar în el. Același proces rulează și pe hobby-urile, domeniile și profesiile selectate în profil — acestea generează <em>profile_slugs</em> fără ca utilizatorul să scrie nimic.
+                        </p>
+                        <p className="text-xs leading-relaxed" style={{ color: 'var(--ink3)' }}>
+                          Rezultatul este un array de slug-uri per utilizator, stocat în tabelul <code style={{ fontSize: 10 }}>mentorship_profiles</code>: <code style={{ fontSize: 10 }}>mentor_slugs</code>, <code style={{ fontSize: 10 }}>mentee_slugs</code>, <code style={{ fontSize: 10 }}>profile_slugs</code>. Testul de mai jos simulează exact această extragere.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  {(['mentorat', 'hobby', 'domeniu', 'profesie'] as TaxonomyGroup[]).map(group => {
+                    const cats = TAXONOMY_BY_GROUP[group]
+                    const col = GROUP_COLORS[group]
+                    return (
+                      <div key={group}>
+                        {/* Pillar header */}
+                        <div className="flex items-center gap-2 mb-2">
+                          <span
+                            className="px-2 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider"
+                            style={{ background: col.bg, border: `1px solid ${col.border}`, color: col.text }}
+                          >
+                            {GROUP_LABELS[group]}
+                          </span>
+                          <span className="text-xs" style={{ color: 'var(--ink3)' }}>{cats.length} categorii</span>
+                        </div>
+
+                        {/* Category rows */}
+                        <div className="rounded-lg overflow-hidden border" style={{ borderColor: 'var(--border)' }}>
+                          {cats.map((cat, idx) => (
+                            <div
+                              key={cat.slug}
+                              style={{ borderTop: idx === 0 ? 'none' : '1px solid var(--border)' }}
+                            >
+                              {/* Category header row */}
+                              <button
+                                type="button"
+                                onClick={() => setExpandedSlug(expandedSlug === cat.slug ? null : cat.slug)}
+                                className="w-full flex items-center gap-3 px-3 py-2 text-left transition-colors hover:opacity-80"
+                                style={{ background: expandedSlug === cat.slug ? 'var(--cream2)' : 'transparent' }}
+                              >
+                                <code
+                                  className="text-xs flex-shrink-0 px-1.5 py-0.5 rounded"
+                                  style={{ background: col.bg, color: col.text, fontFamily: 'monospace', fontSize: 11 }}
+                                >
+                                  {cat.slug}
+                                </code>
+                                <span className="text-xs font-medium flex-1" style={{ color: 'var(--ink)' }}>
+                                  {cat.label}
+                                </span>
+                                <span
+                                  className="text-xs px-1.5 py-0.5 rounded-full flex-shrink-0"
+                                  style={{ background: 'var(--cream2)', color: 'var(--ink3)' }}
+                                >
+                                  {cat.keywords.length} kw
+                                </span>
+                                <ChevronDown
+                                  size={13}
+                                  style={{
+                                    color: 'var(--ink3)',
+                                    transform: expandedSlug === cat.slug ? 'rotate(180deg)' : 'none',
+                                    transition: 'transform 0.15s',
+                                    flexShrink: 0,
+                                  }}
+                                />
+                              </button>
+
+                              {/* Keywords (expanded) */}
+                              {expandedSlug === cat.slug && (
+                                <div className="px-3 pb-3 flex flex-wrap gap-1">
+                                  {cat.keywords.map(kw => (
+                                    <span
+                                      key={kw}
+                                      className="px-2 py-0.5 rounded-full"
+                                      style={{
+                                        fontSize: 11,
+                                        background: 'var(--cream)',
+                                        border: '1px solid var(--border)',
+                                        color: 'var(--ink2)',
+                                      }}
+                                    >
+                                      {kw}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )
+                  })}
+
+                  {/* Live test area */}
+                  <div
+                    className="rounded-lg p-3 space-y-2"
+                    style={{ background: 'var(--cream2)', border: '1px solid var(--border)' }}
+                  >
+                    <div className="flex items-center gap-1.5">
+                      <FlaskConical size={13} style={{ color: 'var(--ink3)' }} />
+                      <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--ink3)' }}>
+                        Testează extragerea de slug-uri
+                      </span>
+                    </div>
+                    <textarea
+                      value={testText}
+                      onChange={e => setTestText(e.target.value)}
+                      rows={3}
+                      placeholder="Scrie orice text... Ex: caut un job în tech după facultate, vreau să negociez salariul"
+                      className="w-full px-3 py-2 text-sm rounded-md outline-none resize-none"
+                      style={{
+                        background: 'var(--white)',
+                        border: '1.5px solid var(--border)',
+                        color: 'var(--ink)',
+                        fontFamily: 'inherit',
+                      }}
+                    />
+                    {testText.trim() && (
+                      <div className="flex flex-wrap gap-1.5">
+                        {extractSlugs(testText).length === 0 ? (
+                          <span className="text-xs italic" style={{ color: 'var(--ink3)' }}>Niciun slug detectat</span>
+                        ) : (
+                          extractSlugs(testText).map(slug => {
+                            const cat = TAXONOMY.find(c => c.slug === slug)
+                            const col = cat ? GROUP_COLORS[cat.group] : GROUP_COLORS.mentorat
+                            return (
+                              <span
+                                key={slug}
+                                className="px-2 py-0.5 rounded-full text-xs font-semibold"
+                                style={{ background: col.bg, border: `1px solid ${col.border}`, color: col.text }}
+                              >
+                                {slug}
+                              </span>
+                            )
+                          })
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                </div>
+              )}
+
+              {/* ── Conexiuni tab ── */}
+              {taxoTab === 'conexiuni' && (
+                <div className="p-4 space-y-4">
+
+                  {/* Conexiuni explanation — top */}
+                  <div className="rounded-lg border overflow-hidden" style={{ borderColor: 'var(--border)' }}>
+                    <button
+                      type="button"
+                      onClick={() => setConexiuniExplOpen(p => !p)}
+                      className="w-full flex items-center justify-between px-3 py-2 text-left transition-opacity hover:opacity-70"
+                      style={{ background: 'var(--cream2)' }}
+                    >
+                      <span className="text-xs font-semibold" style={{ color: 'var(--ink2)' }}>Cum sunt calculate conexiunile?</span>
+                      <ChevronDown size={14} style={{ color: 'var(--ink3)', transform: conexiuniExplOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s', flexShrink: 0 }} />
+                    </button>
+                    {conexiuniExplOpen && (
+                      <div className="px-3 py-3 space-y-2" style={{ borderTop: '1px solid var(--border)' }}>
+                        <p className="text-xs leading-relaxed" style={{ color: 'var(--ink3)' }}>
+                          O conexiune apare când un utilizator cu <strong style={{ color: 'var(--ink2)' }}>mentor_active = true</strong> și un altul cu <strong style={{ color: 'var(--ink2)' }}>mentee_active = true</strong> sunt în aceeași școală și au cel puțin un slug comun.
+                        </p>
+                        <p className="text-xs leading-relaxed" style={{ color: 'var(--ink3)' }}>
+                          Slugurile efective ale mentorului sunt <code style={{ fontSize: 10 }}>mentor_slugs ∪ profile_slugs</code>. Ale mentee-ului: <code style={{ fontSize: 10 }}>mentee_slugs ∪ profile_slugs</code>. Intersecția lor determină categoriile comune afișate în card.
+                        </p>
+                        <p className="text-xs leading-relaxed" style={{ color: 'var(--ink3)' }}>
+                          <strong style={{ color: 'var(--ink2)' }}>Scorul</strong> = categorii comune ÷ totalul categoriilor mentee-ului. Măsoară câte din nevoile mentee-ului sunt acoperite de mentor — nu similaritatea globală a profilelor. Un scor de 100% înseamnă că mentorul acoperă tot ce caută mentee-ul.
+                        </p>
+                        <p className="text-xs leading-relaxed" style={{ color: 'var(--ink3)' }}>
+                          Perechile sunt sortate descrescător după scor. Perechile cu 0% (nicio categorie comună) nu apar.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                  {connectionsLoading ? (
+                    <div className="flex justify-center py-8">
+                      <Loader2 size={20} className="animate-spin" style={{ color: 'var(--ink3)' }} />
+                    </div>
+                  ) : connections.length === 0 ? (
+                    <p className="text-sm text-center py-8 italic" style={{ color: 'var(--ink3)' }}>
+                      Nicio conexiune activă momentan.
+                    </p>
+                  ) : (
+                    <div className="space-y-2">
+                      <p className="text-xs mb-3" style={{ color: 'var(--ink3)' }}>
+                        {connections.length} {connections.length === 1 ? 'conexiune' : 'conexiuni'} active · sortat după scor
+                      </p>
+                      {connections.map((conn, i) => {
+                        const pct = Math.round(conn.score * 100)
+                        const scoreStyle =
+                          pct >= 60
+                            ? { background: '#dcfce7', color: '#15803d', border: '1px solid #86efac' }
+                            : pct >= 30
+                            ? { background: 'var(--teal-soft)', color: 'var(--teal)', border: '1px solid var(--teal)' }
+                            : { background: 'var(--amber-soft)', color: 'var(--amber-dark)', border: '1px solid var(--amber)' }
+                        return (
+                          <div
+                            key={i}
+                            className="rounded-lg p-3 space-y-2"
+                            style={{ background: 'var(--cream2)', border: '1px solid var(--border)' }}
+                          >
+                            {/* Names row */}
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="text-xs font-semibold" style={{ color: 'var(--ink)' }}>
+                                {conn.mentor_name}
+                              </span>
+                              <span className="text-xs px-1.5 py-0.5 rounded-full" style={{ background: 'var(--amber-soft)', color: 'var(--amber-dark)', border: '1px solid var(--amber)' }}>
+                                mentor
+                              </span>
+                              <span className="text-xs" style={{ color: 'var(--ink3)' }}>→</span>
+                              <span className="text-xs font-semibold" style={{ color: 'var(--ink)' }}>
+                                {conn.mentee_name}
+                              </span>
+                              <span className="text-xs px-1.5 py-0.5 rounded-full" style={{ background: 'var(--teal-soft)', color: 'var(--teal)', border: '1px solid var(--teal)' }}>
+                                mentee
+                              </span>
+                              <span
+                                className="ml-auto text-xs font-bold px-2 py-0.5 rounded-full"
+                                style={scoreStyle}
+                              >
+                                {pct}%
+                              </span>
+                            </div>
+                            {/* Shared slugs with keywords */}
+                            <div className="flex flex-wrap gap-2">
+                              {conn.slug_details.length === 0 && (
+                                <span className="text-xs italic" style={{ color: 'var(--ink3)' }}>
+                                  Activi, fără text completat încă
+                                </span>
+                              )}
+                              {conn.slug_details.map(({ slug, mentorKeywords, menteeKeywords }) => {
+                                const cat = TAXONOMY.find(c => c.slug === slug)
+                                const col = cat ? GROUP_COLORS[cat.group] : GROUP_COLORS.mentorat
+                                const allKeywords = [...new Set([...mentorKeywords, ...menteeKeywords])]
+                                  .slice(0, 4)
+                                  .map(kw => kw.charAt(0).toUpperCase() + kw.slice(1))
+                                const label = cat?.label ?? slug
+                                return (
+                                  <div
+                                    key={slug}
+                                    className="flex flex-col px-2 py-1 rounded-lg"
+                                    style={{ background: col.bg, border: `1px solid ${col.border}` }}
+                                  >
+                                    <span style={{ fontSize: 10, color: col.text }}>
+                                      <span className="font-semibold">Categorie:</span> {label}
+                                    </span>
+                                    {allKeywords.length > 0 && (
+                                      <span style={{ fontSize: 10, color: col.text, opacity: 0.8 }}>
+                                        <span className="font-semibold">Topic:</span> {allKeywords.join(', ')}
+                                      </span>
+                                    )}
+                                  </div>
+                                )
+                              })}
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
+
+                  </div>
+                </div>
+              )}
+            </>
+          )}
         </div>
       </div>
 

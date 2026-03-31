@@ -11,6 +11,7 @@ import {
   Loader2, GraduationCap, MapPin, Briefcase, Layers,
   Building2, Heart, Sparkles, UserX, ArrowLeft, MessageCircle, Search,
 } from 'lucide-react'
+import { MentorshipSection, type MentorshipData } from '@/components/MentorshipSection'
 
 interface PublicProfile {
   id: string
@@ -44,6 +45,7 @@ export default function PublicProfilePage() {
 
   const [loading, setLoading] = useState(true)
   const [profile, setProfile] = useState<PublicProfile | null>(null)
+  const [mentorship, setMentorship] = useState<MentorshipData | null>(null)
   const [notFound, setNotFound] = useState(false)
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
   const [currentUserAvatar, setCurrentUserAvatar] = useState<string | null>(null)
@@ -78,6 +80,13 @@ export default function PublicProfilePage() {
         setNotFound(true)
       } else {
         setProfile(data as PublicProfile)
+        // Fetch mentorship data (non-blocking, maybeSingle avoids error when no row exists)
+        supabase
+          .from('mentorship_profiles')
+          .select('mentor_text, mentor_active, mentee_text, mentee_active')
+          .eq('user_id', data.id)
+          .maybeSingle()
+          .then(({ data: mData }) => setMentorship(mData ?? null))
       }
       setLoading(false)
     }
@@ -293,6 +302,9 @@ export default function PublicProfilePage() {
             </div>
           </div>
         )}
+
+        {/* Mentorat */}
+        <MentorshipSection data={mentorship} readOnly />
 
         {/* Message button */}
         {currentUserId && (
