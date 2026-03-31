@@ -55,12 +55,20 @@ export async function GET(req: NextRequest) {
 
   const offerRole = forParam === 'mentors' ? 'mentor' : 'mentee'
 
+  const configKey = forParam === 'mentors' ? 'max_mentor_suggestions' : 'max_mentee_suggestions'
+  const { data: configRow } = await supabase
+    .from('app_config')
+    .select('value')
+    .eq('key', configKey)
+    .maybeSingle()
+  const limit = Math.min(10, Math.max(0, parseInt(configRow?.value ?? '10')))
+
   const { data: suggestions, error } = await supabase.rpc('get_mentorship_suggestions', {
     p_user_id:      user.id,
     p_highschool:   highschool,
     p_seeker_slugs: seekerSlugs,
     p_offer_role:   offerRole,
-    p_limit:        10,
+    p_limit:        limit,
   })
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })

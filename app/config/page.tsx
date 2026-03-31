@@ -60,6 +60,11 @@ export default function ConfigPage() {
   const [threshLoading, setThreshLoading] = useState(false)
   const [threshSaved, setThreshSaved] = useState(false)
 
+  const [maxMentor, setMaxMentor] = useState<number | ''>(10)
+  const [maxMentee, setMaxMentee] = useState<number | ''>(10)
+  const [maxSugLoading, setMaxSugLoading] = useState(false)
+  const [maxSugSaved, setMaxSugSaved] = useState(false)
+
   // Taxonomy & Mentorship section
   const [taxoCollapsed, setTaxoCollapsed] = useState(true)
   const [taxoTab, setTaxoTab] = useState<'categorii' | 'conexiuni'>('categorii')
@@ -108,6 +113,8 @@ export default function ConfigPage() {
       if (res.ok) {
         const data = await res.json()
         setThresh(data.thresh_enable_school)
+        setMaxMentor(data.max_mentor_suggestions)
+        setMaxMentee(data.max_mentee_suggestions)
       }
     }
     loadThresh()
@@ -221,6 +228,21 @@ export default function ConfigPage() {
       await fetchSchools()
     }
     setThreshLoading(false)
+  }
+
+  async function handleSaveMaxSug() {
+    if (typeof maxMentor !== 'number' || typeof maxMentee !== 'number') return
+    setMaxSugLoading(true)
+    const res = await fetch('/api/config/app-config', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ max_mentor_suggestions: maxMentor, max_mentee_suggestions: maxMentee }),
+    })
+    if (res.ok) {
+      setMaxSugSaved(true)
+      setTimeout(() => setMaxSugSaved(false), 2000)
+    }
+    setMaxSugLoading(false)
   }
 
   async function handleDisableAll() {
@@ -556,6 +578,45 @@ export default function ConfigPage() {
 
           {!taxoCollapsed && (
             <>
+              {/* Max suggestions config */}
+              <div className="px-4 py-3 flex flex-wrap items-center gap-4" style={{ borderBottom: '1px solid var(--border)' }}>
+                <p className="text-xs font-semibold flex-shrink-0" style={{ color: 'var(--ink2)' }}>Sugestii maxime</p>
+                <div className="flex items-center gap-2">
+                  <label className="text-xs" style={{ color: 'var(--ink3)' }}>Mentori</label>
+                  <input
+                    type="number"
+                    min={0}
+                    max={10}
+                    value={maxMentor}
+                    onChange={e => setMaxMentor(e.target.value === '' ? '' : Math.min(10, Math.max(0, parseInt(e.target.value))))}
+                    className="w-16 px-2 py-1.5 text-sm rounded-md outline-none"
+                    style={{ background: 'var(--cream2)', border: '1.5px solid var(--border)', color: 'var(--ink)', fontFamily: 'inherit' }}
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <label className="text-xs" style={{ color: 'var(--ink3)' }}>Mentee</label>
+                  <input
+                    type="number"
+                    min={0}
+                    max={10}
+                    value={maxMentee}
+                    onChange={e => setMaxMentee(e.target.value === '' ? '' : Math.min(10, Math.max(0, parseInt(e.target.value))))}
+                    className="w-16 px-2 py-1.5 text-sm rounded-md outline-none"
+                    style={{ background: 'var(--cream2)', border: '1.5px solid var(--border)', color: 'var(--ink)', fontFamily: 'inherit' }}
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={handleSaveMaxSug}
+                  disabled={maxSugLoading || typeof maxMentor !== 'number' || typeof maxMentee !== 'number'}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold disabled:opacity-40 transition-opacity hover:opacity-80"
+                  style={{ background: 'var(--amber-soft)', border: '1px solid var(--amber)', color: 'var(--amber-dark)' }}
+                >
+                  {maxSugLoading ? <Loader2 size={13} className="animate-spin" /> : maxSugSaved ? <Check size={13} /> : null}
+                  {maxSugSaved ? 'Salvat!' : 'Salvează'}
+                </button>
+              </div>
+
               {/* Tab bar */}
               <div className="flex border-b" style={{ borderColor: 'var(--border)' }}>
                 {(['categorii', 'conexiuni'] as const).map(tab => (
