@@ -20,6 +20,8 @@ interface FeedbackItem {
   createdAt: string
   page: string | null
   category: ClusterCategory | null
+  screenshotPath: string | null
+  screenshotUrl: string | null
 }
 
 interface ClusteredFeedback {
@@ -121,7 +123,7 @@ export default function FeedbackPage() {
         .not('feedback', 'is', null)
 
       const allFeedback: FeedbackItem[] = (profiles || []).flatMap(p => {
-        const entries: { id: number; msg: string; at: string; page?: string; category?: string }[] =
+        const entries: { id: number; msg: string; at: string; page?: string; category?: string; screenshot_path?: string }[] =
           Array.isArray(p.feedback) ? p.feedback : []
         return entries.map(e => ({
           userId: p.id,
@@ -132,8 +134,25 @@ export default function FeedbackPage() {
           createdAt: e.at,
           page: e.page ?? null,
           category: (e.category as FeedbackItem['category']) ?? null,
+          screenshotPath: e.screenshot_path ?? null,
+          screenshotUrl: null,
         }))
       }).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+
+      // Resolve signed URLs for items that have screenshots
+      const itemsWithScreenshots = allFeedback.filter(f => f.screenshotPath)
+      if (itemsWithScreenshots.length > 0) {
+        const urlResults = await Promise.all(
+          itemsWithScreenshots.map(f =>
+            supabase.storage.from('feedback').createSignedUrl(f.screenshotPath!, 3600)
+          )
+        )
+        urlResults.forEach((result, i) => {
+          if (!result.error && result.data?.signedUrl) {
+            itemsWithScreenshots[i].screenshotUrl = result.data.signedUrl
+          }
+        })
+      }
 
       setFeedbackList(allFeedback)
       return allFeedback
@@ -180,7 +199,7 @@ export default function FeedbackPage() {
       .eq('id', item.userId)
       .single()
 
-    const entries: { id: number; msg: string; at: string; page?: string; category?: string }[] =
+    const entries: { id: number; msg: string; at: string; page?: string; category?: string; screenshot_path?: string }[] =
       Array.isArray(targetProfile?.feedback) ? targetProfile.feedback : []
     const updatedEntries = entries.map(e => e.id === item.feedbackId ? { ...e, category: to } : e)
 
@@ -389,6 +408,7 @@ export default function FeedbackPage() {
                   <FeedbackCard
                     key={`${f.userId}-${f.feedbackId}`}
                     item={f}
+                    screenshotUrl={f.screenshotUrl}
                     currentCategory={null}
                     deleting={deletingItem === `${f.userId}-${f.feedbackId}`}
                     onDelete={() => deleteItem(f.userId, f.feedbackId)}
@@ -422,6 +442,7 @@ export default function FeedbackPage() {
                         <FeedbackCard
                           key={`${f.userId}-${f.feedbackId}`}
                           item={f}
+                          screenshotUrl={f.screenshotUrl}
                           currentCategory={key}
                           deleting={deletingItem === `${f.userId}-${f.feedbackId}`}
                           onDelete={() => deleteItem(f.userId, f.feedbackId)}
@@ -443,12 +464,14 @@ export default function FeedbackPage() {
 
 function FeedbackCard({
   item,
+  screenshotUrl,
   currentCategory,
   deleting,
   onDelete,
   onMove,
 }: {
   item: FeedbackItem
+  screenshotUrl: string | null
   currentCategory: ClusterCategory | null
   deleting: boolean
   onDelete: () => void
@@ -519,6 +542,20 @@ function FeedbackCard({
       <p className="text-xs whitespace-pre-wrap leading-relaxed" style={{ color: 'var(--ink2)' }}>
         {item.message}
       </p>
+      {screenshotUrl && (
+        <a href={screenshotUrl} target="_blank" rel="noopener noreferrer" className="block mt-1.5">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={screenshotUrl}
+            alt="captură ecran"
+            className="max-h-48 rounded-sm object-cover border"
+            style={{ borderColor: 'var(--border)' }}
+          />
+          <span className="text-xxs mt-0.5 block" style={{ color: 'var(--ink3)' }}>
+            captură atașată · click pentru mărire
+          </span>
+        </a>
+      )}
     </div>
     </>
   )

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { createServerSupabaseClient, createServiceRoleClient } from '@/lib/supabase-server'
 
 async function requireAdmin() {
   const supabase = createServerSupabaseClient()
@@ -38,8 +38,10 @@ export async function DELETE(
 
   if (!profile) return NextResponse.json({ error: 'User not found' }, { status: 404 })
 
-  const entries: { id: number; msg: string; at: string; page?: string; category?: string }[] =
+  const entries: { id: number; msg: string; at: string; page?: string; category?: string; screenshot_path?: string }[] =
     Array.isArray(profile.feedback) ? profile.feedback : []
+
+  const target = entries.find(e => e.id === feedbackId)
   const updated = entries.filter(e => e.id !== feedbackId)
 
   const { error } = await supabase
@@ -48,6 +50,11 @@ export async function DELETE(
     .eq('id', params.userId)
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  if (target?.screenshot_path) {
+    const serviceClient = createServiceRoleClient()
+    await serviceClient.storage.from('feedback').remove([target.screenshot_path])
+  }
 
   return NextResponse.json({ ok: true })
 }
