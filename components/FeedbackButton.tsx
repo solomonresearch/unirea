@@ -5,6 +5,46 @@ import { usePathname } from 'next/navigation'
 import { MessageSquare, X, Loader2, ImagePlus } from 'lucide-react'
 import { getSupabase } from '@/lib/supabase'
 
+async function compressToWebP(file: File): Promise<File> {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    const objectUrl = URL.createObjectURL(file)
+
+    img.onload = () => {
+      URL.revokeObjectURL(objectUrl)
+
+      const maxDimension = 1920
+      let { width, height } = img
+      if (width > maxDimension || height > maxDimension) {
+        if (width > height) {
+          height = Math.round((height * maxDimension) / width)
+          width = maxDimension
+        } else {
+          width = Math.round((width * maxDimension) / height)
+          height = maxDimension
+        }
+      }
+
+      const canvas = document.createElement('canvas')
+      canvas.width = width
+      canvas.height = height
+      canvas.getContext('2d')!.drawImage(img, 0, 0, width, height)
+
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) { reject(new Error('Canvas toBlob failed')); return }
+          resolve(new File([blob], 'screenshot.webp', { type: 'image/webp' }))
+        },
+        'image/webp',
+        0.85
+      )
+    }
+
+    img.onerror = () => { URL.revokeObjectURL(objectUrl); reject(new Error('Image load failed')) }
+    img.src = objectUrl
+  })
+}
+
 export function FeedbackButton() {
   const pathname = usePathname()
   const [visible, setVisible] = useState(false)
@@ -37,11 +77,12 @@ export function FeedbackButton() {
 
   if (!visible || modalOpen) return null
 
-  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0] ?? null
     if (!file) return
-    setScreenshot(file)
-    setScreenshotPreview(URL.createObjectURL(file))
+    const converted = await compressToWebP(file)
+    setScreenshot(converted)
+    setScreenshotPreview(URL.createObjectURL(converted))
   }
 
   function clearScreenshot() {
@@ -77,11 +118,10 @@ export function FeedbackButton() {
 
       let screenshotPath: string | undefined
       if (screenshot) {
-        const ext = screenshot.type === 'image/png' ? 'png' : screenshot.type === 'image/webp' ? 'webp' : 'jpg'
-        const path = `${user.id}/${nextId}.${ext}`
+        const path = `${user.id}/${nextId}.webp`
         const { error: uploadError } = await supabase.storage
           .from('feedback')
-          .upload(path, screenshot, { contentType: screenshot.type, upsert: true })
+          .upload(path, screenshot, { contentType: 'image/webp', upsert: true })
         if (!uploadError) screenshotPath = path
       }
 
