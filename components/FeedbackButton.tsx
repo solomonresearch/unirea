@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { usePathname } from 'next/navigation'
-import { MessageSquare, X, Loader2 } from 'lucide-react'
+import { MessageSquare, X, Loader2, ImagePlus } from 'lucide-react'
 import { getSupabase } from '@/lib/supabase'
 
 export function FeedbackButton() {
@@ -11,8 +11,11 @@ export function FeedbackButton() {
   const [modalOpen, setModalOpen] = useState(false)
   const [open, setOpen] = useState(false)
   const [message, setMessage] = useState('')
+  const [screenshot, setScreenshot] = useState<File | null>(null)
+  const [screenshotPreview, setScreenshotPreview] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [done, setDone] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     async function checkAuth() {
@@ -34,6 +37,26 @@ export function FeedbackButton() {
 
   if (!visible || modalOpen) return null
 
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0] ?? null
+    if (!file) return
+    setScreenshot(file)
+    setScreenshotPreview(URL.createObjectURL(file))
+  }
+
+  function clearScreenshot() {
+    setScreenshot(null)
+    if (screenshotPreview) URL.revokeObjectURL(screenshotPreview)
+    setScreenshotPreview(null)
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  }
+
+  function handleClose() {
+    setOpen(false)
+    setMessage('')
+    clearScreenshot()
+  }
+
   async function handleSubmit() {
     if (!message.trim()) return
     setSaving(true)
@@ -48,14 +71,26 @@ export function FeedbackButton() {
         .eq('id', user.id)
         .single()
 
-      const existing: { id: number; msg: string; at: string; page?: string }[] =
+      const existing: { id: number; msg: string; at: string; page?: string; screenshot_path?: string }[] =
         Array.isArray(profile?.feedback) ? profile.feedback : []
       const nextId = existing.length > 0 ? Math.max(...existing.map(e => e.id)) + 1 : 1
+
+      let screenshotPath: string | undefined
+      if (screenshot) {
+        const ext = screenshot.type === 'image/png' ? 'png' : screenshot.type === 'image/webp' ? 'webp' : 'jpg'
+        const path = `${user.id}/${nextId}.${ext}`
+        const { error: uploadError } = await supabase.storage
+          .from('feedback')
+          .upload(path, screenshot, { contentType: screenshot.type, upsert: true })
+        if (!uploadError) screenshotPath = path
+      }
+
       const newEntry = {
         id: nextId,
         msg: message.trim(),
         at: new Date().toISOString(),
         ...(pathname ? { page: pathname } : {}),
+        ...(screenshotPath ? { screenshot_path: screenshotPath } : {}),
       }
 
       const { error } = await supabase
@@ -66,6 +101,7 @@ export function FeedbackButton() {
       if (!error) {
         setDone(true)
         setMessage('')
+        clearScreenshot()
         setTimeout(() => {
           setDone(false)
           setOpen(false)
@@ -97,7 +133,7 @@ export function FeedbackButton() {
         <div
           className="fixed inset-0 z-[250] flex items-center justify-center px-4"
           style={{ background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(4px)' }}
-          onClick={e => { if (e.target === e.currentTarget) setOpen(false) }}
+          onClick={e => { if (e.target === e.currentTarget) handleClose() }}
         >
           <div
             className="w-full max-w-sm rounded-xl p-5 space-y-4"
@@ -109,7 +145,7 @@ export function FeedbackButton() {
               </h2>
               <button
                 type="button"
-                onClick={() => setOpen(false)}
+                onClick={handleClose}
                 className="w-8 h-8 flex items-center justify-center rounded-sm"
                 style={{ background: 'var(--cream2)', color: 'var(--ink2)' }}
               >
@@ -137,6 +173,44 @@ export function FeedbackButton() {
                   }}
                   autoFocus
                 />
+
+                {/* Screenshot attachment */}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  className="hidden"
+                  onChange={handleFileChange}
+                />
+                {screenshotPreview ? (
+                  <div className="relative w-full rounded-sm overflow-hidden" style={{ border: '1.5px solid var(--border)' }}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={screenshotPreview} alt="captură ecran" className="w-full object-cover max-h-40" />
+                    <button
+                      type="button"
+                      onClick={clearScreenshot}
+                      className="absolute top-1.5 right-1.5 w-6 h-6 flex items-center justify-center rounded-full"
+                      style={{ background: 'rgba(0,0,0,0.55)', color: '#fff' }}
+                    >
+                      <X size={12} />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="w-full flex items-center justify-center gap-2 rounded-sm py-2 text-xs font-medium transition-opacity"
+                    style={{
+                      background: 'var(--cream2)',
+                      border: '1.5px dashed var(--border)',
+                      color: 'var(--ink3)',
+                    }}
+                  >
+                    <ImagePlus size={14} />
+                    Atașează captură de ecran (opțional)
+                  </button>
+                )}
+
                 <button
                   type="button"
                   onClick={handleSubmit}
